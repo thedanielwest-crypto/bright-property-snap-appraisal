@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snap Your Appraisal — Bright Property Townsville</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#12314C;
+    --ink-soft:#4C6478;
+    --gold:#F2A93B;
+    --gold-deep:#E08E17;
+    --sky-dawn:#E9F1F7;
+    --sky-day:#FFF6E7;
+    --white:#FFFFFF;
+    --success:#2F9E68;
+    --line:#E1E8EE;
+    --radius:22px;
+    --shadow: 0 20px 50px rgba(18,49,76,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(242,169,59,0.25), transparent 45%),
+      linear-gradient(180deg,#0E2438 0%, #1B4066 55%, #E9F1F7 55%, #E9F1F7 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    color:var(--ink);
+  }
+  h1,h2,h3{font-family:'Fraunces',serif; margin:0; letter-spacing:-0.01em;}
+  p{margin:0;}
+  .rig-label{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%);
+    color:rgba(255,255,255,0.55); font-size:12px; letter-spacing:0.08em; text-transform:uppercase; font-weight:600;
+  }
+  .frame{
+    width:390px; max-width:100%; height:820px; max-height:92vh;
+    background:var(--sky-dawn);
+    border-radius:44px;
+    box-shadow:var(--shadow), 0 0 0 10px #0E2438, 0 0 0 11px rgba(255,255,255,0.08);
+    overflow:hidden;
+    position:relative;
+    display:flex; flex-direction:column;
+  }
+  .notch{
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:120px; height:26px; background:#0E2438; border-radius:0 0 16px 16px; z-index:50;
+  }
+  .screen{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    opacity:0; pointer-events:none;
+    transform:translateX(24px);
+    transition:opacity .35s ease, transform .35s ease;
+  }
+  .screen.active{ opacity:1; pointer-events:auto; transform:translateX(0); }
+  .screens{ position:relative; flex:1; }
+
+  /* ---------- SPLASH ---------- */
+  #screen-splash{
+    background:linear-gradient(180deg,#12314C 0%, #1B4066 60%, #2C5C8A 100%);
+    color:white; justify-content:space-between; padding:56px 30px 34px;
+    text-align:center;
+  }
+  .brand-mark{
+    display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:auto;
+  }
+  .sun-logo{width:34px;height:34px;}
+  .brand-word{font-family:'Fraunces',serif; font-weight:600; font-size:18px; letter-spacing:0.01em;}
+  .brand-word b{color:var(--gold); font-weight:700;}
+  .splash-hero{margin-top:26px;}
+  .splash-hero .eyebrow{
+    color:var(--gold); font-size:13px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; margin-bottom:14px;
+  }
+  .splash-hero h1{font-size:38px; line-height:1.08; color:white;}
+  .splash-hero h1 em{font-style:normal; color:var(--gold);}
+  .splash-hero .sub{margin-top:16px; font-size:15px; line-height:1.55; color:rgba(255,255,255,0.78); max-width:300px; margin-left:auto; margin-right:auto;}
+  .room-chip-row{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:22px;}
+  .room-chip{font-size:12px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); padding:6px 12px; border-radius:100px; color:rgba(255,255,255,0.85);}
+  .cta-stack{margin-top:30px;}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:16px 20px; border-radius:100px; border:none;
+    font-family:'Inter',sans-serif; font-weight:700; font-size:15.5px; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-gold{background:linear-gradient(180deg,#F7B850,var(--gold-deep)); color:#12314C; box-shadow:0 10px 24px rgba(224,142,23,0.4);}
+  .btn-ghost{background:transparent; color:rgba(255,255,255,0.75); font-weight:600; margin-top:12px;}
+  .btn-outline{background:white; color:var(--ink); border:1.5px solid var(--line);}
+  .fineprint{margin-top:14px; font-size:11.5px; color:rgba(255,255,255,0.5);}
+
+  /* ---------- SHARED APP HEADER ---------- */
+  .app-header{
+    padding:20px 22px 14px; display:flex; align-items:center; gap:12px; background:var(--sky-dawn);
+    border-bottom:1px solid var(--line); flex-shrink:0;
+  }
+  .back-btn{width:34px;height:34px;border-radius:50%;background:white;border:1px solid var(--line); display:flex;align-items:center;justify-content:center; cursor:pointer; flex-shrink:0;}
+  .app-header .title{font-family:'Fraunces',serif; font-weight:600; font-size:16.5px;}
+  .app-header .subtitle{font-size:12px; color:var(--ink-soft); margin-top:1px;}
+
+  /* ---------- FEATURE CHECKLIST ---------- */
+  #screen-setup .content{padding:20px 22px 26px; overflow-y:auto; flex:1;}
+  .setup-lead{font-size:13.5px; color:var(--ink-soft); line-height:1.5; margin-bottom:18px;}
+  .section-label{font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:9px;}
+  .bedroom-options{display:flex; gap:8px; margin-bottom:22px;}
+  .bedroom-opt{
+    flex:1; text-align:center; padding:14px 6px; border:1.5px solid var(--line); border-radius:14px; background:white;
+    font-family:'Fraunces',serif; font-weight:600; font-size:17px; cursor:pointer; transition:all .15s ease; user-select:none;
+  }
+  .bedroom-opt.selected{border-color:var(--gold-deep); background:var(--sky-day); box-shadow:0 4px 14px rgba(224,142,23,0.18); color:var(--gold-deep);}
+  .feature-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .feature-card{
+    border:1.5px solid var(--line); background:white; border-radius:16px; padding:14px 12px;
+    display:flex; flex-direction:column; gap:8px; cursor:pointer; transition:all .15s ease; user-select:none;
+  }
+  .feature-card .emoji{font-size:22px;}
+  .feature-card .label{font-size:13px; font-weight:600; line-height:1.25;}
+  .feature-card.selected{border-color:var(--gold-deep); background:var(--sky-day); box-shadow:0 4px 14px rgba(224,142,23,0.18);}
+  .feature-card .check{
+    width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line); background:white;
+    display:flex;align-items:center;justify-content:center; font-size:11px; color:white; align-self:flex-end; margin-top:-26px;
+  }
+  .feature-card.selected .check{background:var(--success); border-color:var(--success);}
+  .setup-note{margin-top:16px; font-size:12px; color:var(--ink-soft); background:white; border:1px dashed var(--line); border-radius:12px; padding:10px 12px;}
+  .footer-fixed{padding:16px 22px 22px; background:var(--sky-dawn); border-top:1px solid var(--line); flex-shrink:0;}
+  .room-count-pill{font-size:12.5px; color:var(--ink-soft); text-align:center; margin-bottom:10px;}
+  .room-count-pill b{color:var(--ink);}
+
+  /* ---------- CAPTURE SCREEN ---------- */
+  #screen-capture{background:var(--sky-dawn);}
+  .brightometer-wrap{padding:14px 22px 6px; display:flex; flex-direction:column; align-items:center; flex-shrink:0;}
+  .milestone-toast{
+    position:absolute; top:96px; left:50%; transform:translateX(-50%) translateY(-8px);
+    background:var(--ink); color:white; font-size:12.5px; font-weight:600; padding:8px 16px; border-radius:100px;
+    opacity:0; transition:opacity .3s ease, transform .3s ease; white-space:nowrap; z-index:40; pointer-events:none;
+  }
+  .milestone-toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .capture-body{flex:1; padding:6px 22px 10px; display:flex; flex-direction:column; overflow-y:auto;}
+  .room-now{
+    background:white; border-radius:20px; border:1px solid var(--line); padding:22px 18px;
+    text-align:center; margin-top:6px;
+  }
+  .room-now .step-tag{font-size:11.5px; font-weight:700; color:var(--gold-deep); letter-spacing:0.08em; text-transform:uppercase;}
+  .room-now .room-emoji{font-size:44px; margin:10px 0 6px;}
+  .room-now h2{font-size:21px;}
+  .room-now .hint{font-size:12.5px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
+  .capture-preview{
+    margin-top:16px; height:150px; border-radius:14px; background:#F1F5F8; border:1.5px dashed var(--line);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;
+  }
+  .capture-preview img{width:100%; height:100%; object-fit:cover;}
+  .capture-preview .placeholder-icon{font-size:30px; opacity:0.35;}
+  .capture-preview canvas{display:none; width:100%; height:100%; touch-action:none; cursor:crosshair;}
+  .capture-preview .badge-ok{
+    position:absolute; top:8px; right:8px; background:var(--success); color:white; width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center; font-size:14px; font-weight:700; box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  }
+  .blur-hint{display:none; font-size:11.5px; color:var(--ink-soft); text-align:center; margin-top:9px;}
+  .privacy-disclaimer{
+    display:none; font-size:10.5px; color:var(--ink-soft); background:#F1F5F8; border-radius:10px;
+    padding:8px 10px; margin-top:8px; line-height:1.4; text-align:center;
+  }
+  .capture-actions{margin-top:16px; display:flex; flex-direction:column; gap:10px;}
+  .capture-actions-row{display:none; flex-direction:row; margin-top:14px;}
+  .capture-actions-row .btn{flex:1;}
+  .skip-link{text-align:center; font-size:12.5px; color:var(--ink-soft); text-decoration:underline; cursor:pointer; margin-top:2px;}
+  .room-strip{display:flex; gap:7px; overflow-x:auto; padding:14px 2px 4px;}
+  .room-tile{
+    flex-shrink:0; width:52px; text-align:center; font-size:10px; color:var(--ink-soft);
+  }
+  .room-tile .dot{
+    width:38px;height:38px;border-radius:50%; background:white; border:1.5px solid var(--line);
+    display:flex;align-items:center;justify-content:center; font-size:16px; margin:0 auto 4px; transition:all .2s ease;
+  }
+  .room-tile.done .dot{background:var(--success); border-color:var(--success); color:white;}
+  .room-tile.current .dot{border-color:var(--gold-deep); box-shadow:0 0 0 3px rgba(242,169,59,0.25);}
+
+  /* ---------- REVEAL SCREEN ---------- */
+  #screen-reveal{background:linear-gradient(180deg,#12314C, #2C5C8A 65%, var(--sky-dawn) 65%); color:white; text-align:center;}
+  .reveal-body{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px 26px;}
+  .confetti-emoji{font-size:15px; position:absolute; animation:fall 2.6s ease-in forwards; opacity:0.95;}
+  @keyframes fall{ to{ transform:translateY(760px) rotate(320deg); opacity:0;} }
+  .reveal-body .eyebrow{color:var(--gold); font-size:12.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;}
+  .reveal-body h1{font-size:22px; color:white; margin-top:10px; line-height:1.3;}
+  .estimate-card{
+    background:white; color:var(--ink); border-radius:20px; padding:22px 20px; margin-top:20px; width:100%; box-shadow:var(--shadow);
+  }
+  .estimate-card .label{font-size:11.5px; color:var(--ink-soft); font-weight:600; text-transform:uppercase; letter-spacing:0.06em;}
+  .estimate-card .range{font-family:'Fraunces',serif; font-size:30px; font-weight:600; margin-top:6px; color:var(--gold-deep);}
+  .estimate-card .caveat{font-size:11.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
+  .reveal-cta{margin-top:22px; width:100%;}
+
+  /* ---------- CONTACT SCREEN ---------- */
+  #screen-contact .content{padding:20px 22px; overflow-y:auto; flex:1;}
+  .trust-line{display:flex; gap:8px; align-items:flex-start; background:var(--sky-day); border:1px solid #F0DCB8; border-radius:12px; padding:10px 12px; margin-bottom:18px;}
+  .trust-line span:first-child{font-size:16px;}
+  .trust-line p{font-size:12px; color:var(--ink-soft); line-height:1.5;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; margin-bottom:6px; color:var(--ink);}
+  .field input{
+    width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid var(--line); font-size:14.5px;
+    font-family:'Inter',sans-serif; background:white;
+  }
+  .field input:focus{outline:none; border-color:var(--gold-deep);}
+  .contact-pref{display:flex; gap:8px;}
+  .pref-opt{
+    flex:1; text-align:center; padding:10px 6px; border-radius:12px; border:1.5px solid var(--line); background:white;
+    font-size:12.5px; font-weight:600; cursor:pointer; color:var(--ink-soft);
+  }
+  .pref-opt.selected{border-color:var(--gold-deep); background:var(--sky-day); color:var(--ink);}
+
+  /* ---------- CONFIRM SCREEN ---------- */
+  #screen-confirm{background:linear-gradient(180deg,var(--sky-dawn), var(--sky-day)); text-align:center; justify-content:center; align-items:center; padding:40px 30px;}
+  .confirm-icon{width:76px;height:76px;border-radius:50%; background:var(--success); display:flex;align-items:center;justify-content:center; font-size:34px; color:white; margin-bottom:20px; box-shadow:0 12px 24px rgba(47,158,104,0.3);}
+  #screen-confirm h2{font-size:22px;}
+  #screen-confirm p{font-size:13.5px; color:var(--ink-soft); margin-top:10px; line-height:1.6; max-width:280px;}
+  .agent-card{margin-top:22px; background:white; border:1px solid var(--line); border-radius:16px; padding:14px 16px; display:flex; align-items:center; gap:12px; width:100%; text-align:left;}
+  .agent-avatar{width:42px;height:42px;border-radius:50%; background:var(--sky-day); border:1px solid #F0DCB8; display:flex; align-items:center; justify-content:center; font-size:18px;}
+  .agent-card .name{font-size:13.5px; font-weight:700;}
+  .agent-card .role{font-size:11.5px; color:var(--ink-soft);}
+</style>
+</head>
+<body>
+
+<div class="rig-label">Clickable Concept — Snap Your Appraisal</div>
+
+<div class="frame" id="frame">
+  <div class="notch"></div>
+  <div class="screens">
+
+    <!-- SPLASH -->
+    <div class="screen active" id="screen-splash">
+      <div class="brand-mark">
+        <svg class="sun-logo" viewBox="0 0 40 40"><circle cx="20" cy="20" r="9" fill="#F2A93B"/><g stroke="#F2A93B" stroke-width="2.5" stroke-linecap="round"><line x1="20" y1="2" x2="20" y2="7"/><line x1="20" y1="33" x2="20" y2="38"/><line x1="2" y1="20" x2="7" y2="20"/><line x1="33" y1="20" x2="38" y2="20"/><line x1="7" y1="7" x2="10.5" y2="10.5"/><line x1="29.5" y1="29.5" x2="33" y2="33"/><line x1="33" y1="7" x2="29.5" y2="10.5"/><line x1="10.5" y1="29.5" x2="7" y2="33"/></g></svg>
+        <div class="brand-word">bright <b>property</b></div>
+      </div>
+      <div class="splash-hero">
+        <div class="eyebrow">Free Appraisal · Townsville</div>
+        <h1>Snap your home.<br>See its <em>value.</em></h1>
+        <p class="sub">Skip the phone call. Walk through your place, take a few photos, and we'll turn them into a real appraisal from a local Bright Property agent.</p>
+        <div class="room-chip-row">
+          <span class="room-chip">🍳 Kitchen</span>
+          <span class="room-chip">🛁 Bathroom</span>
+          <span class="room-chip">🌴 Backyard</span>
+          <span class="room-chip">+more</span>
+        </div>
+      </div>
+      <div class="cta-stack">
+        <button class="btn btn-gold" onclick="goTo('setup')">Start My Snap Appraisal →</button>
+        <button class="btn btn-ghost" onclick="alert('In the live build, this opens a plain contact form for anyone who\u2019d rather skip photos.')">I'd rather just send details</button>
+        <div class="fineprint">Takes ~4 minutes · No account needed · No spam calls</div>
+      </div>
+    </div>
+
+    <!-- SETUP / FEATURE CHECKLIST -->
+    <div class="screen" id="screen-setup">
+      <div class="app-header">
+        <div class="back-btn" onclick="goTo('splash')">←</div>
+        <div>
+          <div class="title">What's on your property?</div>
+          <div class="subtitle">We'll build your photo checklist from this</div>
+        </div>
+      </div>
+      <div class="content">
+        <p class="setup-lead">Tell us how many bedrooms you have, then tap anything else you've got so we don't miss it.</p>
+        <p class="section-label">How many bedrooms?</p>
+        <div class="bedroom-options" id="bedroom-options">
+          <div class="bedroom-opt" data-count="1">1</div>
+          <div class="bedroom-opt" data-count="2">2</div>
+          <div class="bedroom-opt" data-count="3">3</div>
+          <div class="bedroom-opt" data-count="4">4+</div>
+        </div>
+        <p class="section-label">Anything else on the property?</p>
+        <div class="feature-grid" id="feature-grid"></div>
+        <div class="setup-note">💡 Selling features like a pool or shed can lift your appraisal — worth a tap even if it needs some love.</div>
+      </div>
+      <div class="footer-fixed">
+        <div class="room-count-pill">We'll ask for <b id="room-count-label">7</b> photos</div>
+        <button class="btn btn-gold" onclick="startCapture()">Let's Go →</button>
+      </div>
+    </div>
+
+    <!-- CAPTURE FLOW -->
+    <div class="screen" id="screen-capture">
+      <div class="app-header">
+        <div class="back-btn" onclick="prevRoom()">←</div>
+        <div>
+          <div class="title">Snap Your Appraisal</div>
+          <div class="subtitle" id="capture-subtitle">Room 1 of 7</div>
+        </div>
+      </div>
+      <div class="brightometer-wrap">
+        <svg width="260" height="90" viewBox="0 0 260 90">
+          <path d="M 20 85 A 110 110 0 0 1 240 85" fill="none" stroke="#DCE6EE" stroke-width="10" stroke-linecap="round"/>
+          <path id="arc-fill" d="M 20 85 A 110 110 0 0 1 240 85" fill="none" stroke="#F2A93B" stroke-width="10" stroke-linecap="round" stroke-dasharray="345.6" stroke-dashoffset="345.6"/>
+          <g id="sun-group" transform="translate(20,85)">
+            <circle id="sun-core" r="10" fill="#F2A93B"/>
+            <g id="sun-rays" stroke="#F2A93B" stroke-width="2" stroke-linecap="round" opacity="0.15">
+              <line x1="0" y1="-16" x2="0" y2="-21"/>
+              <line x1="11.3" y1="-11.3" x2="14.8" y2="-14.8"/>
+              <line x1="-11.3" y1="-11.3" x2="-14.8" y2="-14.8"/>
+              <line x1="16" y1="0" x2="21" y2="0"/>
+              <line x1="-16" y1="0" x2="-21" y2="0"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <div class="milestone-toast" id="milestone-toast">Halfway there! 🎉</div>
+      <div class="capture-body">
+        <div class="room-now">
+          <div class="step-tag" id="step-tag">Photo 1 of 7</div>
+          <div class="room-emoji" id="room-emoji">🍳</div>
+          <h2 id="room-title">Kitchen</h2>
+          <p class="hint" id="room-hint">Stand in the doorway and get the benches, splashback and any appliances staying with the home.</p>
+          <div class="capture-preview" id="capture-preview">
+            <span class="placeholder-icon" id="preview-placeholder">📷</span>
+            <canvas id="photo-canvas"></canvas>
+          </div>
+          <div class="blur-hint" id="blur-hint">👆 Drag over anything you'd rather not show — it'll blur instantly</div>
+          <div class="privacy-disclaimer" id="privacy-disclaimer">🔒 Blurring is for privacy only — please don't hide real condition issues. Your agent still needs to see the true state of the room.</div>
+          <div class="capture-actions" id="pre-actions">
+            <input type="file" accept="image/*" capture="environment" id="file-input" style="display:none" onchange="handlePhoto(event)">
+            <button class="btn btn-gold" onclick="document.getElementById('file-input').click()">📸 Take Photo</button>
+            <div class="skip-link" onclick="skipRoom()">Skip this one for now</div>
+          </div>
+          <div class="capture-actions capture-actions-row" id="post-actions">
+            <button class="btn btn-outline" onclick="retakePhoto()">↺ Retake</button>
+            <button class="btn btn-gold" onclick="confirmPhoto()">Looks Good →</button>
+          </div>
+        </div>
+        <div class="room-strip" id="room-strip"></div>
+      </div>
+    </div>
+
+    <!-- REVEAL -->
+    <div class="screen" id="screen-reveal">
+      <div class="app-header" style="background:transparent; border:none;">
+        <div style="width:34px"></div>
+      </div>
+      <div class="reveal-body" id="reveal-body">
+        <div class="eyebrow">All photos in ✓</div>
+        <h1>Nice work! Here's your<br>instant ballpark.</h1>
+        <div class="estimate-card">
+          <div class="label">Estimated Value Range</div>
+          <div class="range" id="estimate-range">$540K – $600K</div>
+          <div class="caveat">This is a rough, AI-generated read from your photos — not a formal appraisal. Your local agent will confirm a real figure using sales data & a proper inspection.</div>
+        </div>
+        <button class="btn btn-gold reveal-cta" onclick="goTo('contact')">Unlock My Full Appraisal →</button>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="screen" id="screen-contact">
+      <div class="app-header">
+        <div class="back-btn" onclick="goTo('reveal')">←</div>
+        <div>
+          <div class="title">Almost there</div>
+          <div class="subtitle">Where should we send your appraisal?</div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="trust-line">
+          <span>🔒</span>
+          <p>No spam, no cold calls. Your details only go to your local Bright Property agent to prepare your appraisal.</p>
+        </div>
+        <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor"></div>
+        <div class="field"><label>Mobile number</label><input type="tel" id="input-mobile" placeholder="04XX XXX XXX"></div>
+        <div class="field"><label>Property address</label><input type="text" id="input-address" placeholder="Start typing your address"></div>
+        <div class="field">
+          <label>How should we reach you?</label>
+          <div class="contact-pref">
+            <div class="pref-opt selected" data-pref="text" onclick="selectPref(this)">💬 Text</div>
+            <div class="pref-opt" data-pref="email" onclick="selectPref(this)">✉️ Email</div>
+            <div class="pref-opt" data-pref="call" onclick="selectPref(this)">📞 Call</div>
+          </div>
+        </div>
+        <div class="submit-error" id="submit-error" style="display:none; color:#C0392B; font-size:12px; margin-top:6px;"></div>
+      </div>
+      <div class="footer-fixed">
+        <button class="btn btn-gold" id="submit-btn" onclick="submitLead()">Get My Free Appraisal →</button>
+      </div>
+    </div>
+
+    <!-- CONFIRM -->
+    <div class="screen" id="screen-confirm">
+      <div class="confirm-icon">✓</div>
+      <h2>You're all set!</h2>
+      <p>Your 7 photos are with our team. A local agent will review them alongside recent Townsville sales data and be in touch the way you asked — no surprise calls.</p>
+      <div class="agent-card">
+        <div class="agent-avatar">🙂</div>
+        <div>
+          <div class="name">Your local agent</div>
+          <div class="role">Bright Property Townsville · replies within 24 hrs</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const CORE_ROOMS_BASE = [
+  {id:'front', label:'Front of House', emoji:'🏡', hint:'Stand across the street and capture the full front facade in good light.'},
+  {id:'kitchen', label:'Kitchen', emoji:'🍳', hint:'Stand in the doorway and get the benches, splashback and any appliances staying with the home.'},
+  {id:'living', label:'Living Room', emoji:'🛋️', hint:'Widest angle you can get — corner of the room usually works best.'},
+  {id:'bathroom', label:'Main Bathroom', emoji:'🛁', hint:'Vanity, shower and any recent updates.'},
+  {id:'yard', label:'Backyard / Garden', emoji:'🌴', hint:'Show off the space — lawn, garden beds, fencing.'}
+];
+function buildBedroomRooms(count){
+  const n = Math.min(count, 4);
+  const rooms = [{id:'bed1', label:'Main Bedroom', emoji:'🛏️', hint:'Include the built-in robe if you\u2019ve got one.'}];
+  for(let i=2;i<=n;i++){
+    rooms.push({id:'bed'+i, label:'Bedroom '+i, emoji:'🛌', hint:'Same idea — wide shot from the doorway.'});
+  }
+  return rooms;
+}
+const FEATURES = [
+  {id:'pool', label:'Pool', emoji:'🏊', room:{label:'Pool Area', emoji:'🏊', hint:'Full pool and surrounding deck or fencing.'}},
+  {id:'ensuite', label:'Ensuite', emoji:'🚿', room:{label:'Ensuite', emoji:'🚿', hint:'Vanity, shower and any recent updates.'}},
+  {id:'garage', label:'Garage', emoji:'🚗', room:{label:'Garage', emoji:'🚗', hint:'Door open, show the full space.'}},
+  {id:'shed', label:'Shed / Studio', emoji:'🧰', room:{label:'Shed / Studio', emoji:'🧰', hint:'A wide shot of the structure and its condition.'}},
+  {id:'deck', label:'Deck / Patio', emoji:'🌇', room:{label:'Outdoor Deck / Patio', emoji:'🌇', hint:'Your outdoor entertaining area, in daylight if possible.'}},
+  {id:'office', label:'Home Office', emoji:'💻', room:{label:'Home Office', emoji:'💻', hint:'Show the setup — a selling point for remote workers.'}},
+  {id:'solar', label:'Solar Panels', emoji:'☀️', room:{label:'Solar Panels', emoji:'☀️', hint:'A shot of the roof panels or the inverter/meter box.'}}
+];
+
+let selectedFeatures = new Set();
+let bedroomCount = 3;
+let roomList = [];
+let currentIndex = 0;
+let completedCount = 0;
+let milestonesShown = new Set();
+let uploadedPhotos = [];      // [{ room, url }]
+let estimateLowVal = 0;
+let estimateHighVal = 0;
+let contactPreference = 'text';
+const sessionId = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+
+document.querySelectorAll('.bedroom-opt').forEach(opt=>{
+  if(parseInt(opt.dataset.count) === bedroomCount) opt.classList.add('selected');
+  opt.onclick = ()=>{
+    document.querySelectorAll('.bedroom-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    bedroomCount = parseInt(opt.dataset.count);
+    updateRoomCount();
+  };
+});
+
+const grid = document.getElementById('feature-grid');
+FEATURES.forEach(f=>{
+  const card = document.createElement('div');
+  card.className = 'feature-card';
+  card.dataset.id = f.id;
+  card.innerHTML = `<div class="emoji">${f.emoji}</div><div class="label">${f.label}</div><div class="check">✓</div>`;
+  card.onclick = ()=>{
+    card.classList.toggle('selected');
+    if(selectedFeatures.has(f.id)) selectedFeatures.delete(f.id); else selectedFeatures.add(f.id);
+    updateRoomCount();
+  };
+  grid.appendChild(card);
+});
+
+function updateRoomCount(){
+  document.getElementById('room-count-label').textContent = CORE_ROOMS_BASE.length + Math.min(bedroomCount,4) + selectedFeatures.size;
+}
+
+function goTo(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+}
+
+function startCapture(){
+  const [front, kitchen, living, bathroom, yard] = CORE_ROOMS_BASE;
+  roomList = [front, kitchen, living, ...buildBedroomRooms(bedroomCount), bathroom, yard];
+  FEATURES.forEach(f=>{ if(selectedFeatures.has(f.id)) roomList.push({id:f.id, ...f.room}); });
+  currentIndex = 0; completedCount = 0; milestonesShown = new Set();
+  buildRoomStrip();
+  renderRoom();
+  goTo('capture');
+}
+
+function buildRoomStrip(){
+  const strip = document.getElementById('room-strip');
+  strip.innerHTML = '';
+  roomList.forEach((r,i)=>{
+    const tile = document.createElement('div');
+    tile.className = 'room-tile';
+    tile.id = 'tile-'+i;
+    tile.innerHTML = `<div class="dot">${r.emoji}</div><div>${r.label.split(' ')[0]}</div>`;
+    strip.appendChild(tile);
+  });
+}
+
+function renderRoom(){
+  const r = roomList[currentIndex];
+  document.getElementById('room-emoji').textContent = r.emoji;
+  document.getElementById('room-title').textContent = r.label;
+  document.getElementById('room-hint').textContent = r.hint;
+  document.getElementById('step-tag').textContent = `Photo ${currentIndex+1} of ${roomList.length}`;
+  document.getElementById('capture-subtitle').textContent = `Room ${currentIndex+1} of ${roomList.length}`;
+  resetPreview();
+  document.querySelectorAll('.room-tile').forEach((t,i)=>{
+    t.classList.toggle('current', i===currentIndex);
+  });
+  updateArc();
+}
+
+function resetPreview(){
+  document.getElementById('preview-placeholder').style.display = 'block';
+  const canvas = document.getElementById('photo-canvas');
+  canvas.style.display = 'none';
+  document.getElementById('blur-hint').style.display = 'none';
+  document.getElementById('privacy-disclaimer').style.display = 'none';
+  document.getElementById('pre-actions').style.display = 'flex';
+  document.getElementById('post-actions').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+function updateArc(){
+  const pct = completedCount / roomList.length;
+  const circumference = 345.6;
+  document.getElementById('arc-fill').style.strokeDashoffset = circumference - (circumference*pct);
+  const angle = Math.PI - (pct*Math.PI);
+  const x = 110*Math.cos(angle);
+  const y = -110*Math.sin(angle);
+  document.getElementById('sun-group').setAttribute('transform', `translate(${130+x-20},${85+y-85})`);
+  document.getElementById('sun-rays').style.opacity = 0.15 + pct*0.85;
+  document.getElementById('sun-core').style.filter = pct>0.6 ? 'drop-shadow(0 0 6px #F2A93B)' : 'none';
+}
+
+function handlePhoto(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const preview = document.getElementById('capture-preview');
+      const canvas = document.getElementById('photo-canvas');
+      const w = preview.clientWidth, h = preview.clientHeight;
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(w/img.width, h/img.height);
+      const dw = img.width*scale, dh = img.height*scale;
+      ctx.drawImage(img, (w-dw)/2, (h-dh)/2, dw, dh);
+
+      document.getElementById('preview-placeholder').style.display = 'none';
+      canvas.style.display = 'block';
+      document.getElementById('blur-hint').style.display = 'block';
+      document.getElementById('privacy-disclaimer').style.display = 'block';
+      document.getElementById('pre-actions').style.display = 'none';
+      document.getElementById('post-actions').style.display = 'flex';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function retakePhoto(){ resetPreview(); document.getElementById('file-input').click(); }
+
+async function confirmPhoto(){
+  const room = roomList[currentIndex];
+  const confirmBtn = document.querySelector('#post-actions .btn-gold');
+  const originalLabel = confirmBtn.textContent;
+  confirmBtn.textContent = 'Uploading…';
+  confirmBtn.disabled = true;
+  try {
+    const url = await uploadCurrentPhoto(room.id);
+    uploadedPhotos.push({ room: room.id, url });
+  } catch (err) {
+    console.error('Photo upload failed, keeping the room locally so submit can retry:', err);
+    // We still let them continue — submitLead() will surface a clear error
+    // if photos never made it, rather than blocking the flow mid-room.
+  }
+  confirmBtn.textContent = originalLabel;
+  confirmBtn.disabled = false;
+  markDone(false);
+}
+
+function uploadCurrentPhoto(roomId){
+  return new Promise((resolve, reject)=>{
+    const canvas = document.getElementById('photo-canvas');
+    canvas.toBlob(async (blob)=>{
+      if(!blob) return reject(new Error('No image data on canvas'));
+      try {
+        const sigRes = await fetch(`/.netlify/functions/get-upload-signature?sessionId=${sessionId}`);
+        if(!sigRes.ok) throw new Error('Could not get upload signature');
+        const sig = await sigRes.json();
+
+        const formData = new FormData();
+        formData.append('file', blob, `${roomId}.jpg`);
+        formData.append('api_key', sig.apiKey);
+        formData.append('timestamp', sig.timestamp);
+        formData.append('signature', sig.signature);
+        formData.append('folder', sig.folder);
+
+        const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+        if(!uploadRes.ok) throw new Error('Cloudinary upload failed');
+        const uploaded = await uploadRes.json();
+        resolve(uploaded.secure_url);
+      } catch (err) {
+        reject(err);
+      }
+    }, 'image/jpeg', 0.9);
+  });
+}
+
+function skipRoom(){ markDone(true); }
+
+// --- Privacy blur brush ---
+(function(){
+  const canvas = document.getElementById('photo-canvas');
+  let isDrawing = false;
+  const BRUSH = 30;
+
+  function posFromEvent(e){
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function blurAt(x, y){
+    const ctx = canvas.getContext('2d');
+    const sx = Math.max(0, Math.round(x - BRUSH/2));
+    const sy = Math.max(0, Math.round(y - BRUSH/2));
+    const sw = Math.min(BRUSH, canvas.width - sx);
+    const sh = Math.min(BRUSH, canvas.height - sy);
+    if(sw <= 0 || sh <= 0) return;
+    const data = ctx.getImageData(sx, sy, sw, sh).data;
+    let r=0,g=0,b=0,count=0;
+    for(let i=0; i<data.length; i+=4){ r+=data[i]; g+=data[i+1]; b+=data[i+2]; count++; }
+    if(!count) return;
+    ctx.fillStyle = `rgb(${Math.round(r/count)},${Math.round(g/count)},${Math.round(b/count)})`;
+    ctx.fillRect(sx, sy, sw, sh);
+  }
+
+  canvas.addEventListener('pointerdown', e=>{ isDrawing = true; const p = posFromEvent(e); blurAt(p.x, p.y); });
+  canvas.addEventListener('pointermove', e=>{ if(isDrawing){ const p = posFromEvent(e); blurAt(p.x, p.y); } });
+  window.addEventListener('pointerup', ()=>{ isDrawing = false; });
+  window.addEventListener('pointercancel', ()=>{ isDrawing = false; });
+})();
+
+function markDone(skipped){
+  const tile = document.getElementById('tile-'+currentIndex);
+  tile.classList.add('done');
+  tile.querySelector('.dot').textContent = skipped ? '–' : '✓';
+  completedCount++;
+  updateArc();
+  checkMilestone();
+  setTimeout(()=>{
+    if(currentIndex < roomList.length-1){
+      currentIndex++;
+      renderRoom();
+    } else {
+      finishCapture();
+    }
+  }, skipped ? 150 : 550);
+}
+
+function prevRoom(){
+  if(currentIndex>0){ currentIndex--; renderRoom(); } else { goTo('setup'); }
+}
+
+function checkMilestone(){
+  const pct = completedCount/roomList.length;
+  const toast = document.getElementById('milestone-toast');
+  let msg = null;
+  if(pct>=0.5 && !milestonesShown.has('half')){ msg='Halfway there! 🎉'; milestonesShown.add('half'); }
+  if(pct>=1 && !milestonesShown.has('done')){ msg='All done — crunching your estimate...'; milestonesShown.add('done'); }
+  if(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1600);
+  }
+}
+
+function finishCapture(){
+  buildEstimate();
+  launchConfetti();
+  setTimeout(()=>goTo('reveal'), 500);
+}
+
+function buildEstimate(){
+  let base = 430000;
+  base += (roomList.length - CORE_ROOMS_BASE.length) * 14000;
+  if(bedroomCount >= 4) base += 20000; // home has more bedrooms than we photographed
+  if(selectedFeatures.has('pool')) base += 22000;
+  if(selectedFeatures.has('solar')) base += 8000;
+  if(selectedFeatures.has('garage')) base += 12000;
+  const low = Math.round(base/5000)*5000;
+  const high = Math.round((base*1.11)/5000)*5000;
+  estimateLowVal = low;
+  estimateHighVal = high;
+  const fmt = n => '$' + Math.round(n/1000) + 'K';
+  document.getElementById('estimate-range').textContent = `${fmt(low)} – ${fmt(high)}`;
+}
+
+function launchConfetti(){
+  const frame = document.getElementById('frame');
+  const emojis = ['🎉','✨','☀️','🎊'];
+  for(let i=0;i<18;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti-emoji';
+    c.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    c.style.left = Math.random()*100+'%';
+    c.style.top = '-20px';
+    c.style.animationDelay = (Math.random()*0.6)+'s';
+    frame.appendChild(c);
+    setTimeout(()=>c.remove(), 3200);
+  }
+}
+
+function selectPref(el){
+  document.querySelectorAll('.pref-opt').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  contactPreference = el.dataset.pref;
+}
+
+async function submitLead(){
+  const errorBox = document.getElementById('submit-error');
+  const btn = document.getElementById('submit-btn');
+  errorBox.style.display = 'none';
+
+  const fullName = document.getElementById('input-name').value.trim();
+  const mobile = document.getElementById('input-mobile').value.trim();
+  const address = document.getElementById('input-address').value.trim();
+
+  if(!fullName || !mobile){
+    errorBox.textContent = 'Please add your name and mobile number.';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/.netlify/functions/submit-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        fullName,
+        mobile,
+        address,
+        contactPreference,
+        bedroomCount,
+        featuresSelected: Array.from(selectedFeatures),
+        photos: uploadedPhotos,
+        estimateLow: estimateLowVal,
+        estimateHigh: estimateHighVal,
+      }),
+    });
+
+    if(!res.ok) throw new Error('Submit failed with status ' + res.status);
+    goTo('confirm');
+  } catch (err) {
+    console.error('submitLead error:', err);
+    errorBox.textContent = "Couldn't send that just now — check your connection and try again.";
+    errorBox.style.display = 'block';
+    btn.textContent = 'Get My Free Appraisal →';
+    btn.disabled = false;
+  }
+}
+
+updateRoomCount();
+</script>
+</body>
+</html>
