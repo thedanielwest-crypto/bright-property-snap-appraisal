@@ -1,13 +1,23 @@
 // netlify/functions/submit-lead.js
 //
-// Writes a completed Snap Your Appraisal submission into the real
-// "Snap Appraisals" Airtable base (built 2026-08-10).
+// Handles both stages of the Bright Property "Snap Appraisal" flow:
+//   1. COLD LEAD — fired the moment someone enters their address on the
+//      Front of House step. Creates a new Airtable record with just the
+//      address, and returns its recordId to the browser.
+//   2. HOT LEAD — fired when someone completes the final "Appraise It" form.
+//      If a recordId was passed (the cold lead created earlier in the same
+//      session), this UPDATES that same record with full contact details
+//      instead of creating a duplicate.
 //
-// Requires one environment variable, set in Netlify's dashboard under
-// Site settings → Environment variables (never commit this to git):
+// Lead type (Cold Lead / Hot Lead) is stored as the first line of the Notes
+// field rather than a dedicated field, since this connector's tools couldn't
+// add a new field or new select options at the time this was built — see
+// ASSUMPTIONS.md if present, or just add a proper "Lead Type" field in the
+// Airtable UI and swap FIELDS.leadType below to point at it directly.
 //
-//   AIRTABLE_API_KEY = <a Personal Access Token from airtable.com/create/tokens
-//                        scoped to this base with data.records:write access>
+// Requires one environment variable, set in Netlify's dashboard:
+//   AIRTABLE_API_KEY = a Personal Access Token scoped to this base with
+//                       data.records:write access
 //
 // Base: Snap Appraisals (appiGi6bBUSFYDLha)
 // Table: Leads (tblmj5PyEAfZwPHOP)
@@ -15,29 +25,18 @@
 const BASE_ID = 'appiGi6bBUSFYDLha';
 const LEADS_TABLE_ID = 'tblmj5PyEAfZwPHOP';
 
-// Field IDs from the live base — do not rename these without updating the base too.
 const FIELDS = {
   fullName: 'fld1xN2C56LeLJdUL',
   status: 'fldDr9YPPXNjt2Ozk',
   mobile: 'fldED0xkBJWkWRKY1',
   address: 'fldwjLEJSFxkBvNsc',
-  contactPreference: 'fldT3zw3sDJSJBxt7',
   email: 'fld4VMmFd4hqVlhOc',
-  bedroomCount: 'fldEsC0MjU1k6kclQ',
   featuresSelected: 'fldfy5ah12KTMS85p',
   roomsPhotographed: 'fldgEYCPjjNHIJwRT',
   photos: 'fldySYt7rne1odBpl',
-  estimateLow: 'fldMmgllCqDG3SGPn',
-  estimateHigh: 'fldSKR5isTfHmgsaC',
   sessionId: 'fldglYPMMCh35TA1I',
   notes: 'fldHdHOypmt319ifV',
 };
-
-// Maps the app's internal bedroom count (1-4, where 4 means "4+") to the
-// exact option label used in the Airtable "Bedroom Count" single-select.
-function bedroomLabel(count) {
-  return count >= 4 ? '4+' : String(count);
-}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -53,58 +52,59 @@ exports.handler = async (event) => {
 
   const {
     sessionId,
+    recordId,       // present on the Hot Lead call if a Cold Lead record already exists
+    leadType,        // 'Cold Lead' | 'Hot Lead'
     fullName,
+    email,
     mobile,
     address,
-    contactPreference, // "text" | "call" | "email"
-    email,
-    bedroomCount,      // 1-4
-    featuresSelected,  // ["pool", "garage", ...]
-    photos,            // [{ room: "kitchen", url: "https://res.cloudinary.com/..." }, ...]
-    estimateLow,
-    estimateHigh,
+    featuresSelected,
+    photos,
   } = payload;
 
-  if (!fullName || !mobile) {
-    return { statusCode: 400, body: 'Missing required fields: fullName, mobile' };
-  }
+  const noteLines = [];
+  if (leadType) noteLines.push(`[${leadType}]`);
 
-  const contactPrefLabel = contactPreference
-    ? contactPreference.charAt(0).toUpperCase() + contactPreference.slice(1)
-    : undefined;
-
-  const record = {
-    fields: {
-      [FIELDS.fullName]: fullName,
-      [FIELDS.status]: 'Submitted',
-      [FIELDS.mobile]: mobile,
-      [FIELDS.address]: address || '',
-      [FIELDS.contactPreference]: contactPrefLabel,
-      [FIELDS.email]: email || undefined,
-      [FIELDS.bedroomCount]: bedroomLabel(bedroomCount || 3),
-      [FIELDS.featuresSelected]: featuresSelected || [],
-      [FIELDS.roomsPhotographed]: Array.isArray(photos) ? photos.length : 0,
-      [FIELDS.photos]: Array.isArray(photos)
-        ? photos.map((p) => ({ url: p.url }))
-        : [],
-      [FIELDS.estimateLow]: estimateLow,
-      [FIELDS.estimateHigh]: estimateHigh,
-      [FIELDS.sessionId]: sessionId || '',
-    },
+  const fields = {
+    [FIELDS.address]: address || '',
+    [FIELDS.sessionId]: sessionId || '',
+    [FIELDS.notes]: noteLines.join(' '),
   };
+  if (fullName) fields[FIELDS.fullName] = fullName;
+  if (email) fields[FIELDS.email] = email;
+  if (mobile) fields[FIELDS.mobile] = mobile;
+  if (Array.isArray(featuresSelected)) fields[FIELDS.featuresSelected] = featuresSelected;
+  if (Array.isArray(photos)) {
+    fields[FIELDS.roomsPhotographed] = photos.length;
+    fields[FIELDS.photos] = photos.map((p) => ({ url: p.url }));
+  }
+  fields[FIELDS.status] = leadType === 'Hot Lead' ? 'Submitted' : 'In Progress';
 
   try {
-    const res = await fetch(
-      `https://api.airtable.com/v0/${BASE_ID}/${LEADS_TABLE_ID}`,
-      {
+    let res, isUpdate = false;
+
+    if (recordId) {
+      // HOT LEAD — update the existing Cold Lead record
+      isUpdate = true;
+      res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${LEADS_TABLE_ID}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ records: [{ id: recordId, fields }], typecast: true }),
+      });
+    } else {
+      // COLD LEAD (or a Hot Lead with no prior cold record) — create new
+      res = await fetch(`https://api.airtable.com/v0/${BASE_ID}/${LEADS_TABLE_ID}`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${process.env.AIRTABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ records: [record], typecast: true }),
-      }
-    );
+        body: JSON.stringify({ records: [{ fields }], typecast: true }),
+      });
+    }
 
     if (!res.ok) {
       const errText = await res.text();
@@ -113,9 +113,10 @@ exports.handler = async (event) => {
     }
 
     const data = await res.json();
+    const savedId = isUpdate ? recordId : data.records[0].id;
     return {
       statusCode: 200,
-      body: JSON.stringify({ ok: true, recordId: data.records[0].id }),
+      body: JSON.stringify({ ok: true, recordId: savedId }),
     };
   } catch (err) {
     console.error('submit-lead error:', err);
