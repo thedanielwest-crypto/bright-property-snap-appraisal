@@ -140,12 +140,12 @@
     <div class="screen active" id="screen-landing">
       <div>
         <svg class="logo-mark" viewBox="0 0 40 40"><path d="M4 20 L20 6 L36 20 L28 20 L28 34 L12 34 L12 20 Z" fill="#FF914D"/><rect x="12" y="24" width="6" height="10" fill="#FF3131"/><path d="M20 24 L28 24 L28 34 L20 34 Z" fill="#FF3131"/></svg>
-        <div class="brand-word">BRIGHT PROPERTY TOWNSVILLE</div>
+        <div class="brand-word" id="landing-brand-word">BRIGHT PROPERTY TOWNSVILLE</div>
       </div>
       <div>
         <h1>Snap Appraisal</h1>
         <p class="tagline accent">Let's get started</p>
-        <p class="sub">Walk through your place, snap a few photos, and get your free appraisal from a real Bright Property agent.</p>
+        <p class="sub" id="landing-sub">Walk through your place, snap a few photos, and get your free appraisal from a real Bright Property agent.</p>
       </div>
       <div>
         <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
@@ -259,7 +259,7 @@
     <div class="screen" id="screen-confirm">
       <div class="confirm-icon">✓</div>
       <h2>You're all set!</h2>
-      <p>Rob has everything he needs and will be in touch personally with your appraisal. Thanks for walking through your home with us.</p>
+      <p id="confirm-text">Rob has everything he needs and will be in touch personally with your appraisal. Thanks for walking through your home with us.</p>
       <p style="font-size:10.5px; opacity:0.45; margin-top:26px;">Snap Appraisal · Built by WestWorks</p>
     </div>
 
@@ -287,6 +287,12 @@ async function loadAgentBySlug(){
     currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName };
     AGENT_NAME = data.agentName;
     document.title = `Snap Appraisal — ${data.agencyName || data.agentName}`;
+    const agencyDisplay = data.agencyName || data.agentName;
+    document.getElementById('landing-brand-word').textContent = agencyDisplay.toUpperCase();
+    document.getElementById('landing-sub').textContent =
+      `Walk through your place, snap a few photos, and get your free appraisal from a real ${agencyDisplay} agent.`;
+    document.getElementById('confirm-text').textContent =
+      `${data.agentName.split(' ')[0]} has everything they need and will be in touch personally with your appraisal. Thanks for walking through your home with us.`;
     document.getElementById('agent-name-heading').textContent = data.agentName;
 
     // Change #3: use the agent's own saved stats instead of the hardcoded
