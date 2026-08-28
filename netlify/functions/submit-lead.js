@@ -1,26 +1,24 @@
 // netlify/functions/submit-lead.js
 //
-// Handles both stages of the Bright Property "Snap Appraisal" flow:
+// Handles both stages of the Snap Appraisal flow:
 //   1. COLD LEAD — fired the moment someone enters their address on the
-//      Front of House step. Creates a new Airtable record with just the
-//      address, and returns its recordId to the browser.
+//      Front of House step.
 //   2. HOT LEAD — fired when someone completes the final "Appraise It" form.
-//      If a recordId was passed (the cold lead created earlier in the same
-//      session), this UPDATES that same record with full contact details
-//      instead of creating a duplicate.
 //
-// Lead type (Cold Lead / Hot Lead) is stored as the first line of the Notes
-// field rather than a dedicated field, since this connector's tools couldn't
-// add a new field or new select options at the time this was built — see
-// ASSUMPTIONS.md if present, or just add a proper "Lead Type" field in the
-// Airtable UI and swap FIELDS.leadType below to point at it directly.
+// Writes to two places:
+//   - Airtable (unconditionally, unchanged from how this has always worked)
+//     — this is Bright Property / Rob's original flow and its automations,
+//     left exactly as-is so nothing about his working setup changes.
+//   - Supabase (only when an agentId is present) — this is what powers the
+//     new multi-agent portal's Cold/Hot Listings pages, which read from
+//     Supabase's "leads" table, not Airtable.
 //
-// Requires one environment variable, set in Netlify's dashboard:
-//   AIRTABLE_API_KEY = a Personal Access Token scoped to this base with
-//                       data.records:write access
-//
-// Base: Snap Appraisals (appiGi6bBUSFYDLha)
-// Table: Leads (tblmj5PyEAfZwPHOP)
+// Requires:
+//   AIRTABLE_API_KEY          = Personal Access Token, data.records:write
+//   SUPABASE_URL              = only needed once agents beyond Rob exist
+//   SUPABASE_SERVICE_ROLE_KEY = only needed once agents beyond Rob exist
+
+require('dns').setDefaultResultOrder('ipv4first');
 
 const BASE_ID = 'appiGi6bBUSFYDLha';
 const LEADS_TABLE_ID = 'tblmj5PyEAfZwPHOP';
@@ -31,12 +29,80 @@ const FIELDS = {
   mobile: 'fldED0xkBJWkWRKY1',
   address: 'fldwjLEJSFxkBvNsc',
   email: 'fld4VMmFd4hqVlhOc',
+  contactPreference: 'fldT3zw3sDJSJBxt7',
   featuresSelected: 'fldfy5ah12KTMS85p',
   roomsPhotographed: 'fldgEYCPjjNHIJwRT',
   photos: 'fldySYt7rne1odBpl',
   sessionId: 'fldglYPMMCh35TA1I',
   notes: 'fldHdHOypmt319ifV',
 };
+
+async function fetchWithRetry(url, options, retries = 2, delayMs = 400) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetch(url, options);
+    } catch (err) {
+      if (attempt === retries) throw err;
+      console.error(`fetch attempt ${attempt + 1} failed, retrying:`, err.message);
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+}
+
+function sbHeaders() {
+  return {
+    apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+    'Content-Type': 'application/json',
+  };
+}
+
+// Best-effort — a Supabase hiccup should never break the Airtable-backed
+// flow real agents already depend on, so every error here is swallowed
+// after logging rather than failing the whole request.
+async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos }) {
+  if (!agentId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    const findRes = await fetchWithRetry(
+      `${process.env.SUPABASE_URL}/rest/v1/leads?agent_id=eq.${agentId}&session_id=eq.${encodeURIComponent(sessionId || '')}&select=id`,
+      { headers: sbHeaders() }
+    );
+    const existing = findRes && findRes.ok ? await findRes.json() : [];
+
+    const fields = {
+      agent_id: agentId,
+      session_id: sessionId || '',
+      lead_type: leadType,
+      status: leadType === 'Hot Lead' ? 'Submitted' : 'In Progress',
+      address: address || '',
+    };
+    if (fullName) fields.full_name = fullName;
+    if (email) fields.email = email;
+    if (mobile) fields.mobile = mobile;
+    if (contactPreference) fields.contact_preference = contactPreference;
+    if (Array.isArray(featuresSelected)) fields.features_selected = featuresSelected;
+    if (Array.isArray(photos)) {
+      fields.rooms_photographed = photos.length;
+      fields.photos = photos.map((p) => ({ url: p.url }));
+    }
+
+    if (existing.length) {
+      await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/leads?id=eq.${existing[0].id}`, {
+        method: 'PATCH',
+        headers: sbHeaders(),
+        body: JSON.stringify(fields),
+      });
+    } else {
+      await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/leads`, {
+        method: 'POST',
+        headers: sbHeaders(),
+        body: JSON.stringify(fields),
+      });
+    }
+  } catch (err) {
+    console.error('Supabase lead upsert failed (non-fatal):', err);
+  }
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -57,10 +123,16 @@ exports.handler = async (event) => {
     fullName,
     email,
     mobile,
+    contactPreference,
     address,
     featuresSelected,
     photos,
+    agentId,        // present once this link belongs to an agent beyond Rob
   } = payload;
+
+  // Fire the Supabase write in the background — never let it slow down or
+  // break the Airtable-backed response below.
+  upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos });
 
   const noteLines = [];
   if (leadType) noteLines.push(`[${leadType}]`);
@@ -73,6 +145,7 @@ exports.handler = async (event) => {
   if (fullName) fields[FIELDS.fullName] = fullName;
   if (email) fields[FIELDS.email] = email;
   if (mobile) fields[FIELDS.mobile] = mobile;
+  if (contactPreference) fields[FIELDS.contactPreference] = contactPreference;
   if (Array.isArray(featuresSelected)) fields[FIELDS.featuresSelected] = featuresSelected;
   if (Array.isArray(photos)) {
     fields[FIELDS.roomsPhotographed] = photos.length;
