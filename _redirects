@@ -1,1 +1,3 @@
-/roblevy   /index.html   200
+# Catch-all: every agent's slug (e.g. /sarahchen) serves the same app shell,
+# which then looks up that agent's branding by the URL path at runtime.
+/*   /index.html   200
