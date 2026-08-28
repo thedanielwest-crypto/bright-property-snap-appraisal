@@ -11,9 +11,7 @@
 // production session security — swap for Supabase Auth or signed JWTs
 // before this scales past a handful of agents.
 //
-// Requires two Netlify environment variables:
-//   SUPABASE_URL              = https://uzqjmeiofcqkmzojmfoc.supabase.co
-//   SUPABASE_SERVICE_ROLE_KEY = the "secret key" from Supabase's API settings
+
 
 const crypto = require('crypto');
 
