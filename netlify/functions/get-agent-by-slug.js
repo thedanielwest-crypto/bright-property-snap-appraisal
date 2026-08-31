@@ -48,7 +48,7 @@ exports.handler = async (event) => {
 
   try {
     const res = await fetchWithRetry(
-      `${process.env.SUPABASE_URL}/rest/v1/agents?slug=eq.${encodeURIComponent(slug)}&select=id,agent_name,agency_name,email,logo_url,headshot_url,brand_color`,
+      `${process.env.SUPABASE_URL}/rest/v1/agents?slug=eq.${encodeURIComponent(slug)}&select=id,agent_name,agency_name,email,logo_url,headshot_url,brand_color,stat_homes,stat_avg_days,stat_local_tag,intro_statement`,
       { headers: sbHeaders() }
     );
     if (!res.ok) {
@@ -71,6 +71,10 @@ exports.handler = async (event) => {
         logoUrl: a.logo_url || '',
         headshotUrl: a.headshot_url || '',
         brandColor: a.brand_color || '#FF5A1F',
+        statHomes: a.stat_homes || '150+',
+        statAvgDays: a.stat_avg_days || '11 days',
+        statLocalTag: a.stat_local_tag || 'Local',
+        introStatement: a.intro_statement || '',
       }),
     };
   } catch (err) {

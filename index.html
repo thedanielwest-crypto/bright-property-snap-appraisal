@@ -99,7 +99,7 @@
   .agent-stat{background:var(--white); border:1px solid var(--line); border-radius:12px; padding:12px 14px; text-align:center; flex:1;}
   .agent-stat b{display:block; font-size:18px;}
   .agent-stat span{font-size:10px; color:var(--charcoal); opacity:0.7;}
-  .agent-statement{font-size:14.5px; line-height:1.6; margin-top:16px; color:var(--charcoal);}
+  .agent-statement{font-size:16.5px; line-height:1.6; margin-top:16px; color:var(--charcoal);}
   .agent-statement b{color:var(--charcoal);}
   .agent-footer{padding:18px 24px 24px;}
 
@@ -145,7 +145,11 @@
       <div>
         <h1>Snap Appraisal</h1>
         <p class="tagline accent">Let's get started</p>
-        <p class="sub" id="landing-sub">Walk through your place, snap a few photos, and get your free appraisal from a real Bright Property agent.</p>
+        <div id="landing-agent-row" class="hidden" style="display:flex; align-items:center; gap:10px; margin-top:14px;">
+          <img id="landing-agent-photo" src="" alt="Your agent" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid white; box-shadow:0 2px 6px rgba(0,0,0,0.15);">
+          <span id="landing-agent-name" style="font-size:13px; font-weight:700; color:var(--charcoal);"></span>
+        </div>
+        <p class="sub" id="landing-sub">Walk through your home, snap a few photos, and get a real, accurate appraisal from Rob Levy – Bright Property Townsville.</p>
       </div>
       <div>
         <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
@@ -179,12 +183,13 @@
             <input type="text" id="address-input" placeholder="Start typing your address" autocomplete="off" oninput="onAddressType(this.value)">
             <div class="address-suggestions" id="address-suggestions"></div>
             <button class="locate-btn" onclick="useMyLocation()" id="locate-btn">📍 Use my location</button>
+            <div id="address-error" class="hidden" style="color:#C0392B; font-size:12px; margin-top:8px;"></div>
           </div>
 
           <div class="capture-actions" id="pre-actions">
             <input type="file" accept="image/*" capture="environment" id="file-input" style="display:none" onchange="handlePhoto(event)">
             <button class="btn btn-brand" onclick="document.getElementById('file-input').click()">📸 Take Photo</button>
-            <div class="skip-link" onclick="skipPhoto()">Skip this photo →</div>
+            <div class="skip-link" id="skip-photo-link" onclick="skipPhoto()">Skip this photo →</div>
           </div>
           <div class="row-actions" id="post-actions">
             <button class="btn btn-outline" onclick="retakePhoto()">↺ Retake</button>
@@ -209,10 +214,10 @@
         <h2 id="agent-name-heading">Rob Levy</h2>
         <div class="agent-stats">
           <div class="agent-stat"><b id="agent-stat-homes">150+</b><span>Homes appraised</span></div>
-          <div class="agent-stat"><b id="agent-stat-days">11 days</b><span>Avg. days to sell</span></div>
+          <div class="agent-stat"><b id="agent-stat-days">11 days</b><span>Average days on Market</span></div>
           <div class="agent-stat"><b id="agent-stat-local">Local</b><span id="agent-stat-local-label">Townsville born</span></div>
         </div>
-        <p class="agent-statement" id="agent-statement-text">Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">Rob Levy</b>. Every photo you've taken goes straight to Rob, who'll follow up personally with real numbers, not a guess.</p>
+        <p class="agent-statement" id="agent-statement-text">Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">Rob Levy</b>. Every photo you've taken goes straight to Rob, who'll follow up personally with a real market-based comparison, not a guess.</p>
       </div>
       <div class="agent-footer">
         <button class="btn btn-brand" onclick="goTo('extras')">Continue →</button>
@@ -271,6 +276,7 @@
 let AGENT_NAME = 'Rob Levy';
 const SESSION_ID = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
 let currentAgent = { agentId: null, agentName: 'Rob Levy', agencyName: 'Bright Property Townsville' };
+let frontOfHouseDone = false; // D2: "Skip this photo" only appears once this is true
 
 // Look up which agent this link belongs to, based on the URL path.
 // Falls back to the Bright Property demo values on any failure so the
@@ -290,7 +296,7 @@ async function loadAgentBySlug(){
     const agencyDisplay = data.agencyName || data.agentName;
     document.getElementById('landing-brand-word').textContent = agencyDisplay.toUpperCase();
     document.getElementById('landing-sub').textContent =
-      `Walk through your place, snap a few photos, and get your free appraisal from a real ${agencyDisplay} agent.`;
+      `Walk through your home, snap a few photos, and get a real, accurate appraisal from ${data.agentName} – ${agencyDisplay}.`;
     document.getElementById('confirm-text').textContent =
       `${data.agentName.split(' ')[0]} has everything they need and will be in touch personally with your appraisal. Thanks for walking through your home with us.`;
     document.getElementById('agent-name-heading').textContent = data.agentName;
@@ -309,11 +315,14 @@ async function loadAgentBySlug(){
     } else {
       document.getElementById('agent-statement-name').textContent = data.agentName;
       document.getElementById('agent-statement-text').innerHTML =
-        `Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">${data.agentName}</b>. Every photo you've taken goes straight to ${data.agentName.split(' ')[0]}, who'll follow up personally with real numbers, not a guess.`;
+        `Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">${data.agentName}</b>. Every photo you've taken goes straight to ${data.agentName.split(' ')[0]}, who'll follow up personally with a real market-based comparison, not a guess.`;
     }
 
     if(data.headshotUrl){
       document.getElementById('agent-photo-img').src = data.headshotUrl;
+      document.getElementById('landing-agent-photo').src = data.headshotUrl;
+      document.getElementById('landing-agent-name').textContent = data.agentName;
+      document.getElementById('landing-agent-row').classList.remove('hidden');
     }
     if(data.brandColor){
       document.documentElement.style.setProperty('--gradient', data.brandColor);
@@ -323,6 +332,29 @@ async function loadAgentBySlug(){
   }
 }
 loadAgentBySlug();
+
+// A8: Without this, the browser's back button jumps somewhere unrelated
+// and confusing mid-flow, since this app has no real per-step URLs (that's
+// a genuinely bigger rework — this is the honest, well-scoped fix for now:
+// trap back navigation so it can't unexpectedly exit the flow).
+history.pushState({snapAppraisal: true}, '');
+window.addEventListener('popstate', () => {
+  history.pushState({snapAppraisal: true}, '');
+  showBackButtonHint();
+});
+function showBackButtonHint(){
+  let hint = document.getElementById('back-hint-toast');
+  if(!hint){
+    hint = document.createElement('div');
+    hint.id = 'back-hint-toast';
+    hint.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#17171A; color:white; padding:12px 20px; border-radius:100px; font-size:13px; z-index:999; box-shadow:0 8px 24px rgba(0,0,0,0.25);';
+    document.body.appendChild(hint);
+  }
+  hint.textContent = 'Use the buttons on screen to go back — swipe/back is disabled mid-appraisal.';
+  hint.style.display = 'block';
+  clearTimeout(window._backHintTimer);
+  window._backHintTimer = setTimeout(() => { hint.style.display = 'none'; }, 2600);
+}
 const MAX_AUTO_BEDROOMS = 4; // auto-advance to Agent Intro after this many if user never taps Skip
 
 const CORE_START = [
@@ -400,6 +432,7 @@ function renderRoom(){
   document.getElementById('address-block').style.display = r.isFront ? 'block' : 'none';
   document.getElementById('bedroom-extras').style.display = 'none';
   document.getElementById('skip-to-agent').style.display = (r.isBedroom && r.bedroomIndex >= 1) ? 'block' : 'none';
+  document.getElementById('skip-photo-link').style.display = frontOfHouseDone ? 'block' : 'none';
 
   resetPreview();
   document.querySelectorAll('.room-tile').forEach((t,i)=> t.classList.toggle('current', i === tileIndexForCurrent()));
@@ -472,6 +505,20 @@ function retakePhoto(){ resetPreview(); document.getElementById('file-input').cl
 
 async function confirmPhoto(){
   const room = roomQueue[currentIndex];
+
+  // A7: Front of House is where the address gets captured — don't let
+  // someone continue with a vague "street only" address, since that
+  // makes the lead far less valuable/sellable.
+  if(room.isFront && !isValidStreetAddress(propertyAddress)){
+    const errEl = document.getElementById('address-error');
+    if(errEl){
+      errEl.textContent = 'Please select a full address with a street number — not just a suburb or street.';
+      errEl.classList.remove('hidden');
+    }
+    document.getElementById('address-input').focus();
+    return;
+  }
+
   const btn = document.querySelector('#post-actions .btn-brand');
   const original = btn.textContent;
   btn.textContent = 'Uploading…'; btn.disabled = true;
@@ -485,6 +532,7 @@ async function confirmPhoto(){
 
   if(room.isFront){
     await sendColdLead();
+    frontOfHouseDone = true; // D2: skip option only unlocks after this point
   }
 
   if(room.isBedroom){
@@ -662,24 +710,49 @@ function startExtrasCapture(){
 }
 
 /* ---------- ADDRESS: autocomplete + geolocation (OpenStreetMap Nominatim, no API key) ---------- */
+// A7: a real address starts with a street number — "Kelso" or "Smith
+// Street" on their own aren't specific enough to be a sellable lead.
+function isValidStreetAddress(addr){
+  return /^\d+[a-zA-Z]?[\s\/-]/.test((addr || '').trim());
+}
+
+// Google Places session token — one per address-entry session. Reusing
+// the same token across every keystroke + the final selection is what
+// makes the typing itself free under Google's billing model; a fresh
+// token gets generated after each completed selection.
+let placesSessionToken = crypto.randomUUID();
+
 let addressDebounce;
 function onAddressType(value){
   propertyAddress = value;
+  document.getElementById('address-error').classList.add('hidden');
   clearTimeout(addressDebounce);
-  if(value.length < 4){ document.getElementById('address-suggestions').innerHTML=''; return; }
+  if(value.length < 3){ document.getElementById('address-suggestions').innerHTML=''; return; }
   addressDebounce = setTimeout(async ()=>{
     try{
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&countrycodes=au&limit=5&q=${encodeURIComponent(value)}`);
-      const results = await res.json();
+      const res = await fetch(`/.netlify/functions/address-autocomplete?mode=search&input=${encodeURIComponent(value)}&sessionToken=${placesSessionToken}`);
+      if(!res.ok) throw new Error('lookup failed');
+      const data = await res.json();
       const box = document.getElementById('address-suggestions');
       box.innerHTML = '';
-      results.forEach(r=>{
+      (data.suggestions || []).forEach(s=>{
         const div = document.createElement('div');
-        div.textContent = r.display_name;
-        div.onclick = ()=>{
-          document.getElementById('address-input').value = r.display_name;
-          propertyAddress = r.display_name;
+        div.textContent = s.text;
+        div.onclick = async ()=>{
           box.innerHTML = '';
+          document.getElementById('address-input').value = s.text; // shown immediately, refined below
+          try{
+            const detailsRes = await fetch(`/.netlify/functions/address-autocomplete?mode=details&placeId=${encodeURIComponent(s.placeId)}&sessionToken=${placesSessionToken}`);
+            const details = await detailsRes.json();
+            const finalAddr = details.formattedAddress || s.text;
+            document.getElementById('address-input').value = finalAddr;
+            propertyAddress = finalAddr;
+          }catch(err){
+            console.error('place details failed, using suggestion text', err);
+            propertyAddress = s.text;
+          }
+          document.getElementById('address-error').classList.add('hidden');
+          placesSessionToken = crypto.randomUUID(); // session's done — fresh token for next time
         };
         box.appendChild(div);
       });
@@ -693,10 +766,21 @@ function useMyLocation(){
   navigator.geolocation.getCurrentPosition(async pos=>{
     try{
       const {latitude, longitude} = pos.coords;
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
       const data = await res.json();
       document.getElementById('address-input').value = data.display_name || '';
       propertyAddress = data.display_name || '';
+      const errEl = document.getElementById('address-error');
+      // A6: this genuinely can't always get a house number — OpenStreetMap
+      // just doesn't have every residential address tagged that precisely.
+      // Rather than silently accept a vague result, tell them immediately.
+      if(!isValidStreetAddress(propertyAddress)){
+        errEl.textContent = "That only found your street, not your exact address — please type your house number to complete it.";
+        errEl.classList.remove('hidden');
+        document.getElementById('address-input').focus();
+      } else {
+        errEl.classList.add('hidden');
+      }
     }catch(err){ console.error('reverse geocode failed', err); }
     btn.textContent = '📍 Use my location';
   }, err=>{
