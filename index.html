@@ -305,7 +305,13 @@ async function loadAgentBySlug(){
     // Bright Property defaults, and their custom intro statement if they
     // wrote one — otherwise fall back to the standard wording.
     if(data.statHomes) document.getElementById('agent-stat-homes').textContent = data.statHomes;
-    if(data.statAvgDays) document.getElementById('agent-stat-days').textContent = data.statAvgDays;
+    if(data.statAvgDays){
+      // B7/portal change: the field now just holds a number (e.g. "11") —
+      // append "days" for display, but don't double it up if an older
+      // saved value already includes the word.
+      const days = String(data.statAvgDays).trim();
+      document.getElementById('agent-stat-days').textContent = /day/i.test(days) ? days : `${days} days`;
+    }
     if(data.statLocalTag) document.getElementById('agent-stat-local').textContent = data.statLocalTag;
 
     if(data.introStatement && data.introStatement.trim()){
