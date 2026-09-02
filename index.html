@@ -7,7 +7,7 @@
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Gilda+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --red:#FF3131;
@@ -23,12 +23,12 @@
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    font-family:'Hanken Grotesk',sans-serif;
+    font-family:'Poppins',sans-serif;
     min-height:100vh; background:var(--charcoal);
     display:flex; align-items:center; justify-content:center; padding:32px 16px; color:var(--charcoal);
   }
-  h1,h2,h3{font-family:'Hanken Grotesk',sans-serif; font-weight:800; margin:0; letter-spacing:-0.01em;}
-  .accent{font-family:'Gilda Display',serif; font-weight:400; color:var(--orange);}
+  h1,h2,h3{font-family:'Poppins',sans-serif; font-weight:800; margin:0; letter-spacing:-0.01em;}
+  .accent{font-family:'Poppins',sans-serif; font-weight:700; font-style:italic; color:var(--orange);}
   p{margin:0;}
   .frame{
     width:390px; max-width:100%; height:820px; max-height:92vh; background:var(--warmwhite);
@@ -38,7 +38,7 @@
   .screens{position:relative; flex:1;}
   .screen{position:absolute; inset:0; display:flex; flex-direction:column; opacity:0; pointer-events:none; transform:translateX(24px); transition:opacity .3s ease, transform .3s ease;}
   .screen.active{opacity:1; pointer-events:auto; transform:translateX(0);}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px 20px; border-radius:100px; border:none; font-weight:700; font-size:15.5px; cursor:pointer; font-family:'Hanken Grotesk',sans-serif;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px 20px; border-radius:100px; border:none; font-weight:700; font-size:15.5px; cursor:pointer; font-family:'Poppins',sans-serif;}
   .btn:active{transform:scale(0.97);}
   .btn-brand{background:var(--gradient); color:var(--white); box-shadow:0 10px 24px rgba(255,49,49,0.25);}
   .btn-outline{background:var(--white); color:var(--charcoal); border:1.5px solid var(--line);}
@@ -143,7 +143,10 @@
       <div>
         <img class="logo-mark" src="logo-icon.png" alt="SnapAppraisal">
         <div class="brand-word" id="landing-brand-word">BRIGHT PROPERTY TOWNSVILLE</div>
-        <div style="font-size:9px; color:#999; letter-spacing:0.05em; margin-top:2px;">SNAPAPPRAISAL, A SMARTER WAY FOR YOUR NEXT LISTING TO FIND YOU</div>
+        <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-top:4px;">
+          <img src="logo-icon.png" alt="" style="width:12px; height:12px;">
+          <span style="font-size:9px; color:#999; letter-spacing:0.05em;">SNAPAPPRAISAL, A SMARTER WAY FOR YOUR NEXT LISTING TO FIND YOU</span>
+        </div>
       </div>
       <div>
         <h1>Snap Appraisal</h1>
