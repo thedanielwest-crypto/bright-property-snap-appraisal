@@ -536,7 +536,7 @@ async function confirmPhoto(){
   btn.textContent = 'Uploading…'; btn.disabled = true;
   try{
     const url = await uploadCurrentPhoto(room.id);
-    uploadedPhotos.push({room:room.id, url});
+    uploadedPhotos.push({room: room.label, url});
   }catch(err){ console.error('upload failed', err); }
   btn.textContent = original; btn.disabled = false;
 

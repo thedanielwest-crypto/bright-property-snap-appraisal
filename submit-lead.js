@@ -83,7 +83,7 @@ async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullN
     if (Array.isArray(featuresSelected)) fields.features_selected = featuresSelected;
     if (Array.isArray(photos)) {
       fields.rooms_photographed = photos.length;
-      fields.photos = photos.map((p) => ({ url: p.url }));
+      fields.photos = photos.map((p) => ({ url: p.url, room: p.room || '' }));
     }
 
     if (existing.length) {
