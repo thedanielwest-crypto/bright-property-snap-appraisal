@@ -123,6 +123,15 @@
   .feature-card.done{border-color:var(--success); background:#EEFBF3;}
   .feature-card.done::after{content:"✓"; position:absolute; top:8px; right:10px; width:18px; height:18px; border-radius:50%; background:var(--success); color:white; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;}
   .feature-card .tap{font-size:10.5px; color:var(--charcoal); opacity:0.6; margin-top:3px;}
+  .feature-other{border-style:dashed;}
+  .feature-other.disabled{opacity:0.45; cursor:default;}
+  .other-input{grid-column:1 / -1; margin-top:10px; display:flex; gap:6px;}
+  .other-input input{flex:1 1 auto; min-width:0; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); font-size:13px; font-family:inherit;}
+  .other-input .btn{flex:0 0 auto; width:auto; box-shadow:none;}
+  .btn-sm{padding:10px 14px; font-size:12.5px;}
+  .feature-card.feature-other:has(.other-input:not(.hidden)){grid-column:1 / -1;}
+  .hidden{display:none !important;}
+  .feature-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
   .feature-card.done .tap{color:var(--success); opacity:1;}
   .room-emoji svg{width:52px; height:52px; display:block; margin:0 auto;}
   .room-tile .dot svg{width:18px; height:18px;}
@@ -146,6 +155,10 @@
   #screen-confirm{background:var(--warmwhite); text-align:center; justify-content:center; align-items:center; padding:40px 30px;}
   .confirm-icon{width:74px; height:74px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; margin-bottom:18px;}
   #screen-confirm p{font-size:13.5px; color:var(--charcoal); opacity:0.8; margin-top:10px; line-height:1.6; max-width:280px;}
+  .cant-wait{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:1.5px solid var(--line); border-radius:16px; padding:16px;}
+  .cant-wait h3{font-size:16px;}
+  .cant-wait p{margin-top:4px; font-size:12.5px;}
+  .cw-btn{width:100%; margin-top:9px; text-decoration:none; font-size:13.5px; word-break:break-all;}
 </style>
 </head>
 <body>
@@ -192,6 +205,7 @@
             <canvas id="photo-canvas"></canvas>
           </div>
           <div class="blur-hint" id="blur-hint">👆 Drag over anything you'd rather not show</div>
+          <button class="btn btn-outline btn-sm hidden" id="undo-blur-btn" onclick="undoBlur()" style="margin:8px auto 0; display:block; width:auto;">↩ Undo blur</button>
           <div class="privacy-note" id="privacy-note">🔒 Blurring is for privacy only — please don't hide real condition issues.</div>
 
           <!-- Front of House address block -->
@@ -283,7 +297,17 @@
       <div class="confirm-icon">✓</div>
       <h2>You're all set!</h2>
       <p id="confirm-text">Rob has everything he needs and will be in touch personally with your appraisal. Thanks for walking through your home with us.</p>
-      <p style="font-size:10.5px; opacity:0.45; margin-top:26px;">Snap Appraisal · Built by WestWorks</p>
+
+      <div class="cant-wait" id="cant-wait">
+        <h3>Can't wait?</h3>
+        <p>Get in touch with <span id="cw-agent-name">Rob</span> right now.</p>
+        <a class="btn btn-outline cw-btn hidden" id="cw-call" href="">📞 Call <span id="cw-phone"></span></a>
+        <a class="btn btn-outline cw-btn hidden" id="cw-email" href="">✉️ Email <span id="cw-email-name"></span></a>
+        <div id="cw-email-addr" style="font-size:11px; color:var(--charcoal); opacity:0.6; margin-top:5px; word-break:break-all;"></div>
+      </div>
+
+      <button class="btn btn-brand" style="margin-top:22px;" onclick="startAnotherAppraisal()">＋ Add another appraisal</button>
+      <p style="font-size:10.5px; opacity:0.45; margin-top:18px;">Snap Appraisal · Built by WestWorks</p>
     </div>
 
   </div>
@@ -293,7 +317,33 @@
 /* ---------- CONFIG ---------- */
 let AGENT_NAME = 'Rob Levy';
 const SESSION_ID = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
-let currentAgent = { agentId: null, agentName: 'Rob Levy', agencyName: 'Bright Property Townsville' };
+let currentAgent = { agentId: null, agentName: 'Rob Levy', agencyName: 'Bright Property Townsville', phone: '', email: '' };
+
+// "Can't wait?" block on the final screen: call + prefilled email to the agent
+function renderCantWait(){
+  const first = (currentAgent.agentName || 'your agent').split(' ')[0];
+  document.getElementById('cw-agent-name').textContent = first;
+  document.getElementById('cw-email-name').textContent = first;
+  const call = document.getElementById('cw-call');
+  const mail = document.getElementById('cw-email');
+  if(currentAgent.phone){
+    document.getElementById('cw-phone').textContent = currentAgent.phone;
+    call.href = 'tel:' + currentAgent.phone.replace(/[^\d+]/g, '');
+    call.classList.remove('hidden');
+  } else { call.classList.add('hidden'); }
+  if(currentAgent.email){
+    document.getElementById('cw-email-addr').textContent = currentAgent.email;
+    const subject = `Keen to get started – ${propertyAddress || 'my home'}`;
+    const body = `Hi ${first},\n\nI'm keen to get started so please contact me about selling my home${propertyAddress ? ' at ' + propertyAddress : ''}.\n\nThanks`;
+    mail.href = `mailto:${currentAgent.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    mail.classList.remove('hidden');
+  } else { mail.classList.add('hidden'); }
+  document.getElementById('cant-wait').classList.toggle('hidden', !currentAgent.phone && !currentAgent.email);
+}
+// Back to the very start with a fresh session (same agent link)
+function startAnotherAppraisal(){
+  window.location.reload();
+}
 let frontOfHouseDone = false; // D2: "Skip this photo" only appears once this is true
 
 // Look up which agent this link belongs to, based on the URL path.
@@ -308,7 +358,7 @@ async function loadAgentBySlug(){
     const data = await res.json();
     if(!data.ok) return;
 
-    currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName };
+    currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName, phone: data.phone || '', email: data.email || '' };
     AGENT_NAME = data.agentName;
     document.title = `Snap Appraisal — ${data.agencyName || data.agentName}`;
     const agencyDisplay = data.agencyName || data.agentName;
@@ -387,9 +437,8 @@ const CORE_START = [
   {id:'kitchen', label:'Kitchen', emoji:'🍳', hint:'Benches, splashback and any appliances staying with the home.'},
   {id:'front', label:'Front of House', emoji:'🏡', hint:'Stand across the street and capture the full front facade in good light.', isFront:true},
 ];
-// Snap-frame style icons: the brand's bracket corners (orange + black) with a
-// simple line glyph inside. Same visual language as the Snap Appraisal logo.
-const SNAP_FRAME = `<path d="M22 8H12a4 4 0 0 0-4 4v10" fill="none" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>
+/* (Snap-frame icons retired, back to the simple emoji ones) */
+const SNAP_FRAME_UNUSED = `<path d="M22 8H12a4 4 0 0 0-4 4v10" fill="none" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>
   <path d="M42 8h10a4 4 0 0 1 4 4v10" fill="none" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
   <path d="M8 42v10a4 4 0 0 0 4 4h10" fill="none" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
   <path d="M56 42v10a4 4 0 0 1-4 4H42" fill="none" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>`;
@@ -413,7 +462,9 @@ const FEATURES = [
   {id:'deck', label:'Deck / Patio', emoji:'🌇', hint:'Your outdoor entertaining area, in daylight if possible.'},
   {id:'shed', label:'Shed', emoji:'🧰', hint:'A wide shot of the structure and its condition.'},
   {id:'solar', label:'Solar Panels', emoji:'☀️', hint:'A shot of the roof panels or the inverter/meter box.'},
-].map(f => ({...f, icon: snapIcon(f.id)}));
+];
+const MAX_OTHER = 5;      // "Other" features the visitor can name themselves
+let otherCount = 0;
 
 /* ---------- STATE ---------- */
 let roomQueue = [];       // dynamic queue of room objects being processed
@@ -448,7 +499,7 @@ function buildRoomStrip(){
     const tile = document.createElement('div');
     tile.className = 'room-tile';
     tile.id = 'tile-'+i;
-    tile.innerHTML = `<div class="dot">${r.icon || r.emoji}</div>`;
+    tile.innerHTML = `<div class="dot">${r.emoji}</div>`;
     strip.appendChild(tile);
   });
 }
@@ -466,7 +517,7 @@ function addTileForNewRoom(){
 /* ---------- RENDER ROOM ---------- */
 function renderRoom(){
   const r = roomQueue[currentIndex];
-  document.getElementById('room-emoji').innerHTML = r.icon || r.emoji;
+  document.getElementById('room-emoji').textContent = r.emoji;
   document.getElementById('room-title').textContent = r.label;
   document.getElementById('step-tag').textContent = r.label;
   document.getElementById('capture-subtitle').textContent = currentAgent.agencyName || 'Bright Property Townsville';
@@ -514,6 +565,8 @@ function handlePhoto(e){
       canvas.style.display = 'block';
       document.getElementById('blur-hint').style.display = 'block';
       document.getElementById('privacy-note').style.display = 'block';
+      blurHistory = [];
+      document.getElementById('undo-blur-btn').classList.add('hidden');
       document.getElementById('pre-actions').style.display = 'none';
       document.getElementById('post-actions').style.display = 'flex';
     };
@@ -523,6 +576,13 @@ function handlePhoto(e){
 }
 function retakePhoto(){ resetPreview(); document.getElementById('file-input').click(); }
 
+let blurHistory = [];   // canvas snapshots, one per blur stroke, for Undo
+function undoBlur(){
+  if(!blurHistory.length) return;
+  const canvas = document.getElementById('photo-canvas');
+  canvas.getContext('2d').putImageData(blurHistory.pop(), 0, 0);
+  if(!blurHistory.length) document.getElementById('undo-blur-btn').classList.add('hidden');
+}
 (function(){
   const canvas = document.getElementById('photo-canvas');
   let isDrawing = false;
@@ -540,7 +600,15 @@ function retakePhoto(){ resetPreview(); document.getElementById('file-input').cl
     ctx.fillStyle = `rgb(${Math.round(r/c)},${Math.round(g/c)},${Math.round(b/c)})`;
     ctx.fillRect(sx,sy,sw,sh);
   }
-  canvas.addEventListener('pointerdown', e=>{isDrawing=true; const p=posFromEvent(e); blurAt(p.x,p.y);});
+  canvas.addEventListener('pointerdown', e=>{
+    isDrawing=true;
+    // snapshot before this stroke so it can be undone as one step
+    const ctx = canvas.getContext('2d');
+    blurHistory.push(ctx.getImageData(0,0,canvas.width,canvas.height));
+    if(blurHistory.length > 20) blurHistory.shift();
+    document.getElementById('undo-blur-btn').classList.remove('hidden');
+    const p=posFromEvent(e); blurAt(p.x,p.y);
+  });
   canvas.addEventListener('pointermove', e=>{if(isDrawing){const p=posFromEvent(e); blurAt(p.x,p.y);}});
   window.addEventListener('pointerup', ()=>isDrawing=false);
 })();
@@ -743,10 +811,47 @@ FEATURES.forEach(f=>{
   const card = document.createElement('div');
   card.className = 'feature-card';
   card.id = 'feature-card-' + f.id;
-  card.innerHTML = `<div class="icon">${f.icon}</div><div class="label">${f.label}</div><div class="tap">Tap to photograph</div>`;
+  card.innerHTML = `<div class="emoji">${f.emoji}</div><div class="label">${f.label}</div><div class="tap">Tap to photograph</div>`;
   card.onclick = ()=> photographExtra(f);
   grid.appendChild(card);
 });
+// "Other" card: type what it is (up to 5), it becomes its own feature card
+const otherCard = document.createElement('div');
+otherCard.className = 'feature-card feature-other';
+otherCard.id = 'feature-card-other';
+otherCard.innerHTML = `<div class="emoji">✏️</div><div class="label">Other</div><div class="tap">Type what it is</div>
+  <div class="other-input hidden" id="other-input-wrap" onclick="event.stopPropagation()">
+    <input type="text" id="other-input" maxlength="30" placeholder="e.g. Wine cellar" onkeydown="if(event.key==='Enter') addOtherFeature()">
+    <button class="btn btn-brand btn-sm" onclick="addOtherFeature()">Add →</button>
+  </div>`;
+otherCard.onclick = ()=>{
+  if(otherCount >= MAX_OTHER) return;
+  const wrap = document.getElementById('other-input-wrap');
+  wrap.classList.toggle('hidden');
+  if(!wrap.classList.contains('hidden')) document.getElementById('other-input').focus();
+};
+grid.appendChild(otherCard);
+function addOtherFeature(){
+  const input = document.getElementById('other-input');
+  const label = input.value.trim();
+  if(!label) { input.focus(); return; }
+  otherCount++;
+  const f = { id: 'other' + otherCount, label, emoji: '📸', hint: 'A clear, wide shot of it.', isOther: true };
+  FEATURES.push(f);
+  const card = document.createElement('div');
+  card.className = 'feature-card';
+  card.id = 'feature-card-' + f.id;
+  card.innerHTML = `<div class="emoji">${f.emoji}</div><div class="label">${f.label}</div><div class="tap">Tap to photograph</div>`;
+  card.onclick = ()=> photographExtra(f);
+  grid.insertBefore(card, otherCard);
+  input.value = '';
+  document.getElementById('other-input-wrap').classList.add('hidden');
+  if(otherCount >= MAX_OTHER){
+    otherCard.classList.add('disabled');
+    otherCard.querySelector('.tap').textContent = 'Max 5 added';
+  }
+  photographExtra(f);   // straight into photographing it
+}
 // Tapping a feature opens the capture screen for just that feature. When the
 // photo is confirmed (or skipped) advanceQueue() brings them straight back
 // here, with the card ticked, until they press "Finished Taking Photos".
@@ -915,6 +1020,7 @@ async function submitHotLead(){
       })
     });
     if(!res.ok) throw new Error('submit failed');
+    renderCantWait();
     goTo('confirm');
   }catch(err){
     console.error(err);
