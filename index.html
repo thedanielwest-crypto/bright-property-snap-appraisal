@@ -156,6 +156,12 @@
   #screen-confirm{background:var(--warmwhite); text-align:center; justify-content:center; align-items:center; padding:40px 30px;}
   .confirm-icon{width:74px; height:74px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; margin-bottom:18px;}
   #screen-confirm p{font-size:13.5px; color:var(--charcoal); opacity:0.8; margin-top:10px; line-height:1.6; max-width:280px;}
+  .call-card{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:2px solid var(--orange); border-radius:16px; padding:16px; text-align:left;}
+  .call-card h3{font-size:16px;}
+  .call-card p{margin-top:4px; font-size:12.5px; max-width:none;}
+  .call-card input{width:100%; margin-top:12px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line); font-size:16px; font-family:inherit;}
+  .call-card .btn{width:100%; margin-top:10px;}
+  #call-done{margin-top:12px; font-size:13.5px; color:var(--charcoal); line-height:1.5;}
   .cant-wait{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:1.5px solid var(--line); border-radius:16px; padding:16px;}
   .cant-wait h3{font-size:16px;}
   .cant-wait p{margin-top:4px; font-size:12.5px;}
@@ -275,17 +281,9 @@
       <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div></div>
       <div class="content">
         <div class="trust-line" id="trust-line">🔒 Your details go straight to Your Name Here at Your Business Name Here — no spam, no cold calls from anyone else.</div>
-        <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor"></div>
-        <div class="field"><label>Email</label><input type="email" id="input-email" placeholder="you@email.com"></div>
-        <div class="field"><label>Mobile number</label><input type="tel" id="input-mobile" placeholder="04XX XXX XXX"></div>
-        <div class="field">
-          <label>Preferred contact method</label>
-          <div class="contact-pref">
-            <div class="pref-opt selected" data-pref="Email" onclick="selectContactPref(this)">✉️ Email</div>
-            <div class="pref-opt" data-pref="Text" onclick="selectContactPref(this)">💬 Text</div>
-            <div class="pref-opt" data-pref="Call" onclick="selectContactPref(this)">📞 Call</div>
-          </div>
-        </div>
+        <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
+        <div class="field"><label>Email</label><input type="email" id="input-email" placeholder="you@email.com" autocomplete="email"></div>
+        <p style="font-size:12px; color:var(--charcoal); opacity:0.7; margin-top:-4px;">That's all we need. Your appraisal will be emailed to you.</p>
         <div class="submit-error" id="submit-error"></div>
       </div>
       <div class="final-footer">
@@ -298,6 +296,17 @@
       <div class="confirm-icon">✓</div>
       <h2>You're all set!</h2>
       <p id="confirm-text">Your agent has everything they need and will be in touch personally with your appraisal. Thanks for walking through your home with us.</p>
+
+      <div class="call-card" id="call-card">
+        <h3>📞 Want a call from <span id="call-agent-name">your agent</span>?</h3>
+        <p>Pop your mobile in and <span id="call-agent-name-2">your agent</span> will call you personally to talk through your appraisal and what your home could sell for.</p>
+        <div id="call-form">
+          <input type="tel" id="call-mobile" placeholder="04XX XXX XXX" autocomplete="tel" inputmode="tel">
+          <button class="btn btn-brand" id="call-btn" onclick="requestCall()">Yes, call me →</button>
+          <div class="submit-error" id="call-error"></div>
+        </div>
+        <div id="call-done" class="hidden">✅ Done! <b id="call-done-name">Your agent</b> will call you on <b id="call-done-mobile"></b>.</div>
+      </div>
 
       <div class="cant-wait" id="cant-wait">
         <h3>Can't wait?</h3>
@@ -1013,6 +1022,56 @@ async function sendColdLeadNow(){
   }catch(err){ console.error('cold lead send failed', err); }
 }
 
+let hotLeadName = '', hotLeadEmail = '';
+function renderCallCard(){
+  const first = (currentAgent.agentName || 'your agent').split(' ')[0];
+  document.getElementById('call-agent-name').textContent = first;
+  document.getElementById('call-agent-name-2').textContent = first;
+  document.getElementById('call-done-name').textContent = first;
+  document.getElementById('call-form').classList.remove('hidden');
+  document.getElementById('call-done').classList.add('hidden');
+}
+// Second step after "Get My Appraisal": the client asks for a call. We update
+// the SAME hot lead (recordId / session) with their mobile and set the
+// contact preference to "Call" - the portal shows that as "Client requesting
+// call" and pushes it to the top of Hot Leads.
+async function requestCall(){
+  const err = document.getElementById('call-error');
+  const btn = document.getElementById('call-btn');
+  const mobile = document.getElementById('call-mobile').value.trim();
+  err.style.display = 'none';
+  if(mobile.replace(/\D/g,'').length < 8){
+    err.textContent = 'Please enter a valid mobile number.';
+    err.style.display = 'block';
+    return;
+  }
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try{
+    const res = await fetch('/.netlify/functions/submit-lead', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        recordId: coldLeadRecordId,
+        fullName: hotLeadName, email: hotLeadEmail, mobile,
+        contactPreference: 'Call',
+        address: propertyAddress,
+        leadType: 'Hot Lead',
+        featuresSelected: Array.from(selectedFeatures),
+        photos: uploadedPhotos,
+        agentId: currentAgent.agentId,
+      })
+    });
+    if(!res.ok) throw new Error('call request failed');
+    document.getElementById('call-done-mobile').textContent = mobile;
+    document.getElementById('call-form').classList.add('hidden');
+    document.getElementById('call-done').classList.remove('hidden');
+  }catch(e){
+    console.error(e);
+    err.textContent = "Couldn't send that just now — check your connection and try again.";
+    err.style.display = 'block';
+    btn.textContent = 'Yes, call me →'; btn.disabled = false;
+  }
+}
 function selectContactPref(el){
   document.querySelectorAll('.pref-opt').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
@@ -1025,12 +1084,12 @@ async function submitHotLead(){
   errorBox.style.display = 'none';
   const fullName = document.getElementById('input-name').value.trim();
   const email = document.getElementById('input-email').value.trim();
-  const mobile = document.getElementById('input-mobile').value.trim();
-  if(!fullName || !mobile){
-    errorBox.textContent = 'Please add your name and mobile number.';
+  if(!fullName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    errorBox.textContent = 'Please add your name and a valid email address.';
     errorBox.style.display = 'block';
     return;
   }
+  hotLeadName = fullName; hotLeadEmail = email;
   btn.textContent = 'Sending…'; btn.disabled = true;
   try{
     const res = await fetch('/.netlify/functions/submit-lead', {
@@ -1038,8 +1097,8 @@ async function submitHotLead(){
       body: JSON.stringify({
         sessionId: SESSION_ID,
         recordId: coldLeadRecordId,
-        fullName, email, mobile,
-        contactPreference,
+        fullName, email,
+        contactPreference: 'Email',
         address: propertyAddress,
         leadType: 'Hot Lead',
         featuresSelected: Array.from(selectedFeatures),
@@ -1049,6 +1108,7 @@ async function submitHotLead(){
     });
     if(!res.ok) throw new Error('submit failed');
     renderCantWait();
+    renderCallCard();
     goTo('confirm');
   }catch(err){
     console.error(err);
