@@ -48,7 +48,7 @@ exports.handler = async (event) => {
 
   try {
     const res = await fetchWithRetry(
-      `${process.env.SUPABASE_URL}/rest/v1/agents?slug=eq.${encodeURIComponent(slug)}&select=id,agent_name,agency_name,email,logo_url,headshot_url,brand_color,stat_homes,stat_avg_days,stat_local_tag,intro_statement`,
+      `${process.env.SUPABASE_URL}/rest/v1/agents?slug=eq.${encodeURIComponent(slug)}&select=id,agent_name,agency_name,email,phone,logo_url,headshot_url,brand_color,stat_homes,stat_avg_days,stat_local_tag,intro_statement`,
       { headers: sbHeaders() }
     );
     if (!res.ok) {
@@ -68,6 +68,7 @@ exports.handler = async (event) => {
         agentName: a.agent_name,
         agencyName: a.agency_name || '',
         email: a.email,
+        phone: a.phone || '',
         logoUrl: a.logo_url || '',
         headshotUrl: a.headshot_url || '',
         brandColor: a.brand_color || '#FF5A1F',
