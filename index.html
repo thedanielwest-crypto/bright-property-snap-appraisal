@@ -64,8 +64,9 @@
   .app-header .subtitle{font-size:11.5px; color:var(--charcoal); opacity:0.7;}
   .app-header .header-agent{margin-left:auto; text-align:right; font-weight:700; font-size:13px; color:var(--charcoal); line-height:1.2; max-width:45%;}
   .app-header .header-agent small{display:block; font-weight:500; font-size:10.5px; opacity:0.65;}
-  .agent-header-logo{max-height:38px; max-width:120px; height:auto; width:auto; object-fit:contain;}
-  .landing-agent-logo{max-height:64px; max-width:100%; width:auto; margin:0 auto; display:block;}
+  /* Agent logos are NEVER stretched: fixed box, image scaled to fit inside it, shape preserved */
+  .app-header img.agent-header-logo{height:38px; width:120px; max-width:120px; object-fit:contain; object-position:left center;}
+  .logo-panel img.landing-agent-logo{width:100%; height:72px; object-fit:contain; object-position:center; margin:0 auto; display:block;}
   .landing-powered{margin-top:18px; opacity:0.85;}
   .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
   .landing-powered img{height:30px; width:auto; margin:0 auto; display:block;}
