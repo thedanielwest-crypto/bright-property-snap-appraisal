@@ -3,1963 +3,1123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SnapAppraisal, Agent Portal (Prototype)</title>
+<title>Snap Appraisal, Your Business Name Here</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#0B0B0C;
-    --orange:#FF5A1F;
+    --red:#FF3131;
+    --orange:#FF914D;
+    --charcoal:#595A5A;
+    --warmwhite:#FAF7F3;
     --white:#FFFFFF;
-    --panel:#141416;
-    --line:#26262A;
-    --muted:#9A9AA2;
-    --bg:#F5F4F1;
-    --card:#FFFFFF;
-    --text:#17171A;
-    --danger:#D8492F;
-    --ok:#2F9E68;
-    --radius:14px;
+    --gradient:linear-gradient(90deg,#FF3131,#FF914D);
+    --line:#E7E1D9;
+    --success:#2F9E68;
+    --shadow:0 20px 50px rgba(89,90,90,0.18);
   }
   *{box-sizing:border-box;}
-  body{margin:0; font-family:'Poppins',sans-serif; background:var(--bg); color:var(--text);}
-  h1,h2,h3{font-family:'Poppins',sans-serif; font-weight:700; margin:0;}
-  .hidden{display:none !important;}
-  button{font-family:inherit; cursor:pointer;}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:12px 20px; border-radius:100px; border:none; font-weight:700; font-size:14px;}
-  .btn-primary{background:var(--ink); color:var(--white);}
-  .btn-primary:hover{background:#000;}
-  .btn-lime{background:var(--orange); color:var(--white);}
-  .btn-outline{background:transparent; border:1.5px solid var(--line); color:var(--text);}
-  .btn-sm{padding:8px 14px; font-size:12.5px;}
-  .btn:disabled{opacity:0.45; cursor:not-allowed;}
-  .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:100px; font-size:11.5px; font-weight:700;}
-  .pill-orange{background:#FFEAE0; color:var(--orange);}
-  .pill-lime{background:#FFEAE0; color:#B84A1F;}
-  .pill-grey{background:#EEEEEE; color:#666;}
-  .pill-call{background:var(--orange); color:#fff; animation:callpulse 1.6s ease-in-out infinite;}
-  @keyframes callpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,90,31,0.45);}50%{box-shadow:0 0 0 6px rgba(255,90,31,0);}}
-  .listing-row.call-requested{background:#FFF6F1; border-left:4px solid var(--orange);}
-  .call-banner{background:var(--orange); color:#fff; border-radius:10px; padding:12px 14px; font-weight:700; font-size:14px; margin:0 0 12px; display:flex; align-items:center; gap:8px;}
-  .call-banner a{color:#fff;}
-  .pill-plat{background:#111; color:#F0D98C;}
-
-  /* ============ LOGIN ============ */
-  #screen-login{min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--ink); background-image:radial-gradient(circle at 20% 20%, #1a1a1d, #0B0B0C 60%);}
-  .login-card{width:380px; background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:40px 34px;}
-  .login-card .logo{color:var(--white); font-weight:700; font-size:19px; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
-  .login-card .logo img{height:28px; width:28px;}
-  .login-card .logo span{color:var(--orange);}
-  .login-card .sub{color:var(--muted); font-size:13.5px; margin-bottom:28px;}
-  .auth-toggle{display:flex; background:#1c1c1f; border-radius:100px; padding:4px; margin-bottom:22px;}
-  .auth-toggle-btn{flex:1; padding:9px; border:none; background:transparent; color:var(--muted); font-weight:700; font-size:13px; border-radius:100px; cursor:pointer; font-family:inherit;}
-  .auth-toggle-btn.active{background:var(--orange); color:var(--white);}
-  .field{margin-bottom:16px;}
-  .field label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin-bottom:7px;}
-  .field input{width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid var(--line); background:#1c1c1f; color:var(--white); font-size:14px;}
-  .field input::placeholder{color:#5a5a60;}
-  .login-card .btn{width:100%; margin-top:8px; padding:14px;}
-  .login-foot{text-align:center; margin-top:18px; font-size:12.5px; color:var(--muted);}
-  .ww-footer{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; font-size:11.5px; color:#5a5a60;}
-  .ww-footer .ww-mark{display:inline-flex; align-items:center; gap:5px; font-weight:700; color:#c9c9cd;}
-  .ww-footer .ww-mark .dot{width:6px; height:6px; border-radius:50%; background:var(--orange);}
-  .main-footer{margin-top:36px; padding-top:20px; border-top:1px solid #E5E3DD; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:12px; color:#999;}
-  .main-footer .ww-mark{display:inline-flex; align-items:center; gap:5px; font-weight:700; color:#555;}
-  .main-footer .ww-mark .dot{width:6px; height:6px; border-radius:50%; background:var(--orange);}
-  .main-footer a{color:#888; text-decoration:none;}
-  .main-footer a:hover{text-decoration:underline;}
-
-  /* ============ APP SHELL ============ */
-  #app-shell{display:flex; min-height:100vh;}
-  .sidebar{width:240px; background:var(--ink); color:var(--white); flex-shrink:0; display:flex; flex-direction:column; padding:22px 16px;}
-  .sidebar .brand{font-weight:700; font-size:16px; padding:0 10px 22px; border-bottom:1px solid #232326; margin-bottom:18px; display:flex; align-items:center; gap:8px;}
-  .sidebar .brand img{height:26px; width:26px;}
-  .sidebar .brand span{color:var(--orange);}
-  .nav-item{display:flex; align-items:center; gap:11px; padding:11px 12px; border-radius:10px; color:#c9c9cd; font-size:13.5px; font-weight:600; cursor:pointer; margin-bottom:2px;}
-  .nav-item:hover{background:#1a1a1d;}
-  .nav-item.active{background:var(--orange); color:var(--white);}
-  .sidebar-foot{margin-top:auto; padding-top:16px; border-top:1px solid #232326;}
-  .plan-badge{background:#1a1a1d; border-radius:10px; padding:12px; font-size:11.5px; color:var(--muted); margin-bottom:10px;}
-  .plan-badge b{color:var(--white); display:block; font-size:13px; margin-bottom:2px;}
-
-  .main{flex:1; padding:32px 40px; max-width:1180px;}
-  .view-panel{display:none;}
-  .view-panel.active{display:block;}
-  .page-head{margin-bottom:26px;}
-  .page-head h2{font-size:24px;}
-  .page-head p{color:#77777d; font-size:13.5px; margin-top:6px;}
-
-  .card{background:var(--card); border:1px solid #E5E3DD; border-radius:var(--radius); padding:22px;}
-  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
-  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start;}
-  .stat-card b{font-size:26px; display:block;}
-  /* founders dashboard */
-  .founder-charts{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
-  .chart{width:100%; height:180px;}
-  .chart svg{width:100%; height:100%; display:block; overflow:visible;}
-  .agent-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:14px;}
-  .agent-card{border:1.5px solid #E5E3DD; border-radius:14px; padding:16px; cursor:pointer; background:var(--white);}
-  .agent-card:hover{border-color:var(--orange);}
-  .agent-card .ac-top{display:flex; align-items:center; gap:12px;}
-  .agent-card .ac-head{width:52px; height:52px; border-radius:50%; background:#F1EEE9; background-size:cover; background-position:center; flex-shrink:0; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.12);}
-  .agent-card .ac-logo{width:52px; height:36px; border-radius:6px; background:#F5F4F1 center/contain no-repeat; flex-shrink:0; border:1px solid #EEECE6;}
-  .agent-card .ac-name{font-weight:700; font-size:14.5px;}
-  .agent-card .ac-agency{font-size:12px; color:#888;}
-  .agent-card .ac-rows{margin-top:12px; font-size:12.5px; display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; word-break:break-word;}
-  .agent-card .ac-rows b{display:block; font-size:10.5px; color:#999; text-transform:uppercase; letter-spacing:0.04em; font-weight:700;}
-  .agent-card .ac-pills{margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;}
-  .pill-green{background:#E6F7EE; color:#1F7A4D;}
-  .pill-red{background:#FDECEC; color:#B42318;}
-  @media(max-width:900px){ .founder-charts{grid-template-columns:1fr;} }
-  .stat-card span{font-size:12px; color:#888; text-transform:uppercase; letter-spacing:0.04em;}
-
-  /* Cold/Hot listing rows */
-  .listing-row{display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #EEECE6; gap:12px;}
-  .listing-row:last-child{border-bottom:none;}
-  .listing-addr{font-weight:700; font-size:14px;}
-  .listing-meta{font-size:12px; color:#888; margin-top:3px;}
-  .listing-right{display:flex; align-items:center; gap:8px; flex-shrink:0;}
-  .locked-wrap{position:relative; border-bottom:1px solid #EEECE6;}
-  .locked-wrap:last-child{border-bottom:none;}
-  .listing-locked{filter:blur(5px); pointer-events:none; user-select:none;}
-  .locked-overlay{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.4);}
-
-  .unlock-banner{display:flex; align-items:center; justify-content:space-between; background:#171717; color:var(--white); border-radius:var(--radius); padding:18px 22px; margin-bottom:18px; flex-wrap:wrap; gap:12px;}
-  .unlock-banner .msg b{color:var(--orange);}
-
-  /* Mail out stepper */
-  /* mail out step 2: A/B delivery choice */
-  .mail-choice{border:2px solid #E5E3DD; border-radius:12px; padding:18px; margin-bottom:14px; cursor:pointer;}
-  .mail-choice.selected{border-color:var(--orange); background:#FFFBF8;}
-  .mail-choice .mc-head{display:flex; align-items:center; gap:12px; font-weight:700; font-size:15px;}
-  .mail-choice .mc-radio{width:20px; height:20px; border-radius:50%; border:2px solid #C9C7C1; flex-shrink:0; position:relative;}
-  .mail-choice.selected .mc-radio{border-color:var(--orange);}
-  .mail-choice.selected .mc-radio::after{content:""; position:absolute; inset:4px; border-radius:50%; background:var(--orange);}
-  .mail-choice .mc-sub{font-size:12.5px; color:#777; margin:4px 0 0 32px;}
-  .mail-choice .mc-body{margin:16px 0 0 32px; display:none;}
-  .mail-choice.selected .mc-body{display:block;}
-  .tick-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:10px;}
-  .tick{display:flex; align-items:center; gap:10px; border:1.5px solid #E5E3DD; border-radius:10px; padding:11px 13px; cursor:pointer; font-size:13.5px; background:var(--white);}
-  .tick input{width:18px; height:18px; accent-color:var(--orange); margin:0; cursor:pointer;}
-  .tick.on{border-color:var(--orange); background:#FFF3EC;}
-  .tick small{display:block; color:#999; font-size:11px; font-weight:400;}
-  .steps{display:flex; gap:8px; margin-bottom:26px;}
-  .step-dot{flex:1; height:5px; border-radius:3px; background:#E5E3DD;}
-  .step-dot.done{background:var(--orange);}
-  .flyer-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:14px;}
-  .flyer-card{border:2px solid #E5E3DD; border-radius:12px; padding:10px; cursor:pointer; text-align:center;}
-  .flyer-card.selected{border-color:var(--orange); background:#FFF3EC;}
-  .flyer-thumb{height:90px; border-radius:8px; margin-bottom:8px; display:flex; align-items:center; justify-content:center; font-size:22px;}
-  .flyer-card .name{font-size:11.5px; font-weight:700;}
-
-  /* flyer live preview (DL card mockup) */
-  .flyer-preview-wrap{display:flex; gap:26px; align-items:flex-start; margin-top:22px; flex-wrap:wrap;}
-  .dl-flyer{width:220px; height:420px; border-radius:14px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,0.15); display:flex; flex-direction:column; flex-shrink:0; position:relative;}
-  .dl-logo-badge{position:absolute; top:14px; left:14px; width:40px; height:40px; border-radius:8px; background:rgba(255,255,255,0.92); display:none; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15);}
-  .dl-logo-badge img{width:100%; height:100%; object-fit:contain; padding:4px;}
-  .dl-flyer .dl-top{flex:1; display:flex; align-items:center; justify-content:center; font-size:50px; background-repeat:no-repeat; background-position:center; background-size:78% auto;}
-  .dl-flyer .dl-bottom{background:var(--ink); color:white; padding:16px; display:flex; flex-direction:column; gap:10px;}
-  .dl-flyer .dl-agent{display:flex; align-items:center; gap:9px;}
-  .dl-flyer .dl-avatar{width:34px;height:34px;border-radius:50%;background:var(--orange); flex-shrink:0; background-size:cover; background-position:center;}
-  .dl-flyer .dl-name{font-size:12.5px; font-weight:700;}
-  .dl-flyer .dl-agency{font-size:10px; color:#999;}
-  .dl-flyer .dl-cta{font-size:11.5px; font-weight:600; line-height:1.35;}
-  .dl-flyer .dl-qr-row{display:flex; align-items:center; gap:9px; margin-top:2px;}
-  .dl-flyer .dl-qr{width:38px;height:38px;background:repeating-conic-gradient(#fff 0% 25%, #222 0% 50%) 0 0/6px 6px; border-radius:4px; flex-shrink:0;}
-  .dl-flyer .dl-qr-lbl{font-size:9.5px; color:#999; line-height:1.3;}
-  .preview-caption{max-width:260px; font-size:12.5px; color:#777; padding-top:6px;}
-  .preview-caption b{color:var(--text); display:block; margin-bottom:6px; font-size:13.5px;}
-
-  .field-row{display:flex; gap:14px; flex-wrap:wrap;}
-  .field-row .field{flex:1; min-width:200px;}
-  .field input, .field select{width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid #E5E3DD; font-size:14px; background:var(--white); color:var(--text);}
-  .field label{display:block; font-size:12px; font-weight:700; color:#666; margin-bottom:7px;}
-  .field .hint{font-size:11px; color:#aaa; margin-top:5px;}
-
-  .order-line{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #EEECE6; font-size:13.5px;}
-  .order-line.total{font-weight:700; font-size:16px; border-bottom:none; padding-top:14px;}
-
-  /* Branding */
-  .upload-box{border:1.5px dashed #D8D5CD; border-radius:12px; padding:24px; text-align:center; color:#888; font-size:13px; cursor:pointer;}
-  .upload-hint{font-size:11px; color:#aaa; margin:6px 0 4px;}
-  #preview-logo-badge img{width:100%; height:100%; object-fit:contain; padding:5px;}
-  .upload-box:hover{border-color:var(--orange); color:var(--orange);}
-  .swatch-row{display:flex; gap:10px; margin-top:10px;}
-  .swatch{width:34px; height:34px; border-radius:50%; border:2px solid white; box-shadow:0 0 0 1.5px #ddd; cursor:pointer;}
-  .swatch.selected{box-shadow:0 0 0 2px var(--orange);}
-
-  /* Subscription tiers */
-  .tier-card{border:2px solid #E5E3DD; border-radius:var(--radius); padding:26px; position:relative;}
-  .tier-card.current{border-color:var(--ink);}
-  .tier-card.highlight{border-color:var(--orange); background:#FFFBF8;}
-  .tier-card .price{font-family:'Poppins',sans-serif; font-weight:700; font-size:32px; margin:10px 0 4px;}
-  .tier-card .price span{font-size:13px; font-weight:500; color:#888;}
-  .tier-card ul{list-style:none; padding:0; margin:18px 0; display:flex; flex-direction:column; gap:10px; font-size:13px;}
-  .tier-card li::before{content:"✓ "; color:var(--ok); font-weight:700;}
-  .current-tag{position:absolute; top:-11px; left:20px; background:var(--ink); color:var(--white); font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:100px;}
-
-  /* Notifications */
-  .toggle-row{display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid #EEECE6;}
-  .toggle-row:last-child{border-bottom:none;}
-  .toggle-row .lbl{font-weight:700; font-size:13.5px;}
-  .toggle-row .desc{font-size:12px; color:#888; margin-top:2px;}
-  .switch{position:relative; width:42px; height:24px; border-radius:100px; background:#DDD; cursor:pointer; flex-shrink:0;}
-  .switch.on{background:var(--orange);}
-  .switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:white; transition:left .15s;}
-  .switch.on .knob{left:20px;}
-
-  /* Share */
-  .refer-box{background:var(--ink); color:var(--white); border-radius:var(--radius); padding:26px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;}
-  .refer-code{font-family:monospace; background:#1c1c1f; padding:10px 16px; border-radius:8px; font-size:14px; letter-spacing:0.05em;}
-
-  /* Modal */
-  .modal-backdrop{position:fixed; inset:0; background:rgba(10,10,10,0.55); display:flex; align-items:center; justify-content:center; z-index:50;}
-  .modal-box{width:400px; background:white; border-radius:16px; padding:26px;}
-  .modal-box h3{font-size:16px; margin-bottom:6px;}
-  .modal-box .sub{font-size:12.5px; color:#888; margin-bottom:18px;}
-  .modal-actions{display:flex; justify-content:flex-end; gap:10px; margin-top:18px;}
-  .toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%); background:var(--ink); color:white; padding:14px 22px; border-radius:100px; font-size:13.5px; font-weight:600; z-index:60; box-shadow:0 10px 30px rgba(0,0,0,0.25);}
-
-  @media(max-width:900px){
-    #app-shell{flex-direction:column;}
-    .sidebar{width:100%;}
-    .grid-3, .grid-2{grid-template-columns:1fr;}
-    .flyer-grid{grid-template-columns:repeat(2,1fr);}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Poppins',sans-serif;
+    min-height:100vh; background:var(--charcoal);
+    display:flex; align-items:center; justify-content:center; padding:32px 16px; color:var(--charcoal);
   }
+  h1,h2,h3{font-family:'Poppins',sans-serif; font-weight:800; margin:0; letter-spacing:-0.01em;}
+  .accent{font-family:'Poppins',sans-serif; font-weight:700; font-style:italic; color:var(--orange);}
+  p{margin:0;}
+  .frame{
+    width:390px; max-width:100%; height:820px; max-height:92vh; background:var(--warmwhite);
+    border-radius:36px; box-shadow:var(--shadow), 0 0 0 10px var(--charcoal);
+    overflow:hidden; position:relative; display:flex; flex-direction:column;
+  }
+  .screens{position:relative; flex:1;}
+  .screen{position:absolute; inset:0; display:flex; flex-direction:column; opacity:0; pointer-events:none; transform:translateX(24px); transition:opacity .3s ease, transform .3s ease;}
+  .screen.active{opacity:1; pointer-events:auto; transform:translateX(0);}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:16px 20px; border-radius:100px; border:none; font-weight:700; font-size:15.5px; cursor:pointer; font-family:'Poppins',sans-serif;}
+  .btn:active{transform:scale(0.97);}
+  .btn-brand{background:var(--gradient); color:var(--white); box-shadow:0 10px 24px rgba(255,49,49,0.25);}
+  .btn-outline{background:var(--white); color:var(--charcoal); border:1.5px solid var(--line);}
+  .btn-text{background:transparent; color:var(--charcoal); font-weight:600; text-decoration:underline; padding:8px;}
+
+  /* LANDING */
+  #screen-landing{background:var(--charcoal); color:var(--white); justify-content:space-between; padding:56px 30px 34px; text-align:center;}
+  .logo-mark{width:44px;height:44px; margin:0 auto 10px; display:block;}
+  /* light logo panel (landing) + slim logo bar (every other page) */
+  .logo-panel{background:var(--white); border-radius:14px; padding:14px 22px; margin:0 auto; max-width:300px; box-shadow:0 6px 18px rgba(0,0,0,0.18);}
+  .logo-panel img{width:100%; display:block;}
+  .header-logo{height:38px; width:auto; display:block; flex-shrink:0;}
+  .app-header .header-logo{margin-right:2px;}
+  .landing-agent-photo{width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--white); box-shadow:0 8px 22px rgba(0,0,0,0.25); margin:18px auto 0; display:block;}
+  .brand-word{font-weight:800; font-size:17px;}
+  #screen-landing h1{font-size:36px; color:var(--white); margin-top:26px; line-height:1.1;}
+  #screen-landing .tagline{margin-top:14px; font-size:17px;}
+  #screen-landing .sub{margin-top:16px; font-size:14.5px; color:#D8D5D2; max-width:280px; margin-left:auto; margin-right:auto;}
+
+  /* HEADER (used on most screens) */
+  .app-header{padding:20px 22px 12px; display:flex; align-items:center; gap:12px; background:var(--warmwhite); border-bottom:1px solid var(--line); flex-shrink:0;}
+  .app-header .title{font-weight:800; font-size:15.5px;}
+  .app-header .subtitle{font-size:11.5px; color:var(--charcoal); opacity:0.7;}
+
+  /* CAPTURE */
+  .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
+  .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center;}
+  .step-tag{font-size:11.5px; font-weight:700; color:var(--orange); letter-spacing:0.08em; text-transform:uppercase;}
+  .room-emoji{font-size:42px; margin:10px 0 6px;}
+  .room-now h2{font-size:20px;}
+  .capture-preview{margin-top:14px; height:230px; border-radius:14px; background:#F1EEE9; border:1.5px dashed var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;}
+  .capture-preview canvas{max-width:100%; max-height:100%; touch-action:none;}
+  .capture-preview canvas{display:none; width:100%; height:100%; touch-action:none; cursor:crosshair;}
+  .placeholder-icon{font-size:28px; opacity:0.35;}
+  .blur-hint{display:none; font-size:11px; color:var(--charcoal); opacity:0.7; text-align:center; margin-top:8px;}
+  .privacy-note{display:none; font-size:10px; color:var(--charcoal); opacity:0.6; background:#F1EEE9; border-radius:10px; padding:7px 10px; margin-top:7px; text-align:center;}
+  .capture-actions{margin-top:14px; display:flex; flex-direction:column; gap:9px;}
+  .row-actions{display:none; flex-direction:row; gap:9px; margin-top:12px;}
+  .row-actions .btn{flex:1;}
+  .skip-link{text-align:center; font-size:12px; color:var(--charcoal); opacity:0.7; text-decoration:underline; cursor:pointer; margin-top:4px;}
+
+  /* address block */
+  .address-block{display:none; margin-top:14px; background:var(--white); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .address-block label{font-size:12px; font-weight:700; display:block; margin-bottom:7px;}
+  .address-block input{width:100%; padding:12px 13px; border-radius:10px; border:1.5px solid var(--line); font-size:14px; font-family:inherit;}
+  .address-suggestions{background:var(--white); border:1px solid var(--line); border-top:none; border-radius:0 0 10px 10px; max-height:140px; overflow-y:auto;}
+  .address-suggestions div{padding:9px 12px; font-size:13px; cursor:pointer; border-bottom:1px solid var(--line);}
+  .address-suggestions div:hover{background:#F1EEE9;}
+  .locate-btn{margin-top:9px; width:100%; padding:11px; border-radius:10px; border:1.5px solid var(--line); background:var(--white); font-size:13px; font-weight:600; cursor:pointer; color:var(--charcoal);}
+
+  /* bedroom extra actions */
+  .bedroom-extras{display:none; margin-top:10px; display:flex; flex-direction:column; gap:8px;}
+
+  /* room strip */
+  .room-strip{display:flex; gap:6px; overflow-x:auto; padding:14px 2px 4px; flex-shrink:0;}
+  .room-tile{flex-shrink:0; width:44px; text-align:center; font-size:9px; color:var(--charcoal);}
+  .room-tile .dot{width:32px; height:32px; border-radius:50%; background:var(--white); border:1.5px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:13px; margin:0 auto 3px;}
+  .room-tile.done .dot{background:var(--success); border-color:var(--success); color:white;}
+  .room-tile.current .dot{border-color:var(--orange); box-shadow:0 0 0 3px rgba(255,145,77,0.25);}
+
+  /* AGENT INTRO */
+  #screen-agent .content{padding:26px 24px; text-align:center; flex:1; overflow-y:auto;}
+  .agent-photo{width:100px; height:100px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-size:38px; margin:0 auto 18px; color:white; overflow:hidden;}
+  .agent-photo img{width:100%; height:100%; object-fit:cover; display:block;}
+  #screen-agent h2{font-size:21px;}
+  .agent-stats{display:flex; gap:10px; margin:20px 0; justify-content:center;}
+  .agent-stat{background:var(--white); border:1px solid var(--line); border-radius:12px; padding:12px 14px; text-align:center; flex:1;}
+  .agent-stat b{display:block; font-size:18px;}
+  .agent-stat span{font-size:10px; color:var(--charcoal); opacity:0.7;}
+  .agent-statement{font-size:16.5px; line-height:1.6; margin-top:16px; color:var(--charcoal);}
+  .agent-statement b{color:var(--charcoal);}
+  .agent-footer{padding:18px 24px 24px;}
+
+  /* EXTRAS */
+  #screen-extras .content{padding:20px 22px; flex:1; overflow-y:auto;}
+  .extras-lead{font-size:13px; color:var(--charcoal); opacity:0.8; margin-bottom:16px;}
+  .feature-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .feature-card{border:1.5px solid var(--line); background:var(--white); border-radius:16px; padding:14px 12px; cursor:pointer;}
+  .feature-card .emoji{font-size:20px;}
+  .feature-card .icon{width:44px; height:44px; margin:0 auto;}
+  .feature-card .icon svg{width:100%; height:100%; display:block;}
+  .feature-card{text-align:center; position:relative;}
+  .feature-card.done{border-color:var(--success); background:#EEFBF3;}
+  .feature-card.done::after{content:"✓"; position:absolute; top:8px; right:10px; width:18px; height:18px; border-radius:50%; background:var(--success); color:white; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;}
+  .feature-card .tap{font-size:10.5px; color:var(--charcoal); opacity:0.6; margin-top:3px;}
+  .feature-other{border-style:dashed;}
+  .feature-other.disabled{opacity:0.45; cursor:default;}
+  .other-input{grid-column:1 / -1; margin-top:10px; display:flex; gap:6px;}
+  .other-input input{flex:1 1 auto; min-width:0; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); font-size:13px; font-family:inherit;}
+  .other-input .btn{flex:0 0 auto; width:auto; box-shadow:none;}
+  .btn-sm{padding:10px 14px; font-size:12.5px;}
+  .feature-card.feature-other:has(.other-input:not(.hidden)){grid-column:1 / -1;}
+  .hidden{display:none !important;}
+  .feature-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .feature-card.done .tap{color:var(--success); opacity:1;}
+  .room-emoji svg{width:52px; height:52px; display:block; margin:0 auto;}
+  .room-tile .dot svg{width:18px; height:18px;}
+  .feature-card .label{font-size:12.5px; font-weight:700; margin-top:6px;}
+  .feature-card.selected{border-color:var(--orange); background:#FFF3EB;}
+  .extras-footer{padding:16px 22px 22px; border-top:1px solid var(--line);}
+
+  /* FINAL FORM */
+  #screen-final .content{padding:22px; flex:1; overflow-y:auto;}
+  .trust-line{font-size:12px; color:var(--charcoal); opacity:0.75; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:16px;}
+  .field{margin-bottom:13px;}
+  .field label{display:block; font-size:12px; font-weight:700; margin-bottom:6px;}
+  .field input{width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid var(--line); font-size:14.5px; font-family:inherit;}
+  .contact-pref{display:flex; gap:8px;}
+  .pref-opt{flex:1; text-align:center; padding:11px 6px; border-radius:12px; border:1.5px solid var(--line); background:var(--white); font-size:12.5px; font-weight:700; cursor:pointer; color:var(--charcoal);}
+  .pref-opt.selected{border-color:var(--orange); background:#FFF3EB;}
+  .submit-error{display:none; color:var(--red); font-size:12px; margin-top:6px;}
+  .final-footer{padding:16px 22px 22px; border-top:1px solid var(--line);}
+
+  /* CONFIRM */
+  #screen-confirm{background:var(--warmwhite); text-align:center; justify-content:center; align-items:center; padding:40px 30px;}
+  .confirm-icon{width:74px; height:74px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; margin-bottom:18px;}
+  #screen-confirm p{font-size:13.5px; color:var(--charcoal); opacity:0.8; margin-top:10px; line-height:1.6; max-width:280px;}
+  .call-card{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:2px solid var(--orange); border-radius:16px; padding:16px; text-align:left;}
+  .call-card h3{font-size:16px;}
+  .call-card p{margin-top:4px; font-size:12.5px; max-width:none;}
+  .call-card input{width:100%; margin-top:12px; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line); font-size:16px; font-family:inherit;}
+  .call-card .btn{width:100%; margin-top:10px;}
+  #call-done{margin-top:12px; font-size:13.5px; color:var(--charcoal); line-height:1.5;}
+  .cant-wait{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:1.5px solid var(--line); border-radius:16px; padding:16px;}
+  .cant-wait h3{font-size:16px;}
+  .cant-wait p{margin-top:4px; font-size:12.5px;}
+  .cw-btn{width:100%; margin-top:9px; text-decoration:none; font-size:13.5px; word-break:break-all;}
 </style>
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
-<div id="screen-login">
-  <div class="login-card">
-    <div class="logo"><img src="logo-icon.png" alt="SnapAppraisal">snap<span>appraisal</span></div>
-    <div style="font-size:8.5px; font-weight:600; letter-spacing:0.16em; color:#999; margin-top:-6px; margin-bottom:5px;">AUSTRALIA</div>
-    <div style="width:100%; height:1px; background:#FF5A1F; margin-bottom:8px;"></div>
-    <div style="font-size:9.5px; color:#6a6a70; letter-spacing:0.02em; margin-bottom:10px;">A Smarter Way For Your Next Listing To Find You.</div>
-    <div class="sub" id="login-sub">Agent Portal, sign in to manage your leads</div>
+<div class="frame" id="frame">
+  <div class="screens">
 
-    <div class="auth-toggle" id="auth-toggle-row">
-      <button class="auth-toggle-btn active" id="tab-login" onclick="setAuthMode('login')">Log In</button>
-      <button class="auth-toggle-btn" id="tab-signup" onclick="setAuthMode('signup')">Sign Up</button>
-    </div>
-
-    <!-- Shown instead of the normal login/signup fields when arriving via a password reset link -->
-    <div id="reset-password-fields" class="hidden">
-      <div style="font-size:13px; color:#555; margin-bottom:14px;">Choose a new password for your account.</div>
-      <div class="field"><label>New password</label><input type="password" id="reset-new-password" placeholder="At least 8 characters"></div>
-      <div id="reset-password-error" class="hidden" style="color:#FF7A5C; font-size:11.5px; margin-bottom:12px;"></div>
-      <button class="btn btn-lime" onclick="submitNewPassword()">Set new password →</button>
-    </div>
-
-    <!-- LOG IN FIELDS -->
-    <form id="login-fields" onsubmit="event.preventDefault(); login();" autocomplete="on">
-      <div class="field"><label>Email</label><input type="email" id="login-email" name="username" autocomplete="username" placeholder="rob@brightpropertiestownsville.com.au"></div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="login-password" name="password" autocomplete="current-password" placeholder="••••••••">
-        <div style="text-align:right; margin-top:6px;">
-          <a href="#" onclick="event.preventDefault(); toggleForgotPassword()" style="font-size:12px; color:#6a6a70;">Forgot password?</a>
+    <!-- LANDING -->
+    <div class="screen active" id="screen-landing">
+      <div>
+        <div class="logo-panel"><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      </div>
+      <div>
+        <div class="brand-word" id="landing-brand-word" style="font-size:26px; letter-spacing:0.02em;">YOUR BUSINESS NAME HERE</div>
+        <h1 style="margin-top:18px;">Snap Appraisal</h1>
+        <p class="tagline accent">Let's get started</p>
+        <p class="sub" id="landing-sub">Walk through your home, snap a few photos, and get a real, accurate appraisal from Your Name Here – Your Business Name Here.</p>
+        <div id="landing-agent-row" class="hidden">
+          <img id="landing-agent-photo" class="landing-agent-photo" src="" alt="Your agent">
+          <span id="landing-agent-name" class="hidden"></span>
         </div>
       </div>
-
-      <div id="forgot-password-panel" class="hidden" style="background:#F5F4F1; border-radius:10px; padding:14px; margin-bottom:16px;">
-        <div style="font-size:12.5px; color:#555; margin-bottom:10px;">Enter your account email and we'll generate a reset link.</div>
-        <input type="email" id="forgot-email" placeholder="you@youragency.com.au" style="width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid #E5E3DD; font-size:13.5px; margin-bottom:10px;">
-        <button type="button" class="btn btn-outline btn-sm" style="width:100%;" onclick="requestPasswordReset()">Send reset link</button>
-        <div id="forgot-password-result" style="margin-top:10px; font-size:12.5px;"></div>
-      </div>
-
-      <div class="field">
-        <label>SMART CODE <span style="font-weight:400; color:#6a6a70;">(optional, 1 month free)</span></label>
-        <input type="text" id="login-smartcode" placeholder="e.g. ALLTHELISTINGS" style="text-transform:uppercase;">
-        <div id="smartcode-error" class="hidden" style="color:#FF7A5C; font-size:11.5px; margin-top:6px;">SMART CODE not recognised, check for typos or leave it blank.</div>
-      </div>
-      <button type="submit" class="btn btn-lime">Log In →</button>
-    </form>
-
-    <!-- SIGN UP FIELDS -->
-    <div id="signup-fields" class="hidden">
-      <div class="field"><label>Your name</label><input type="text" id="signup-name" placeholder="e.g. Rob Levy"></div>
-      <div class="field"><label>Agency name</label><input type="text" id="signup-agency" placeholder="e.g. Bright Property Townsville"></div>
-      <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@youragency.com.au"></div>
-      <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="At least 8 characters"></div>
-      <div class="field">
-        <label>Terms and Conditions</label>
-        <div id="terms-scroller" style="height:180px; overflow-y:auto; border:1.5px solid #E5E3DD; border-radius:10px; padding:12px 14px; font-size:11px; line-height:1.55; color:#666; background:#FAFAF8;">
-          <p><strong>SnapAppraisal Terms of Service</strong> — Effective 1 September 2026. Operated by Daniel West, ABN 99 570 025 706, 76 Chaprowe Rd, The Gap QLD 4061.</p>
-          <p><strong>1. About these Terms.</strong> These Terms govern austsnapappraisal.com, the agent portal, homeowner experiences, QR codes and links, mail-out services, and related services (the "Service"). Our Privacy Policy forms part of these Terms.</p>
-          <p><strong>2. Acceptance.</strong> You agree to these Terms by creating an Agent Account, starting a subscription, or otherwise using the Service. If acting for an organisation, you confirm you're authorised to bind it.</p>
-          <p><strong>3. What SnapAppraisal does.</strong> A technology and lead-management platform allowing agents to create branded links/QR codes so homeowners can submit property info, photos and contact details requesting an appraisal.</p>
-          <p><strong>4. Not a real estate agent or valuer.</strong> SnapAppraisal does not act as an agent, provide formal valuations, guarantee appraisal amounts, or provide financial/legal advice. Appraisals are provided by the relevant agent, not SnapAppraisal.</p>
-          <p><strong>5. No agency relationship.</strong> Participating agents are independent businesses, not employees or agents of SnapAppraisal.</p>
-          <p><strong>6. Agent eligibility.</strong> You warrant your account information is accurate, you hold any licences required for your activities, and you will comply with applicable laws and deal fairly with homeowners.</p>
-          <p><strong>7. Agent profile content.</strong> You're responsible for the accuracy of your uploaded branding, stats and claims, and for ensuring they comply with advertising and consumer laws.</p>
-          <p><strong>8. Homeowner eligibility.</strong> Submitters must be 18+, have authority to submit the property, and provide accurate information.</p>
-          <p><strong>9. Property photographs.</strong> You grant SnapAppraisal a licence to host, process and transmit uploaded photos to operate the Service. Avoid photographing sensitive personal information.</p>
-          <p><strong>10. Homeowner information and agent contact.</strong> You may use homeowner info to respond to the appraisal request; separate consent is required for unrelated marketing, and you must comply with Spam Act/Do Not Call requirements.</p>
-          <p><strong>11. Partially completed submissions.</strong> Cold/Cool leads must be treated with the same confidentiality as completed submissions.</p>
-          <p><strong>12. Transferring a lead.</strong> Leads must not be sold or transferred to another agent without the homeowner's consent or a lawful basis.</p>
-          <p><strong>13. Subscriptions.</strong> Billed monthly in advance, auto-renewing, no lock-in. Cancelling prevents the next renewal; access continues until the paid period ends.</p>
-          <p><strong>14. Trials.</strong> Free trial periods convert automatically to the paid plan disclosed at signup unless cancelled first. Payment details may be required upfront.</p>
-          <p><strong>15. Cancellation.</strong> Takes effect at the end of the current billing period.</p>
-          <p><strong>16. Refunds.</strong> Fees paid are generally non-refundable except as required by the Australian Consumer Law.</p>
-          <p><strong>17. Pricing changes.</strong> Future price changes come with reasonable notice; you may cancel before they apply.</p>
-          <p><strong>18. Failed payments.</strong> We may retry payment or suspend access until resolved.</p>
-          <p><strong>19. Lead volume and quality.</strong> We don't guarantee lead volume, exclusivity, homeowner accuracy, or any conversion/financial outcome.</p>
-          <p><strong>20. Mail-out services.</strong> You're responsible for approving artwork and claims; delivery quantities/dates are estimates via third-party fulfilment providers.</p>
-          <p><strong>21. Referral program.</strong> Credits require genuine referrals; self-referrals and fraud are prohibited and may result in reversal.</p>
-          <p><strong>22. Acceptable use.</strong> No unauthorised account access, scraping, circumventing limits, malware, fabricated leads, or selling homeowner data.</p>
-          <p><strong>23. SnapAppraisal IP.</strong> We retain ownership of the platform, software and branding. You receive a limited licence to use the Service.</p>
-          <p><strong>24. Agent branding licence.</strong> You grant SnapAppraisal a licence to use your name, headshot, logo and branding to operate the Service on your behalf.</p>
-          <p><strong>25. Third-party services.</strong> We rely on providers including Supabase, Cloudinary and Stripe, which may experience outages outside our control.</p>
-          <p><strong>26. Availability.</strong> We aim for reliable service but don't guarantee uninterrupted availability.</p>
-          <p><strong>27. Changes to the Service.</strong> We may improve or discontinue features; material reductions to a paid plan come with reasonable notice.</p>
-          <p><strong>28. Suspension.</strong> We may suspend access for fraud, security risk, non-payment, or serious breach of these Terms.</p>
-          <p><strong>29. Termination.</strong> You may cancel anytime; we may terminate for serious breach or business reasons with reasonable notice.</p>
-          <p><strong>30. Data after closure.</strong> Export your data before closing your account; we delete or de-identify information per our retention procedures afterward.</p>
-          <p><strong>31. Australian Consumer Law.</strong> Nothing here excludes non-excludable consumer guarantees.</p>
-          <p><strong>32. Limitation of liability.</strong> SnapAppraisal isn't liable for indirect losses (lost commissions, listings, profit). Aggregate liability is capped at your fees paid in the prior 12 months, or AUD $500, whichever is greater.</p>
-          <p><strong>33. Agent indemnity.</strong> You indemnify SnapAppraisal against claims caused by your unlawful use of homeowner data, unlawful marketing, or breach of these Terms.</p>
-          <p><strong>34. Privacy.</strong> Handled per our Privacy Policy. You acknowledge homeowner data can be highly sensitive and must be handled accordingly.</p>
-          <p><strong>35. Complaints and disputes.</strong> Contact admin@austsnapappraisal.com first; parties should attempt good-faith informal resolution.</p>
-          <p><strong>36. Governing law.</strong> Queensland, Australia.</p>
-          <p><strong>37. Changes to these Terms.</strong> We may update these Terms; material changes affecting paid customers come with reasonable notice.</p>
-          <p><strong>38. General.</strong> Invalid provisions don't affect the rest. Accounts aren't transferable without our consent.</p>
-          <p><strong>39. Contact.</strong> SnapAppraisal Australia, operated by Daniel West, ABN 99 570 025 706, 76 Chaprowe Rd, The Gap QLD 4061. admin@austsnapappraisal.com</p>
-          <p style="margin-top:10px;">Full legal text: <a href="https://austsnapappraisal.com/terms.html" target="_blank">austsnapappraisal.com/terms.html</a></p>
-        </div>
-        <label style="display:flex; align-items:flex-start; gap:8px; margin-top:10px; font-size:12.5px; color:#444; cursor:pointer;">
-          <input type="checkbox" id="signup-agree" style="margin-top:2px;">
-          <span>I agree to the SnapAppraisal <a href="https://austsnapappraisal.com/terms.html" target="_blank">Terms and Conditions</a> and <a href="https://austsnapappraisal.com/privacy.html" target="_blank">Privacy Policy</a>.</span>
-        </label>
-      </div>
-      <div id="signup-error" class="hidden" style="color:#FF7A5C; font-size:11.5px; margin-bottom:12px;"></div>
-      <button class="btn btn-lime" onclick="signup()">Create Account →</button>
-      <div style="font-size:11px; color:#6a6a70; margin-top:12px; text-align:center;">Starts on the Free plan, upgrade anytime after you're in.</div>
-    </div>
-
-    
-    <div class="ww-footer">
-      <span class="ww-mark"><span class="dot"></span>Built by WestWorks</span>
-      <span>·</span>
-      <a href="mailto:admin@austsnapappraisal.com" style="color:#5a5a60;">admin@austsnapappraisal.com</a>
-    </div>
-  </div>
-</div>
-
-<!-- ================= APP SHELL ================= -->
-<div id="app-shell" class="hidden">
-  <div class="sidebar">
-    <div class="brand"><img src="logo-icon.png" alt="SnapAppraisal">snap<span>appraisal</span></div>
-    <div class="nav-item active" data-view="dashboard" onclick="showView('dashboard', this)">Dashboard</div>
-    <div class="nav-item" data-view="cold" onclick="showView('cold', this)">Warm Leads</div>
-    <div class="nav-item" data-view="hot" onclick="showView('hot', this)">Hot Leads</div>
-    <div class="nav-item" data-view="mailout" onclick="showView('mailout', this)">Purchase Mail Out</div>
-    <div class="nav-item" data-view="branding" onclick="showView('branding', this)">Branding</div>
-    <div class="nav-item" data-view="subscription" onclick="showView('subscription', this)">Subscription</div>
-    <div class="nav-item" data-view="notifications" onclick="showView('notifications', this)">Notifications</div>
-    <div class="nav-item" data-view="share" onclick="showView('share', this)">Share & Earn</div>
-    <div class="nav-item" id="nav-usage" data-view="usage" onclick="showView('usage', this)">Founders</div>
-    <div class="sidebar-foot">
-      <div class="plan-badge" id="plan-badge"><b>Free Plan</b>2 of 6 hot leads unlocked</div>
-      <div class="nav-item" onclick="logout()">Log out</div>
-    </div>
-  </div>
-
-  <div class="main">
-
-    <!-- DASHBOARD -->
-    <div class="view-panel active" id="view-dashboard">
-      <div class="page-head"><h2 id="dash-greeting">Welcome back, Rob</h2><p>Here's what's happened since you last checked in.</p></div>
-      <div class="grid-2" style="margin-bottom:22px;">
-        <div class="card stat-card" style="cursor:pointer; display:flex; align-items:center; gap:14px;" onclick="showView('cold', document.querySelector('[data-view=cold]'))">
-          <div style="width:42px; height:42px; border-radius:50%; background:#0D0D0D; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#FF5A1F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;"><path d="M12 21s-7-6.5-7-11a7 7 0 0 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5" fill="#FF5A1F" stroke="none"/></svg>
-          </div>
-          <div><b>4</b><span>New Warm Leads (7 days)</span></div>
-        </div>
-        <div class="card stat-card" style="cursor:pointer; display:flex; align-items:center; gap:14px;" onclick="showView('hot', document.querySelector('[data-view=hot]'))">
-          <div style="width:42px; height:42px; border-radius:50%; background:#0D0D0D; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <svg viewBox="0 0 24 24" fill="#FF5A1F" style="width:20px; height:20px;"><path d="M12 2c1 3-2 4-2 7a3 3 0 0 0 6 0c1 1 2 2.5 2 4.5A5.5 5.5 0 0 1 12 19a5.5 5.5 0 0 1-5.5-5.5C6.5 8 10 7 12 2z"/></svg>
-          </div>
-          <div><b>6</b><span>New Hot Leads (this month)</span></div>
-        </div>
-      </div>
-      <div class="card" style="margin-bottom:18px;">
-        <h3 style="font-size:15px; margin-bottom:10px;">Your QR code & app link</h3>
-        <p style="font-size:13px; color:#777; margin-bottom:14px;">Every scan or click sends leads straight to your Warm/Hot Leads.</p>
-        <div style="display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap;">
-          <div style="text-align:center;">
-            <img id="dash-qr-img" src="" alt="Your QR code" style="width:140px;height:140px;border-radius:10px; border:1px solid #eee; display:block;">
-            <a id="dash-qr-download" class="btn btn-outline btn-sm" style="margin-top:10px; width:140px;" href="" download="snap-appraisal-qr.png" target="_blank">Download QR →</a>
-          </div>
-          <div style="flex:1; min-width:220px;">
-            <div id="dash-link" style="font-family:'Poppins',sans-serif; font-weight:700; font-size:24px; background:#F5F4F1; padding:14px 16px; border-radius:8px; word-break:break-all; margin-bottom:12px;">app.austsnapappraisal.com/…</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <a id="dash-link-open" class="btn btn-primary btn-sm" href="" target="_blank" rel="noopener" style="text-decoration:none;">Open</a>
-              <button class="btn btn-outline btn-sm" onclick="copyDashLink()">Copy link</button>
-              <a id="dash-link-email" class="btn btn-outline btn-sm" href="" style="text-decoration:none;">Email it</a>
-              <a id="dash-link-sms" class="btn btn-outline btn-sm" href="" style="text-decoration:none;">Text it</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <h3 style="font-size:15px; margin-bottom:12px;">Recent activity</h3>
-        <div class="listing-row"><div><div class="listing-addr">Hot lead, 41 Fig Tree Lane</div><div class="listing-meta">Completed appraisal · 2 hours ago</div></div><span class="pill pill-orange">Unlocked</span></div>
-        <div class="listing-row"><div><div class="listing-addr">Warm lead, 9 Sundown Rise</div><div class="listing-meta">Started appraisal · Yesterday</div></div><span class="pill pill-grey">In progress</span></div>
-        <div class="listing-row"><div><div class="listing-addr">Mail out sent, "Just Listed" flyer</div><div class="listing-meta">450 flyers to 4061 · 3 days ago</div></div><span class="pill pill-lime">Delivered</span></div>
+      <div>
+        <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
       </div>
     </div>
 
-    <!-- COLD LISTINGS -->
-    <div class="view-panel" id="view-cold">
-      <div class="page-head"><h2>Warm Leads</h2><p>Visitors who've started a Snap Appraisal but haven't finished.</p></div>
-      <div class="unlock-banner" id="cold-unlock-banner">
-        <div class="msg" id="cold-unlock-msg"></div>
-        <button class="btn btn-lime btn-sm" onclick="showView('subscription', document.querySelector('[data-view=subscription]'))">Unlock more →</button>
-      </div>
-      <div class="card" style="padding:0;" id="cold-list"></div>
-    </div>
-
-    <!-- HOT LISTINGS -->
-    <div class="view-panel" id="view-hot">
-      <div class="page-head"><h2>Hot Leads</h2><p>Completed appraisals with full contact details.</p></div>
-      <div class="unlock-banner" id="hot-unlock-banner">
-        <div class="msg" id="hot-unlock-msg"></div>
-        <button class="btn btn-lime btn-sm" onclick="showView('subscription', document.querySelector('[data-view=subscription]'))">Unlock more →</button>
-      </div>
-      <div class="card" style="padding:0;" id="hot-list"></div>
-    </div>
-
-    <!-- PURCHASE MAIL OUT -->
-    <div class="view-panel" id="view-mailout">
-      <div class="page-head"><h2>Purchase Mail Out</h2><p>Branded DL flyers, printed and posted to a postcode of your choice, or delivered in bulk to your office.</p></div>
-
-      <div class="steps">
-        <div class="step-dot done" id="dot-1"></div><div class="step-dot" id="dot-2"></div><div class="step-dot" id="dot-3"></div><div class="step-dot" id="dot-4"></div>
-      </div>
-
-      <!-- step 1: flyer choice + live preview -->
-      <div id="mailstep-1">
-        <div class="card">
-          <h3 style="font-size:15px; margin-bottom:14px;">1. Choose a flyer design</h3>
-          <div class="flyer-grid" id="flyer-grid"></div>
-
-          <div class="flyer-preview-wrap">
-            <div class="dl-flyer" id="dl-flyer">
-              <div class="dl-top" id="dl-top"></div>
-              <div class="dl-bottom">
-                <div class="dl-cta" id="dl-cta">Take photos of your house to get an accurate appraisal from [agent name] from [company name]</div>
-                <div class="dl-qr-row">
-                  <div class="dl-qr" id="dl-qr-mini"></div>
-                  <div class="dl-qr-lbl" style="font-size:13px; font-weight:800; letter-spacing:0.12em; color:#fff;">SCAN</div>
-                </div>
-                <div class="dl-agent">
-                  <div class="dl-avatar" id="dl-avatar"></div>
-                  <div>
-                    <div class="dl-name" id="dl-name">Rob Levy</div>
-                    <div class="dl-agency" id="dl-agency">Bright Property Townsville</div>
-                  </div>
-                </div>
-              </div>
-              <div class="dl-logo-badge" id="dl-logo-badge"></div>
-            </div>
-            <div class="preview-caption">
-              <b>This is what prints</b>
-              Every flyer design carries your logo as the artwork, your headshot, agent name, agency, your personal QR code and the same call-to-action line automatically, only the background colour changes per design.
-            </div>
-          </div>
-        </div>
-        <div style="text-align:right; margin-top:16px;"><button class="btn btn-primary" onclick="mailStep(2)">Continue →</button></div>
-      </div>
-
-      <!-- step 2: delivery choice (A: postcode quarters, B: office) -->
-      <div id="mailstep-2" class="hidden">
-        <div class="card">
-          <h3 style="font-size:15px; margin-bottom:14px;">2. Where should they go?</h3>
-
-          <!-- A: post to a postcode, in quarters -->
-          <div class="mail-choice selected" id="choice-postcode" onclick="setMailMode('postcode')">
-            <div class="mc-head"><div class="mc-radio"></div>A) Post them to a postcode</div>
-            <div class="mc-sub">Printed and letterbox-delivered by our mail partner. Tick which quarters of the postcode to cover.</div>
-            <div class="mc-body" onclick="event.stopPropagation()">
-              <div class="field" style="max-width:420px;"><label>Postcode</label>
-                <select id="postcode-select" onchange="renderQuarters()">
-                  <option value="4061" data-count="1450">4061, The Gap QLD (~1,450 households)</option>
-                  <option value="4066" data-count="2100">4066, Toowong QLD (~2,100 households)</option>
-                  <option value="4218" data-count="3800">4218, Broadbeach QLD (~3,800 households)</option>
-                </select>
-              </div>
-              <div class="field"><label>Coverage, tick one or more quarters</label>
-                <div class="tick-grid" id="quarter-grid"></div>
-                <div class="hint">Each quarter is roughly a quarter of the postcode's households, split by delivery round. Tick all four for a full blanket.</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- B: mail to my office -->
-          <div class="mail-choice" id="choice-office" onclick="setMailMode('office')">
-            <div class="mc-head"><div class="mc-radio"></div>B) Mail them to my office</div>
-            <div class="mc-sub">A box of printed flyers couriered to your office address, hand them out or drop them yourself.</div>
-            <div class="mc-body" onclick="event.stopPropagation()">
-              <div class="field"><label>How many flyers?</label>
-                <div class="tick-grid" id="office-qty-grid"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:16px;">
-          <button class="btn btn-outline" onclick="mailStep(1)">← Back</button>
-          <button class="btn btn-primary" onclick="mailStep(3)">Continue →</button>
-        </div>
-      </div>
-
-      <!-- step 3: order summary -->
-      <div id="mailstep-3" class="hidden">
-        <div class="card">
-          <h3 style="font-size:15px; margin-bottom:14px;">3. Order summary</h3>
-          <div class="order-line"><span>Flyer design</span><span id="sum-flyer">"Just Listed"</span></div>
-          <div class="order-line"><span>Quantity</span><span id="sum-qty">725 flyers</span></div>
-          <div class="order-line"><span>Delivery</span><span id="sum-area">4061, The Gap QLD (50% coverage)</span></div>
-          <div class="order-line"><span>Print & delivery</span><span id="sum-price">$507.50</span></div>
-          <div class="order-line total"><span>Total</span><span id="sum-total">$507.50</span></div>
-          <p style="font-size:11.5px; color:#999; margin-top:10px;">Fulfilled by our print & mail partner. Price shown is all-inclusive.</p>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-top:16px;">
-          <button class="btn btn-outline" onclick="mailStep(2)">← Back</button>
-          <button class="btn btn-primary" onclick="mailStep(4)">Proceed to payment →</button>
-        </div>
-      </div>
-
-      <!-- step 4: payment -->
-      <div id="mailstep-4" class="hidden">
-        <div class="card">
-          <h3 style="font-size:15px; margin-bottom:14px;">4. Payment</h3>
-          <div class="field"><label>Card number</label><input type="text" value="4242 4242 4242 4242"></div>
-          <div class="field-row">
-            <div class="field"><label>Expiry</label><input type="text" value="12/99"></div>
-            <div class="field"><label>CVC</label><input type="text" value="007"></div>
-          </div>
-        </div>
-        <div style="text-align:right; margin-top:16px;"><button class="btn btn-lime" onclick="mailComplete()">Pay <span id="pay-amount">$507.50</span> →</button></div>
-      </div>
-
-      <!-- confirmation -->
-      <div id="mailstep-done" class="hidden card" style="text-align:center; padding:44px;">
-        <div style="font-size:38px; margin-bottom:10px;">✅</div>
-        <h3 style="font-size:19px;">Mail out confirmed</h3>
-        <p style="color:#777; font-size:13.5px; margin-top:8px;">Your flyers are in production. You'll get a notification when they've been posted.</p>
-        <button class="btn btn-outline" style="margin-top:18px;" onclick="resetMailOut()">Start another mail out</button>
-      </div>
-    </div>
-
-    <!-- BRANDING -->
-    <div class="view-panel" id="view-branding">
-      <div class="page-head"><h2>Branding</h2><p>Used across your Snap Appraisal app, flyers, and emails.</p></div>
-      <div class="grid-2">
-        <div class="card">
-          <h3 style="font-size:14px; margin-bottom:12px;">Logo</h3>
-          <input type="file" id="logo-file" accept="image/png,image/svg+xml,image/jpeg" style="display:none" onchange="handleBrandingUpload(event, 'logo')">
-          <div class="upload-box" id="logo-upload-box" onclick="document.getElementById('logo-file').click()">Click to upload, PNG or SVG</div>
-          <div class="upload-hint">Best for print: at least 500×500px, transparent background, under 5MB.</div>
-          <h3 style="font-size:14px; margin:20px 0 12px;">Headshot</h3>
-          <input type="file" id="headshot-file" accept="image/png,image/jpeg" style="display:none" onchange="handleBrandingUpload(event, 'headshot')">
-          <div class="upload-box" id="headshot-upload-box" onclick="document.getElementById('headshot-file').click()">Click to upload, square photo works best</div>
-          <div class="upload-hint">Best for print: at least 600×600px (square), JPG or PNG, under 5MB.</div>
-          <h3 style="font-size:14px; margin:20px 0 8px;">Brand colour</h3>
-          <div class="swatch-row" id="brand-swatch-row">
-            <div class="swatch selected" data-color="#FF5A1F" style="background:#FF5A1F;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#2F6FE0" style="background:#2F6FE0;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#1F9E5A" style="background:#1F9E5A;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#B02FD9" style="background:#B02FD9;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#111111" style="background:#111111;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#E0B84B" style="background:#E0B84B;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#0EA5A5" style="background:#0EA5A5;" onclick="selectBrandColor(this)"></div>
-            <div class="swatch" data-color="#D9435E" style="background:#D9435E;" onclick="selectBrandColor(this)"></div>
-            <label class="swatch" style="background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red); display:flex; align-items:center; justify-content:center; cursor:pointer;" title="Pick a custom colour">
-              <input type="color" id="custom-color-input" value="#FF5A1F" style="opacity:0; width:1px; height:1px;" onchange="selectCustomBrandColor(this.value)">
-            </label>
-          </div>
-        </div>
+    <!-- CAPTURE (shared for every room) -->
+    <div class="screen" id="screen-capture">
+      <div class="app-header">
+        <img class="header-logo" src="logo-light.svg" alt="Snap Appraisal">
         <div>
-          <div class="card">
-            <h3 style="font-size:14px; margin-bottom:12px;">Live preview</h3>
-            <div id="preview-panel-box" style="border:1px solid #eee; border-radius:12px; padding:20px; text-align:center; position:relative; background:#FF5A1F; transition:background 0.2s;">
-              <div id="preview-logo-badge" class="hidden" style="position:absolute; top:12px; left:12px; width:36px; height:36px; border-radius:7px; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.12); display:flex; align-items:center; justify-content:center;"></div>
-              <div id="preview-avatar" style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.35); margin:0 auto 12px; background-size:cover; background-position:center; border:2px solid rgba(255,255,255,0.6);"></div>
-              <div style="font-weight:700; color:white;" id="preview-name">Rob Levy</div>
-              <div style="font-size:12px; color:rgba(255,255,255,0.85);" id="preview-agency">Bright Property Townsville</div>
-              <div style="font-size:12px; color:rgba(255,255,255,0.85); margin-top:10px; line-height:1.5; text-align:left;" id="preview-statement"></div>
-            </div>
+          <div class="subtitle" id="capture-subtitle">Your Business Name Here</div>
+        </div>
+      </div>
+      <div class="capture-body">
+        <div class="room-now">
+          <div class="step-tag" id="step-tag">Photo</div>
+          <div class="room-emoji" id="room-emoji">📷</div>
+          <h2 id="room-title">Room</h2>
+
+          <div class="capture-preview" id="capture-preview">
+            <span class="placeholder-icon" id="preview-placeholder">📷</span>
+            <canvas id="photo-canvas"></canvas>
+          </div>
+          <div class="blur-hint" id="blur-hint">👆 Drag over anything you'd rather not show</div>
+          <button class="btn btn-outline btn-sm hidden" id="undo-blur-btn" onclick="undoBlur()" style="margin:8px auto 0; display:block; width:auto;">↩ Undo blur</button>
+          <div class="privacy-note" id="privacy-note">🔒 Blurring is for privacy only — please don't hide real condition issues.</div>
+
+          <!-- Front of House address block -->
+          <div class="address-block" id="address-block">
+            <label>Property address</label>
+            <input type="text" id="address-input" placeholder="Start typing your address" autocomplete="off" oninput="onAddressType(this.value)">
+            <div class="address-suggestions" id="address-suggestions"></div>
+            <button class="locate-btn" onclick="useMyLocation()" id="locate-btn">📍 Use my location</button>
+            <div id="address-error" class="hidden" style="color:#C0392B; font-size:12px; margin-top:8px;"></div>
           </div>
 
-          <div class="card" style="margin-top:16px;">
-            <h3 style="font-size:14px; margin-bottom:4px;">App intro info</h3>
-            <p style="font-size:12px; color:#888; margin-bottom:14px;">This is what the Snap Appraisal app actually shows on "Meet your agent," right after someone photographs their bedrooms.</p>
-            <div class="field"><label>Homes appraised</label><input type="text" id="intro-stat-homes" placeholder="150+"></div>
-            <div class="field"><label>Average days on Market</label><input type="text" id="intro-stat-days" placeholder="11"></div>
-            <div class="field"><label>Local tagline</label><input type="text" id="intro-stat-local" placeholder="Local"></div>
-            <div class="field"><label>Your mobile number <span style="font-weight:400; color:#999;">(shown to homeowners on the "Can't wait?" step, along with your email)</span></label><input type="tel" id="intro-phone" placeholder="0400 000 000"></div>
-            <div class="field">
-              <label>Custom intro statement <span style="font-weight:400; color:#999;">(optional)</span></label>
-              <textarea id="intro-statement" rows="3" oninput="updateStatementPreview()" placeholder="Appraisals are done by real people, not AI, and your agent is [Name]. Every photo you've taken goes straight to [Name], who'll follow up personally with a real market-based comparison, not a guess." style="width:100%; padding:12px 14px; border-radius:10px; border:1.5px solid #E5E3DD; font-size:15.5px; font-family:inherit; resize:vertical;"></textarea>
-            </div>
-            <div style="text-align:right; margin-top:10px;">
-              <button class="btn btn-primary btn-sm" onclick="saveIntroInfo()">Save intro info →</button>
-              <span id="intro-status" style="font-size:12px; color:#999; margin-left:10px;"></span>
-            </div>
+          <div class="capture-actions" id="pre-actions">
+            <input type="file" accept="image/*" capture="environment" id="file-input" style="display:none" onchange="handlePhoto(event)">
+            <input type="file" accept="image/*" id="file-input-upload" style="display:none" onchange="handlePhoto(event)">
+            <button class="btn btn-brand" onclick="document.getElementById('file-input').click()">📸 Take Photo</button>
+            <button class="btn btn-outline" onclick="document.getElementById('file-input-upload').click()">🖼️ Upload a photo from your phone or computer</button>
+            <div class="skip-link" id="skip-photo-link" onclick="skipPhoto()">Skip this photo →</div>
+          </div>
+          <div class="row-actions" id="post-actions">
+            <button class="btn btn-outline" onclick="retakePhoto()">↺ Retake</button>
+            <button class="btn btn-brand" onclick="confirmPhoto()">Looks Good →</button>
+          </div>
+
+          <!-- Bedroom-only extra actions -->
+          <div class="bedroom-extras" id="bedroom-extras">
+            <button class="btn btn-outline" onclick="addEnsuite()">+ Add Ensuite</button>
+            <div class="skip-link" id="skip-to-agent" onclick="skipToAgent()">No more bedrooms →</div>
           </div>
         </div>
-      </div>
-
-      <div style="text-align:right; margin-top:18px; font-size:12px; color:#999;" id="branding-status"></div>
-    </div>
-
-    <!-- SUBSCRIPTION -->
-    <div class="view-panel" id="view-subscription">
-      <div class="page-head"><h2>Subscription</h2><p>Everyone gets 3 leads unlocked for free. Full Access unlocks everything.</p></div>
-      <div class="unlock-banner hidden" id="trial-banner">
-        <div class="msg">You're on a <b id="trial-plan-name">Full Access</b> free trial via SMART CODE, enjoy it for 1 month. Add payment anytime to keep it going after.</div>
-      </div>
-      <div class="card" style="margin-bottom:18px;">
-        <div style="display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;">
-          <div class="field" style="flex:1; min-width:220px; margin-bottom:0;">
-            <label>Promo code <span style="font-weight:400; color:#999;">(optional, first month free)</span></label>
-            <input type="text" id="promo-code-input" placeholder="e.g. ALLTHELISTINGS" style="text-transform:uppercase;">
-          </div>
-          <div style="font-size:11.5px; color:#999; max-width:260px; padding-bottom:12px;">You'll still enter payment details below, nothing is charged until the free month ends.</div>
-        </div>
-        <div id="promo-code-error" class="hidden" style="color:var(--danger); font-size:11.5px; margin-top:8px;"></div>
-      </div>
-      <div class="grid-2">
-        <div class="tier-card" id="tier-free">
-          <div class="current-tag hidden" id="tag-free">Current plan</div>
-          <div style="font-weight:700; font-size:13px; color:#888;">FREE</div>
-          <div class="price">$0<span>/month</span></div>
-          <ul>
-            <li>First 3 hot leads unlocked</li>
-            <li>First 3 warm leads unlocked, rest blurred</li>
-            <li>1 flyer design included in library</li>
-            <li>Standard notifications</li>
-          </ul>
-          <button class="btn btn-outline" style="width:100%;" disabled>Included, always free</button>
-        </div>
-        <div class="tier-card highlight" id="tier-fullaccess">
-          <div class="current-tag hidden" id="tag-fullaccess">Current plan</div>
-          <div style="font-weight:700; font-size:13px; color:var(--orange);">FULL ACCESS</div>
-          <div class="price">$49<span>/month</span></div>
-          <ul>
-            <li>Every hot lead unlocked, no cap</li>
-            <li>Every warm lead unlocked</li>
-            <li>Full 10-design flyer library</li>
-            <li>Priority notifications (SMS + email)</li>
-            <li>Send a hot listing to another agent</li>
-          </ul>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <button class="btn btn-primary" style="width:100%;" id="btn-monthly" onclick="goToPayment('monthly')">Monthly, $49/mo →</button>
-            <button class="btn btn-outline" style="width:100%;" id="btn-sixmonth" onclick="goToPayment('sixmonth')">6 months, $245 (get 1 month free) →</button>
-            <button class="btn btn-outline" style="width:100%;" id="btn-annual" onclick="goToPayment('annual')">12 months, $490 (get 2 months free) →</button>
-          </div>
-        </div>
+        <div class="room-strip" id="room-strip"></div>
       </div>
     </div>
 
-    <!-- NOTIFICATIONS -->
-    <div class="view-panel" id="view-notifications">
-      <div class="page-head"><h2>Notification preferences</h2><p>Choose how you're alerted.</p></div>
-      <div class="card">
-        <div class="toggle-row"><div><div class="lbl">New warm lead</div><div class="desc">Someone starts a Snap Appraisal on your app</div></div><div class="switch on" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="toggle-row"><div><div class="lbl">New hot lead unlocked</div><div class="desc">A completed appraisal becomes visible to you</div></div><div class="switch on" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="toggle-row"><div><div class="lbl">Hot lead locked (upgrade nudge)</div><div class="desc">A new hot lead arrives but you're at your plan limit</div></div><div class="switch on" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="toggle-row"><div><div class="lbl">Weekly summary</div><div class="desc">Every Monday morning</div></div><div class="switch" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="toggle-row"><div><div class="lbl">Mail out status updates</div><div class="desc">Production, posted, and delivery estimates</div></div><div class="switch on" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
-        <div class="toggle-row"><div><div class="lbl">SMS alerts</div><div class="desc">In addition to email, for hot leads only</div></div><div class="switch" onclick="this.classList.toggle('on')"><div class="knob"></div></div></div>
+    <!-- AGENT INTRO -->
+    <div class="screen" id="screen-agent">
+      <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Meet your agent</div></div></div>
+      <div class="content">
+        <div class="agent-photo"><img id="agent-photo-img" src="data:image/svg+xml;utf8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23F1EEE9%27/%3E%3Ccircle cx=%2750%27 cy=%2738%27 r=%2718%27 fill=%27%23C9C7C1%27/%3E%3Cpath d=%27M18 92c4-20 18-30 32-30s28 10 32 30z%27 fill=%27%23C9C7C1%27/%3E%3C/svg%3E" alt="Your Name Here"></div>
+        <h2 id="agent-name-heading">Your Name Here</h2>
+        <div class="agent-stats">
+          <div class="agent-stat"><b id="agent-stat-homes">150+</b><span>Homes appraised</span></div>
+          <div class="agent-stat"><b id="agent-stat-days">11 days</b><span>Average days on Market</span></div>
+          <div class="agent-stat"><b id="agent-stat-local">Local</b><span id="agent-stat-local-label">Local expert</span></div>
+        </div>
+        <p class="agent-statement" id="agent-statement-text">Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">Your Name Here</b>. Every photo you've taken goes straight to them, who'll follow up personally with a real market-based comparison, not a guess.</p>
+      </div>
+      <div class="agent-footer">
+        <button class="btn btn-brand" onclick="goTo('extras')">Continue →</button>
       </div>
     </div>
 
-    <!-- SHARE & EARN -->
-    <div class="view-panel" id="view-share">
-      <div class="page-head"><h2>Share & Earn</h2><p>Know another agent? Refer them and you both benefit.</p></div>
-      <div class="refer-box">
-        <div>
-          <div style="font-size:13px; color:#aaa; margin-bottom:6px;">Your referral code</div>
-          <div class="refer-code" id="refer-code">—</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:13px; color:#aaa; margin-bottom:8px;"><b style="color:#fff;">Get 5 Free Leads</b> for every agent you refer who subscribes</div>
-          <button class="btn btn-lime btn-sm" onclick="copyReferralLink()">Copy link →</button>
-        </div>
+    <!-- EXTRAS -->
+    <div class="screen" id="screen-extras">
+      <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Anything else?</div></div></div>
+      <div class="content">
+        <p class="extras-lead">Tap anything else on the property to photograph it — extra features can lift your appraisal. You'll come back here after each one.</p>
+        <div class="feature-grid" id="feature-grid"></div>
       </div>
-      <div class="card" style="margin-top:18px;">
-        <h3 style="font-size:14px; margin-bottom:12px;">Your referrals</h3>
-        <div class="listing-row"><div><div class="listing-addr">Catherine Jeffrey</div><div class="listing-meta">Signed up 12 days ago · Free plan</div></div><span class="pill pill-lime">+5 free leads</span></div>
-        <div class="listing-row"><div><div class="listing-addr">Invite pending</div><div class="listing-meta">Sent 3 days ago</div></div><span class="pill pill-grey">Pending</span></div>
+      <div class="extras-footer">
+        <button class="btn btn-brand" onclick="finishExtras()">Finished Taking Photos →</button>
       </div>
     </div>
 
-    <div class="view-panel" id="view-usage">
-      <div class="page-head"><h2>Founders</h2><p>Every agent on the platform, sign-ups, leads and payments, all in one place.</p></div>
-
-      <!-- access code gate -->
-      <div class="card" id="founders-gate" style="max-width:460px;">
-        <h3 style="font-size:15px; margin-bottom:6px;">Founders only</h3>
-        <p style="font-size:13px; color:#777; margin-bottom:14px;">Enter the founders access code to open the dashboard.</p>
-        <div class="field"><label>Access code</label><input type="password" id="founders-code" placeholder="••••••••" onkeydown="if(event.key==='Enter') unlockFounders()"></div>
-        <div id="founders-gate-error" class="hidden" style="color:#C0392B; font-size:12.5px; margin-bottom:10px;">That code isn't right.</div>
-        <button class="btn btn-primary" onclick="unlockFounders()">Open dashboard →</button>
+    <!-- FINAL FORM -->
+    <div class="screen" id="screen-final">
+      <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div></div>
+      <div class="content">
+        <div class="trust-line" id="trust-line">🔒 Your details go straight to Your Name Here at Your Business Name Here — no spam, no cold calls from anyone else.</div>
+        <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
+        <div class="field"><label>Email</label><input type="email" id="input-email" placeholder="you@email.com" autocomplete="email"></div>
+        <p style="font-size:12px; color:var(--charcoal); opacity:0.7; margin-top:-4px;">That's all we need. Your appraisal will be emailed to you.</p>
+        <div class="submit-error" id="submit-error"></div>
       </div>
-
-      <div id="founders-dash" class="hidden">
-        <div class="stats-row" style="margin-bottom:18px;">
-          <div class="card stat-card"><b id="usage-total-agents">—</b><span>Agents signed up</span></div>
-          <div class="card stat-card"><b id="usage-active-agents">—</b><span>Paid subscriptions</span></div>
-          <div class="card stat-card"><b id="usage-trial-agents">—</b><span>On free trial</span></div>
-          <div class="card stat-card"><b id="usage-total-leads">—</b><span>Leads generated</span></div>
-          <div class="card stat-card"><b id="usage-hot-leads">—</b><span>Hot leads</span></div>
-        </div>
-
-        <div class="founder-charts">
-          <div class="card"><h3 style="font-size:14px; margin-bottom:4px;">Agent sign-ups</h3><p style="font-size:12px; color:#888; margin-bottom:10px;">Per week, last 12 weeks</p><div id="chart-signups" class="chart"></div></div>
-          <div class="card"><h3 style="font-size:14px; margin-bottom:4px;">Leads generated</h3><p style="font-size:12px; color:#888; margin-bottom:10px;">Per week, last 12 weeks · <span style="color:#FF5A1F;">■</span> hot <span style="color:#C9C7C1;">■</span> warm</p><div id="chart-leads" class="chart"></div></div>
-          <div class="card"><h3 style="font-size:14px; margin-bottom:4px;">Leads by agent</h3><p style="font-size:12px; color:#888; margin-bottom:10px;">Top 8 · <span style="color:#FF5A1F;">■</span> hot <span style="color:#C9C7C1;">■</span> warm</p><div id="chart-agents" class="chart"></div></div>
-          <div class="card"><h3 style="font-size:14px; margin-bottom:4px;">Plan mix</h3><p style="font-size:12px; color:#888; margin-bottom:10px;">Where every agent sits right now</p><div id="chart-plans" class="chart"></div></div>
-        </div>
-
-        <div class="card" style="margin-top:18px;">
-          <h3 style="font-size:14px; margin-bottom:4px;">All agents</h3>
-          <p style="font-size:12px; color:#888; margin-bottom:14px;">Click an agent to see their actual leads. Agent data is kept even after they leave the platform.</p>
-          <div id="usage-agent-list" class="agent-grid"></div>
-        </div>
+      <div class="final-footer">
+        <button class="btn btn-brand" id="submit-btn" onclick="submitHotLead()">Get My Appraisal →</button>
       </div>
     </div>
 
-    <!-- Founder drill-down: a specific agent's leads -->
-    <div class="modal-backdrop hidden" id="usage-agent-modal" onclick="if(event.target===this) closeUsageAgentModal()">
-      <div class="modal-box" style="width:520px; max-height:82vh; overflow-y:auto;">
-        <h3 id="usage-modal-name">Agent</h3>
-        <div class="sub" id="usage-modal-meta"></div>
-        <div style="margin-top:16px;">
-          <h4 style="font-size:12.5px; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Warm leads</h4>
-          <div id="usage-modal-cold"></div>
-        </div>
-        <div style="margin-top:18px;">
-          <h4 style="font-size:12.5px; color:#888; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">Hot leads</h4>
-          <div id="usage-modal-hot"></div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-outline btn-sm" onclick="closeUsageAgentModal()">Close</button>
-        </div>
-      </div>
-    </div>
+    <!-- CONFIRM -->
+    <div class="screen" id="screen-confirm">
+      <div class="confirm-icon">✓</div>
+      <h2>You're all set!</h2>
+      <p id="confirm-text">Your agent has everything they need and will be in touch personally with your appraisal. Thanks for walking through your home with us.</p>
 
-    <div class="main-footer">
-      <span class="ww-mark"><span class="dot"></span>Built by WestWorks</span>
-      <a href="mailto:admin@austsnapappraisal.com">admin@austsnapappraisal.com</a>
+      <div class="call-card" id="call-card">
+        <h3>📞 Want a call from <span id="call-agent-name">your agent</span>?</h3>
+        <p>Pop your mobile in and <span id="call-agent-name-2">your agent</span> will call you personally to talk through your appraisal and what your home could sell for.</p>
+        <div id="call-form">
+          <input type="tel" id="call-mobile" placeholder="04XX XXX XXX" autocomplete="tel" inputmode="tel">
+          <button class="btn btn-brand" id="call-btn" onclick="requestCall()">Yes, call me →</button>
+          <div class="submit-error" id="call-error"></div>
+        </div>
+        <div id="call-done" class="hidden">✅ Done! <b id="call-done-name">Your agent</b> will call you on <b id="call-done-mobile"></b>.</div>
+      </div>
+
+      <div class="cant-wait" id="cant-wait">
+        <h3>Can't wait?</h3>
+        <p>Get in touch with <span id="cw-agent-name">your agent</span> right now.</p>
+        <a class="btn btn-outline cw-btn hidden" id="cw-call" href="">📞 Call <span id="cw-phone"></span></a>
+        <a class="btn btn-outline cw-btn hidden" id="cw-email" href="">✉️ Email <span id="cw-email-name"></span></a>
+        <div id="cw-email-addr" style="font-size:11px; color:var(--charcoal); opacity:0.6; margin-top:5px; word-break:break-all;"></div>
+      </div>
+
+      <button class="btn btn-brand" style="margin-top:22px;" onclick="startAnotherAppraisal()">＋ Add another appraisal</button>
+      <p style="font-size:10.5px; opacity:0.45; margin-top:18px;">Snap Appraisal · Built by WestWorks</p>
     </div>
 
   </div>
-</div>
-
-<!-- Send-to-agent modal -->
-<div class="modal-backdrop hidden" id="send-modal">
-  <div class="modal-box">
-    <h3>Send listing to another agent</h3>
-    <div class="sub" id="send-modal-addr">Full Access feature, sent securely via Snap Appraisal</div>
-    <div class="field"><label>Agent's name</label><input type="text" id="send-agent-name" placeholder="e.g. Catherine Jeffrey"></div>
-    <div class="field"><label>Agent's Snap Appraisal email</label><input type="text" id="send-agent-email" placeholder="agent@agency.com.au"></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline btn-sm" onclick="closeSendModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="sendToAgent()">Send listing →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Lead detail modal (A2/A3) -->
-<div class="modal-backdrop hidden" id="lead-detail-modal" onclick="if(event.target===this) closeLeadDetail()">
-  <div class="modal-box" style="width:480px; max-height:82vh; overflow-y:auto;">
-    <h3 id="ld-addr">Address</h3>
-    <div class="sub" id="ld-when"></div>
-    <div id="ld-contact" style="margin:16px 0; padding:14px; background:#F5F4F1; border-radius:10px; font-size:13.5px; line-height:1.9;"></div>
-    <div id="ld-details" style="font-size:13.5px; line-height:1.9;"></div>
-    <div id="ld-photos" style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-outline btn-sm" onclick="closeLeadDetail()">Close</button>
-      <button class="btn btn-primary btn-sm" id="ld-send-btn" onclick="sendLeadToMe()">Send to me →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Photo lightbox: swipe on mobile, arrows on desktop -->
-<div class="modal-backdrop hidden" id="lightbox" onclick="if(event.target===this) closeLightbox()" style="z-index:999;">
-  <button onclick="closeLightbox()" style="position:absolute; top:20px; right:24px; background:none; border:none; color:white; font-size:28px; cursor:pointer;">&times;</button>
-  <button onclick="rotateLightboxImage()" title="Rotate" style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.15); border:none; color:white; width:44px; height:44px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">
-    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px;"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
-  </button>
-  <button id="lightbox-prev" onclick="lightboxNav(-1)" style="position:absolute; left:16px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:white; font-size:22px; width:44px; height:44px; border-radius:50%; cursor:pointer;">&#8249;</button>
-  <img id="lightbox-img" src="" style="width:88vw; height:82vh; object-fit:contain; border-radius:10px; touch-action:pan-y; transition:transform 0.25s ease;">
-  <button id="lightbox-next" onclick="lightboxNav(1)" style="position:absolute; right:16px; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:white; font-size:22px; width:44px; height:44px; border-radius:50%; cursor:pointer;">&#8250;</button>
-  <div id="lightbox-counter" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); color:rgba(255,255,255,0.7); font-size:13px;"></div>
 </div>
 
 <script>
-/* ================= STATE ================= */
-const state = { plan: 'Free', trial: false, agentId: null, agencyName: '', slug: '', name: '', email: '', isFounder: false, logoUrl: '', headshotUrl: '', subscriptionStatus: 'pending', hasAccess: false, statHomes: '150+', statAvgDays: '11', statLocalTag: 'Local', introStatement: '', brandColor: '#FF5A1F' };
-let coldLeads = [];
-let hotLeads = [];
+/* ---------- CONFIG ---------- */
+let AGENT_NAME = 'Your Name Here';
+const SESSION_ID = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+let currentAgent = { agentId: null, agentName: 'Your Name Here', agencyName: 'Your Business Name Here', phone: '', email: '' };
 
-function setAuthMode(mode){
-  const isLogin = mode === 'login';
-  document.getElementById('tab-login').classList.toggle('active', isLogin);
-  document.getElementById('tab-signup').classList.toggle('active', !isLogin);
-  document.getElementById('login-fields').classList.toggle('hidden', !isLogin);
-  document.getElementById('signup-fields').classList.toggle('hidden', isLogin);
-  document.getElementById('login-sub').textContent = isLogin
-    ? 'Agent Portal, sign in to manage your leads'
-    : 'Agent Portal, create your account';
-  document.getElementById('signup-error').classList.add('hidden');
+// "Can't wait?" block on the final screen: call + prefilled email to the agent
+function renderCantWait(){
+  const first = (currentAgent.agentName || 'your agent').split(' ')[0];
+  document.getElementById('cw-agent-name').textContent = first;
+  document.getElementById('cw-email-name').textContent = first;
+  const call = document.getElementById('cw-call');
+  const mail = document.getElementById('cw-email');
+  if(currentAgent.phone){
+    document.getElementById('cw-phone').textContent = currentAgent.phone;
+    call.href = 'tel:' + currentAgent.phone.replace(/[^\d+]/g, '');
+    call.classList.remove('hidden');
+  } else { call.classList.add('hidden'); }
+  if(currentAgent.email){
+    document.getElementById('cw-email-addr').textContent = currentAgent.email;
+    const subject = `Keen to get started – ${propertyAddress || 'my home'}`;
+    const body = `Hi ${first},\n\nI'm keen to get started so please contact me about selling my home${propertyAddress ? ' at ' + propertyAddress : ''}.\n\nThanks`;
+    mail.href = `mailto:${currentAgent.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    mail.classList.remove('hidden');
+  } else { mail.classList.add('hidden'); }
+  document.getElementById('cant-wait').classList.toggle('hidden', !currentAgent.phone && !currentAgent.email);
 }
-
-// Lets the marketing site deep-link straight to Sign Up, e.g.
-// portal.austsnapappraisal.com/?mode=signup
-if(new URLSearchParams(window.location.search).get('mode') === 'signup'){
-  setAuthMode('signup');
+// Back to the very start with a fresh session (same agent link)
+function startAnotherAppraisal(){
+  window.location.reload();
 }
+let frontOfHouseDone = false; // D2: "Skip this photo" only appears once this is true
 
-/* ================= FORGOT / RESET PASSWORD ================= */
-function toggleForgotPassword(){
-  document.getElementById('forgot-password-panel').classList.toggle('hidden');
-}
-
-async function requestPasswordReset(){
-  const email = document.getElementById('forgot-email').value.trim();
-  const resultEl = document.getElementById('forgot-password-result');
-  if(!email){
-    resultEl.style.color = '#FF7A5C';
-    resultEl.textContent = 'Enter your email first.';
-    return;
-  }
-  resultEl.style.color = '#666';
-  resultEl.textContent = 'Sending…';
+// Look up which agent this link belongs to, based on the URL path.
+// Falls back to the generic 'Your Name Here' demo values on any failure so the
+// original /roblevy link (and root) keep working exactly as before.
+async function loadAgentBySlug(){
+  const slug = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+  if(!slug) return;
   try{
-    const res = await fetch('/.netlify/functions/agent-forgot-password', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email }),
-    });
+    const res = await fetch(`/.netlify/functions/get-agent-by-slug?slug=${encodeURIComponent(slug)}`);
+    if(!res.ok) return; // not found — keep the generic 'Your Name Here' demo defaults
     const data = await res.json();
-    if(!res.ok) throw new Error('Request failed');
-    // Interim only, while there's no email service connected: the link
-    // is shown here directly instead of being emailed.
-    resultEl.style.color = '#2F9E68';
-    resultEl.innerHTML = data.resetLink
-      ? `Reset link (no email service connected yet, so it's shown here): <a href="${data.resetLink}" style="word-break:break-all;">${data.resetLink}</a>`
-      : data.message;
+    if(!data.ok) return;
+
+    currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName, phone: data.phone || '', email: data.email || '' };
+    AGENT_NAME = data.agentName;
+    document.title = `Snap Appraisal — ${data.agencyName || data.agentName}`;
+    const agencyDisplay = data.agencyName || data.agentName;
+    document.getElementById('landing-brand-word').textContent = agencyDisplay.toUpperCase();
+    document.getElementById('trust-line').textContent =
+      `🔒 Your details go straight to ${data.agentName.split(' ')[0]} at ${agencyDisplay} — no spam, no cold calls from anyone else.`;
+    document.getElementById('landing-sub').textContent =
+      `Walk through your home, snap a few photos, and get a real, accurate appraisal from ${data.agentName} – ${agencyDisplay}.`;
+    document.getElementById('confirm-text').textContent =
+      `${data.agentName.split(' ')[0]} has everything they need and will be in touch personally with your appraisal. Thanks for walking through your home with us.`;
+    document.getElementById('agent-name-heading').textContent = data.agentName;
+
+    // Change #3: use the agent's own saved stats instead of the hardcoded
+    // generic demo defaults, and their custom intro statement if they
+    // wrote one — otherwise fall back to the standard wording.
+    if(data.statHomes) document.getElementById('agent-stat-homes').textContent = data.statHomes;
+    if(data.statAvgDays){
+      // B7/portal change: the field now just holds a number (e.g. "11") —
+      // append "days" for display, but don't double it up if an older
+      // saved value already includes the word.
+      const days = String(data.statAvgDays).trim();
+      document.getElementById('agent-stat-days').textContent = /day/i.test(days) ? days : `${days} days`;
+    }
+    if(data.statLocalTag) document.getElementById('agent-stat-local').textContent = data.statLocalTag;
+
+    if(data.introStatement && data.introStatement.trim()){
+      document.getElementById('agent-statement-text').innerHTML = data.introStatement
+        .replace(/\[Name\]/g, data.agentName)
+        .replace(/\[name\]/g, data.agentName.split(' ')[0]);
+    } else {
+      document.getElementById('agent-statement-name').textContent = data.agentName;
+      document.getElementById('agent-statement-text').innerHTML =
+        `Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">${data.agentName}</b>. Every photo you've taken goes straight to ${data.agentName.split(' ')[0]}, who'll follow up personally with a real market-based comparison, not a guess.`;
+    }
+
+    if(data.headshotUrl){
+      document.getElementById('agent-photo-img').src = data.headshotUrl;
+      document.getElementById('landing-agent-photo').src = data.headshotUrl;
+      document.getElementById('landing-agent-name').textContent = data.agentName;
+      document.getElementById('landing-agent-row').classList.remove('hidden');
+    }
+    if(data.brandColor){
+      document.documentElement.style.setProperty('--gradient', data.brandColor);
+    }
   }catch(err){
-    console.error(err);
-    resultEl.style.color = '#FF7A5C';
-    resultEl.textContent = 'Something went wrong, try again.';
+    console.error('Agent lookup failed, using default branding:', err);
   }
 }
+loadAgentBySlug();
 
-// If the page was opened via a reset link (?reset=<token>), show the
-// "Set new password" panel instead of the normal login/signup screen.
-let activeResetToken = null;
-(function checkForPasswordResetLink(){
-  const token = new URLSearchParams(window.location.search).get('reset');
-  if(!token) return;
-  activeResetToken = token;
-  document.getElementById('auth-toggle-row').classList.add('hidden');
-  document.getElementById('login-fields').classList.add('hidden');
-  document.getElementById('signup-fields').classList.add('hidden');
-  document.getElementById('reset-password-fields').classList.remove('hidden');
-  document.getElementById('login-sub').textContent = 'Set a new password for your account';
-})();
-
-async function submitNewPassword(){
-  const newPassword = document.getElementById('reset-new-password').value;
-  const errorEl = document.getElementById('reset-password-error');
-  errorEl.classList.add('hidden');
-  if(newPassword.length < 8){
-    errorEl.textContent = 'Password must be at least 8 characters.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-  try{
-    const res = await fetch('/.netlify/functions/agent-reset-password', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ token: activeResetToken, newPassword }),
-    });
-    if(!res.ok){
-      const msg = await res.text();
-      errorEl.textContent = msg || 'Could not reset your password.';
-      errorEl.classList.remove('hidden');
-      return;
-    }
-    showToast('Password updated, log in with your new password.');
-    window.history.replaceState({}, '', window.location.pathname);
-    document.getElementById('reset-password-fields').classList.add('hidden');
-    document.getElementById('auth-toggle-row').classList.remove('hidden');
-    setAuthMode('login');
-  }catch(err){
-    console.error(err);
-    errorEl.textContent = 'Something went wrong, try again.';
-    errorEl.classList.remove('hidden');
-  }
-}
-
-async function signup(){
-  const agentName = document.getElementById('signup-name').value.trim();
-  const agencyName = document.getElementById('signup-agency').value.trim();
-  const email = document.getElementById('signup-email').value.trim();
-  const password = document.getElementById('signup-password').value;
-  const errorEl = document.getElementById('signup-error');
-  errorEl.classList.add('hidden');
-
-  if(!agentName || !email || !password){
-    errorEl.textContent = 'Name, email, and password are all required.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-  if(password.length < 8){
-    errorEl.textContent = 'Password must be at least 8 characters.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-  if(!document.getElementById('signup-agree').checked){
-    errorEl.textContent = 'Please agree to the Terms and Conditions to continue.';
-    errorEl.classList.remove('hidden');
-    return;
-  }
-
-  const btn = document.querySelector('#signup-fields .btn-lime');
-  const originalText = btn.textContent;
-  btn.textContent = 'Creating account…'; btn.disabled = true;
-
-  try{
-    const res = await fetch('/.netlify/functions/agent-signup', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ agentName, agencyName, email, password }),
-    });
-    if(!res.ok){
-      const msg = await res.text();
-      throw new Error(msg || 'Signup failed');
-    }
-    const data = await res.json();
-
-    state.agentId = data.agentId;
-    state.plan = data.plan;
-    state.trial = data.trialActive;
-    state.agencyName = data.agencyName;
-    state.slug = data.slug;
-    state.name = data.name || 'Agent';
-    state.email = data.email || '';
-    state.isFounder = !!data.isFounder;
-    state.logoUrl = data.logoUrl || '';
-    state.headshotUrl = data.headshotUrl || '';
-    state.subscriptionStatus = data.subscriptionStatus || 'pending';
-    state.hasAccess = !!data.trialActive || data.subscriptionStatus === 'active';
-
-    document.getElementById('dash-greeting').textContent = 'Welcome, ' + (data.name || 'Agent').split(' ')[0];
-    document.getElementById('screen-login').classList.add('hidden');
-    document.getElementById('app-shell').classList.remove('hidden');
-
-    await loadAgentData();
-    showToast(`Account created! You're live at app.austsnapappraisal.com/${data.slug} (once your own app is set up).`);
-  }catch(err){
-    console.error(err);
-    errorEl.textContent = err.message || 'Something went wrong, try again.';
-    errorEl.classList.remove('hidden');
-  }finally{
-    btn.textContent = originalText; btn.disabled = false;
-  }
-}
-
-function login(){
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const codeInput = document.getElementById('login-smartcode').value.trim().toUpperCase();
-  const errorEl = document.getElementById('smartcode-error');
-  errorEl.classList.add('hidden');
-
-  if(!email || !password){
-    showToast('Enter your email and password.');
-    return;
-  }
-
-  const btn = document.querySelector('#screen-login .btn-lime');
-  const originalText = btn.textContent;
-  btn.textContent = 'Logging in…'; btn.disabled = true;
-
-  fetch('/.netlify/functions/agent-login', {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({ email, password, smartCode: codeInput }),
-  })
-  .then(async res => {
-    if(!res.ok){
-      const msg = await res.text();
-      throw new Error(msg || 'Login failed');
-    }
-    return res.json();
-  })
-  .then(data => {
-    if(data.smartCodeError){
-      errorEl.textContent = data.smartCodeError + ', check for typos or leave it blank.';
-      errorEl.classList.remove('hidden');
-    }
-    state.agentId = data.agentId;
-    state.plan = data.plan;
-    state.trial = data.trialActive;
-    state.agencyName = data.agencyName;
-    state.slug = data.slug;
-    state.name = data.name || 'Agent';
-    state.email = data.email || '';
-    state.isFounder = !!data.isFounder;
-    state.logoUrl = data.logoUrl || '';
-    state.headshotUrl = data.headshotUrl || '';
-    state.subscriptionStatus = data.subscriptionStatus || 'pending';
-    state.hasAccess = !!data.trialActive || data.subscriptionStatus === 'active';
-    state.statHomes = data.statHomes || '150+';
-    state.statAvgDays = data.statAvgDays || '11';
-    state.statLocalTag = data.statLocalTag || 'Local';
-    state.introStatement = data.introStatement || '';
-    state.phone = data.phone || '';
-    state.referralCode = data.referralCode || '';
-    state.brandColor = data.brandColor || '#FF5A1F';
-    const rc = document.getElementById('refer-code');
-    if(rc) rc.textContent = state.referralCode || (state.slug ? state.slug.toUpperCase() : '—');
-
-    document.getElementById('dash-greeting').textContent = 'Welcome back, ' + (data.name || 'Agent').split(' ')[0];
-    document.getElementById('screen-login').classList.add('hidden');
-    document.getElementById('app-shell').classList.remove('hidden');
-
-    loadAgentData().then(() => {
-      if(state.trial) showToast(`SMART CODE applied, 1 month free on ${planLabel()}!`);
-      checkUpgradeReturn();
-    });
-  })
-  .catch(err => {
-    console.error(err);
-    showToast('❌ ' + (err.message || 'Login failed, check your email and password.'));
-  })
-  .finally(() => { btn.textContent = originalText; btn.disabled = false; });
-}
-
-function logout(){
-  state.agentId = null;
-  document.getElementById('app-shell').classList.add('hidden');
-  document.getElementById('screen-login').classList.remove('hidden');
-}
-function showView(view, el){
-  document.querySelectorAll('.view-panel').forEach(v=>v.classList.remove('active'));
-  document.getElementById('view-'+view).classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  if(el) el.classList.add('active');
-  if(view === 'usage') loadUsageData();
-}
-
-// Browser back button always returns to the main Dashboard rather than
-// leaving the app or falling back to the login screen — there's no
-// per-tab URL routing here, so without this, "back" behaves unpredictably.
-history.pushState({snapPortal: true}, '');
+// A8: Without this, the browser's back button jumps somewhere unrelated
+// and confusing mid-flow, since this app has no real per-step URLs (that's
+// a genuinely bigger rework — this is the honest, well-scoped fix for now:
+// trap back navigation so it can't unexpectedly exit the flow).
+history.pushState({snapAppraisal: true}, '');
 window.addEventListener('popstate', () => {
-  history.pushState({snapPortal: true}, '');
-  if(!document.getElementById('app-shell').classList.contains('hidden')){
-    showView('dashboard', document.querySelector('[data-view="dashboard"]'));
-  }
+  history.pushState({snapAppraisal: true}, '');
+  showBackButtonHint();
 });
-
-// Reads ?upgrade=success/cancelled off the URL after a Stripe Checkout redirect
-function checkUpgradeReturn(){
-  const params = new URLSearchParams(window.location.search);
-  if(params.get('upgrade') === 'success'){
-    showToast(`Payment successful, you're now on ${planLabel()}!`);
-    window.history.replaceState({}, '', window.location.pathname);
-  } else if(params.get('upgrade') === 'cancelled'){
-    showToast('Upgrade cancelled, no charge was made.');
-    window.history.replaceState({}, '', window.location.pathname);
+function showBackButtonHint(){
+  let hint = document.getElementById('back-hint-toast');
+  if(!hint){
+    hint = document.createElement('div');
+    hint.id = 'back-hint-toast';
+    hint.style.cssText = 'position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#17171A; color:white; padding:12px 20px; border-radius:100px; font-size:13px; z-index:999; box-shadow:0 8px 24px rgba(0,0,0,0.25);';
+    document.body.appendChild(hint);
   }
+  hint.textContent = 'Use the buttons on screen to go back — swipe/back is disabled mid-appraisal.';
+  hint.style.display = 'block';
+  clearTimeout(window._backHintTimer);
+  window._backHintTimer = setTimeout(() => { hint.style.display = 'none'; }, 2600);
+}
+const MAX_AUTO_BEDROOMS = 4; // auto-advance to Agent Intro after this many if user never taps Skip
+
+const CORE_START = [
+  {id:'dining', label:'Dining Room', emoji:'🍽️', hint:'Widest angle you can get of the dining space.'},
+  {id:'living', label:'Living Room', emoji:'🛋️', hint:'Widest angle you can get — corner of the room usually works best.'},
+  {id:'kitchen', label:'Kitchen', emoji:'🍳', hint:'Benches, splashback and any appliances staying with the home.'},
+  {id:'front', label:'Front of House', emoji:'🏡', hint:'Stand across the street and capture the full front facade in good light.', isFront:true},
+];
+/* (Snap-frame icons retired, back to the simple emoji ones) */
+const SNAP_FRAME_UNUSED = `<path d="M22 8H12a4 4 0 0 0-4 4v10" fill="none" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>
+  <path d="M42 8h10a4 4 0 0 1 4 4v10" fill="none" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
+  <path d="M8 42v10a4 4 0 0 0 4 4h10" fill="none" stroke="#0D0D0D" stroke-width="4" stroke-linecap="round"/>
+  <path d="M56 42v10a4 4 0 0 1-4 4H42" fill="none" stroke="#FF5A1F" stroke-width="4" stroke-linecap="round"/>`;
+const GLYPHS = {
+  pool:    `<path d="M18 30c4-4 8-4 12 0s8 4 12 0" stroke="#0D0D0D"/><path d="M18 38c4-4 8-4 12 0s8 4 12 0" stroke="#FF5A1F"/><path d="M26 22v10M38 22v10M26 22h12" stroke="#0D0D0D"/>`,
+  garage:  `<path d="M18 26l14-8 14 8v14H18z" stroke="#0D0D0D"/><path d="M24 40V31h16v9" stroke="#FF5A1F"/><path d="M24 35h16" stroke="#FF5A1F"/>`,
+  backyard:`<path d="M32 42V26" stroke="#0D0D0D"/><path d="M32 26c-8 0-10-6-10-10 4 0 10 2 10 10zM32 26c8 0 10-6 10-10-4 0-10 2-10 10z" stroke="#FF5A1F"/><path d="M18 42h28" stroke="#0D0D0D"/>`,
+  garden:  `<path d="M32 44V30" stroke="#0D0D0D"/><path d="M32 30c-10 0-12-8-12-14 8 0 12 6 12 14z" stroke="#FF5A1F"/><path d="M32 34c0-6 4-10 12-10 0 8-4 12-12 12" stroke="#0D0D0D"/>`,
+  deck:    `<path d="M20 44h24" stroke="#0D0D0D"/><path d="M24 44V34h16v10" stroke="#0D0D0D"/><path d="M32 34V26" stroke="#FF5A1F"/><path d="M18 26c4-6 24-6 28 0z" stroke="#FF5A1F"/>`,
+  shed:    `<path d="M18 30l14-10 14 10v14H18z" stroke="#0D0D0D"/><path d="M28 44V36h8v8" stroke="#FF5A1F"/>`,
+  solar:   `<path d="M18 40l4-14h20l4 14z" stroke="#0D0D0D"/><path d="M22 33h20M32 26v14" stroke="#FF5A1F"/><path d="M32 18v-3M42 21l2-2M22 21l-2-2" stroke="#FF5A1F"/>`,
+};
+function snapIcon(id){
+  return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${SNAP_FRAME}${GLYPHS[id] || ''}</svg>`;
+}
+const FEATURES = [
+  {id:'pool', label:'Pool', emoji:'🏊', hint:'Full pool and surrounding deck or fencing.'},
+  {id:'garage', label:'Garage', emoji:'🚗', hint:'Door open, show the full space.'},
+  {id:'backyard', label:'Backyard', emoji:'🌴', hint:'Show off the space — lawn, garden beds, fencing.'},
+  {id:'garden', label:'Garden', emoji:'🌿', hint:'Garden beds and landscaping.'},
+  {id:'deck', label:'Deck / Patio', emoji:'🌇', hint:'Your outdoor entertaining area, in daylight if possible.'},
+  {id:'shed', label:'Shed', emoji:'🧰', hint:'A wide shot of the structure and its condition.'},
+  {id:'solar', label:'Solar Panels', emoji:'☀️', hint:'A shot of the roof panels or the inverter/meter box.'},
+];
+const MAX_OTHER = 5;      // "Other" features the visitor can name themselves
+let otherCount = 0;
+
+/* ---------- STATE ---------- */
+let roomQueue = [];       // dynamic queue of room objects being processed
+let currentIndex = 0;
+let bedroomCount = 0;
+let uploadedPhotos = [];  // [{room,url}]
+let propertyAddress = '';
+let coldLeadRecordId = null;
+let contactPreference = 'Email';
+let selectedFeatures = new Set();
+let allTilesRendered = []; // for strip display (grows as bedrooms/extras added)
+
+function startFlow(){
+  roomQueue = [...CORE_START];
+  currentIndex = 0;
+  allTilesRendered = [...roomQueue];
+  buildRoomStrip();
+  renderRoom();
+  goTo('capture');
 }
 
-/* ================= LOAD REAL LEADS FROM SUPABASE ================= */
-async function loadAgentData(){
-  try{
-    const res = await fetch(`/.netlify/functions/agent-data?agentId=${state.agentId}`);
-    if(!res.ok) throw new Error('Failed to load leads');
-    const data = await res.json();
-    state.plan = data.plan;
-    state.trial = data.trialActive;
-    state.subscriptionStatus = data.subscriptionStatus;
-    state.hasAccess = data.hasAccess;
-    coldLeads = data.cold;
-    hotLeads = data.hot;
-    refreshPlanUI();
-    renderQrAndLink();
-    renderFlyerBranding();
-    document.getElementById('preview-name').textContent = state.name;
-    document.getElementById('preview-agency').textContent = state.agencyName;
-    document.getElementById('preview-panel-box').style.background = state.brandColor;
-    document.querySelectorAll('#brand-swatch-row .swatch').forEach(s => {
-      s.classList.toggle('selected', s.dataset.color && s.dataset.color.toLowerCase() === state.brandColor.toLowerCase());
-    });
-    if(state.headshotUrl){
-      document.getElementById('preview-avatar').style.backgroundImage = `url(${state.headshotUrl})`;
-      document.getElementById('headshot-upload-box').textContent = 'Uploaded, click to replace';
-    }
-    if(state.logoUrl){
-      document.getElementById('logo-upload-box').textContent = 'Uploaded, click to replace';
-    }
-    renderPreviewLogo();
-    populateIntroFields();
-    /* Founders nav is visible to everyone; the section itself is gated by the access code */
-  }catch(err){
-    console.error(err);
-    showToast('❌ Could not load your leads, try refreshing.');
-  }
+function goTo(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
 }
 
-// Change #1: show the actual logo in the Branding page's Live Preview,
-// not just the headshot/colour avatar.
-function renderPreviewLogo(){
-  const badge = document.getElementById('preview-logo-badge');
-  if(!badge) return;
-  if(state.logoUrl){
-    badge.innerHTML = `<img src="${state.logoUrl}" alt="Logo">`;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
-}
-
-// Change #3: load whatever the agent has already saved for their
-// "Meet your agent" intro-screen stats/statement into the form fields.
-const DEFAULT_INTRO_STATEMENT = "Appraisals are done by real people, not AI, and your agent is [Name]. Every photo you've taken goes straight to [Name], who'll follow up personally with a real market-based comparison, not a guess.";
-
-function populateIntroFields(){
-  const homesEl = document.getElementById('intro-stat-homes');
-  const daysEl = document.getElementById('intro-stat-days');
-  const localEl = document.getElementById('intro-stat-local');
-  const statementEl = document.getElementById('intro-statement');
-  if(homesEl) homesEl.value = state.statHomes;
-  if(daysEl) daysEl.value = state.statAvgDays;
-  if(localEl) localEl.value = state.statLocalTag;
-  const phoneEl = document.getElementById('intro-phone');
-  if(phoneEl) phoneEl.value = state.phone || '';
-  // A4: real, editable text from the start, not a placeholder that
-  // vanishes the moment you click in or start typing.
-  if(statementEl) statementEl.value = state.introStatement || DEFAULT_INTRO_STATEMENT;
-  updateStatementPreview();
-}
-
-// Live preview of the intro statement, right under Name/Agency, updating
-// as the agent types (not just after they hit save).
-function updateStatementPreview(){
-  const statementEl = document.getElementById('intro-statement');
-  const previewEl = document.getElementById('preview-statement');
-  if(!statementEl || !previewEl) return;
-  const text = (statementEl.value || '').replace(/\[Name\]/g, state.name || 'Your Name');
-  previewEl.textContent = text;
-}
-function renderQrAndLink(){
-  const url = `https://app.austsnapappraisal.com/${state.slug || ''}`;
-  document.getElementById('dash-link').textContent = url.replace('https://', '');
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
-  document.getElementById('dash-qr-img').src = qrSrc;
-  document.getElementById('dash-qr-download').href = qrSrc;
-
-  const shareText = `Get your free property appraisal from ${state.name || 'me'}: ${url}`;
-  document.getElementById('dash-link-email').href =
-    `mailto:?subject=${encodeURIComponent('Your Snap Appraisal link')}&body=${encodeURIComponent(shareText)}`;
-  document.getElementById('dash-link-sms').href = `sms:?body=${encodeURIComponent(shareText)}`;
-  document.getElementById('dash-link-open').href = url;
-}
-function copyDashLink(){
-  const url = `https://app.austsnapappraisal.com/${state.slug || ''}`;
-  navigator.clipboard.writeText(url).then(() => {
-    showToast('Link copied to clipboard.');
-  }).catch(() => {
-    showToast('Could not copy, please copy it manually.');
+/* ---------- ROOM STRIP ---------- */
+function buildRoomStrip(){
+  const strip = document.getElementById('room-strip');
+  strip.innerHTML = '';
+  allTilesRendered.forEach((r,i)=>{
+    const tile = document.createElement('div');
+    tile.className = 'room-tile';
+    tile.id = 'tile-'+i;
+    tile.innerHTML = `<div class="dot">${r.emoji}</div>`;
+    strip.appendChild(tile);
   });
 }
-
-// Populates the Purchase Mail Out flyer mockup with the agent's real
-// headshot, logo, name, agency, and their actual QR code, this is what
-// they'll actually see printed, not a placeholder.
-function renderFlyerBranding(){
-  const ctaEl = document.getElementById('dl-cta');
-  if(ctaEl && typeof flyerCta === 'function') ctaEl.textContent = flyerCta();
-  document.getElementById('dl-name').textContent = state.name || 'Your Name';
-  document.getElementById('dl-agency').textContent = state.agencyName || 'Your Agency';
-
-  const avatar = document.getElementById('dl-avatar');
-  if(state.headshotUrl){
-    avatar.style.backgroundImage = `url(${state.headshotUrl})`;
-  }
-
-  // Agent's logo is the artwork itself, big and centred on the design colour
-  const top = document.getElementById('dl-top');
-  if(top) top.style.backgroundImage = state.logoUrl ? `url(${state.logoUrl})` : 'none';
-  const logoBadge = document.getElementById('dl-logo-badge');
-  if(logoBadge) logoBadge.style.display = 'none';
-
-  const url = `https://app.austsnapappraisal.com/${state.slug || ''}`;
-  const miniQr = document.getElementById('dl-qr-mini');
-  if(miniQr){
-    miniQr.style.backgroundImage = `url(https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(url)})`;
-    miniQr.style.backgroundSize = 'cover';
-  }
+function addTileForNewRoom(){
+  const strip = document.getElementById('room-strip');
+  const i = allTilesRendered.length - 1;
+  const r = allTilesRendered[i];
+  const tile = document.createElement('div');
+  tile.className = 'room-tile';
+  tile.id = 'tile-'+i;
+  tile.innerHTML = `<div class="dot">${r.emoji}</div>`;
+  strip.appendChild(tile);
 }
 
-/* ================= BRANDING: real Cloudinary uploads ================= */
-async function handleBrandingUpload(event, kind){
-  const file = event.target.files[0];
+/* ---------- RENDER ROOM ---------- */
+function renderRoom(){
+  const r = roomQueue[currentIndex];
+  document.getElementById('room-emoji').textContent = r.emoji;
+  document.getElementById('room-title').textContent = r.label;
+  document.getElementById('step-tag').textContent = r.label;
+  document.getElementById('capture-subtitle').textContent = currentAgent.agencyName || 'Your Business Name Here';
+
+  document.getElementById('address-block').style.display = r.isFront ? 'block' : 'none';
+  document.getElementById('bedroom-extras').style.display = 'none';
+  document.getElementById('skip-to-agent').style.display = (r.isBedroom && r.bedroomIndex >= 1) ? 'block' : 'none';
+  document.getElementById('skip-photo-link').style.display = frontOfHouseDone ? 'block' : 'none';
+
+  resetPreview();
+  document.querySelectorAll('.room-tile').forEach((t,i)=> t.classList.toggle('current', i === tileIndexForCurrent()));
+}
+function tileIndexForCurrent(){
+  return allTilesRendered.indexOf(roomQueue[currentIndex]);
+}
+
+function resetPreview(){
+  document.getElementById('preview-placeholder').style.display = 'block';
+  const canvas = document.getElementById('photo-canvas');
+  canvas.style.display = 'none';
+  document.getElementById('blur-hint').style.display = 'none';
+  document.getElementById('privacy-note').style.display = 'none';
+  document.getElementById('pre-actions').style.display = 'flex';
+  document.getElementById('post-actions').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+/* ---------- PHOTO CAPTURE + BLUR ---------- */
+function handlePhoto(e){
+  const file = e.target.files[0];
   if(!file) return;
-  const statusEl = document.getElementById('branding-status');
-  const boxEl = document.getElementById(kind + '-upload-box');
-  const originalBoxText = boxEl.textContent;
-  boxEl.textContent = 'Uploading…';
-  statusEl.textContent = '';
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    const img = new Image();
+    img.onload = ()=>{
+      // FULL-RES copy is what gets uploaded: long edge capped at PHOTO_MAX_EDGE
+      // (phone cameras are 3000-4000px; 1600px is plenty for an appraisal and
+      // keeps each file ~300-500KB so Cloudinary storage/bandwidth stays cheap).
+      const fscale = Math.min(1, PHOTO_MAX_EDGE / Math.max(img.width, img.height));
+      fullCanvas.width = Math.round(img.width * fscale);
+      fullCanvas.height = Math.round(img.height * fscale);
+      fullCanvas.getContext('2d').drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
 
-  try{
-    const sigRes = await fetch(`/.netlify/functions/get-upload-signature?agentId=${state.agentId}`);
-    if(!sigRes.ok) throw new Error('Could not get upload permission');
-    const sig = await sigRes.json();
-
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('api_key', sig.apiKey);
-    fd.append('timestamp', sig.timestamp);
-    fd.append('signature', sig.signature);
-    fd.append('folder', sig.folder);
-
-    const upRes = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, { method:'POST', body:fd });
-    if(!upRes.ok) throw new Error('Upload to Cloudinary failed');
-    const uploaded = await upRes.json();
-    const url = uploaded.secure_url;
-
-    const fields = kind === 'logo' ? { agentId: state.agentId, logoUrl: url } : { agentId: state.agentId, headshotUrl: url };
-    const saveRes = await fetch('/.netlify/functions/agent-branding', {
-      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(fields),
-    });
-    if(!saveRes.ok) throw new Error('Upload worked, but saving it failed');
-
-    boxEl.textContent = 'Uploaded, click to replace';
-    statusEl.textContent = kind === 'logo' ? 'Logo saved.' : 'Headshot saved.';
-    if(kind === 'headshot'){
-      state.headshotUrl = url;
-      document.getElementById('preview-avatar').style.backgroundImage = `url(${url})`;
-    } else {
-      state.logoUrl = url;
-    }
-    renderFlyerBranding();
-    renderPreviewLogo();
-  }catch(err){
-    console.error(err);
-    boxEl.textContent = originalBoxText;
-    statusEl.textContent = '❌ ' + (err.message || 'Upload failed, try again.');
-  }
+      // PREVIEW shows the whole photo (no cropping), fitted inside the box
+      const preview = document.getElementById('capture-preview');
+      const canvas = document.getElementById('photo-canvas');
+      const boxW = preview.clientWidth, boxH = preview.clientHeight;
+      const pscale = Math.min(boxW / fullCanvas.width, boxH / fullCanvas.height);
+      canvas.width = Math.round(fullCanvas.width * pscale);
+      canvas.height = Math.round(fullCanvas.height * pscale);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(fullCanvas, 0, 0, canvas.width, canvas.height);
+      document.getElementById('preview-placeholder').style.display = 'none';
+      canvas.style.display = 'block';
+      document.getElementById('blur-hint').style.display = 'block';
+      document.getElementById('privacy-note').style.display = 'block';
+      blurHistory = [];
+      document.getElementById('undo-blur-btn').classList.add('hidden');
+      document.getElementById('pre-actions').style.display = 'none';
+      document.getElementById('post-actions').style.display = 'flex';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
+function retakePhoto(){ resetPreview(); document.getElementById('file-input').click(); }
 
-async function selectBrandColor(el){
-  document.querySelectorAll('#brand-swatch-row .swatch').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-  await saveBrandColor(el.dataset.color);
+const PHOTO_MAX_EDGE = 1600;             // px, long edge of the uploaded photo
+const PHOTO_JPEG_QUALITY = 0.85;
+const fullCanvas = document.createElement('canvas');   // offscreen, full-res, what we upload
+let blurHistory = [];   // {preview, full} snapshots, one per blur stroke, for Undo
+function undoBlur(){
+  if(!blurHistory.length) return;
+  const snap = blurHistory.pop();
+  document.getElementById('photo-canvas').getContext('2d').putImageData(snap.preview, 0, 0);
+  fullCanvas.getContext('2d').putImageData(snap.full, 0, 0);
+  if(!blurHistory.length) document.getElementById('undo-blur-btn').classList.add('hidden');
 }
-
-// B9: the custom colour-picker swatch, same save path, just no preset .swatch element to toggle.
-async function selectCustomBrandColor(hex){
-  document.querySelectorAll('#brand-swatch-row .swatch').forEach(s => s.classList.remove('selected'));
-  await saveBrandColor(hex);
-}
-
-async function saveBrandColor(color){
-  document.getElementById('preview-panel-box').style.background = color;
-  const statusEl = document.getElementById('branding-status');
-  try{
-    const res = await fetch('/.netlify/functions/agent-branding', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ agentId: state.agentId, brandColor: color }),
-    });
-    if(!res.ok) throw new Error('Could not save colour');
-    statusEl.textContent = 'Brand colour saved.';
-  }catch(err){
-    console.error(err);
-    statusEl.textContent = 'Could not save colour, try again.';
-  }
-}
-
-// Change #3: saves the "Meet your agent" intro-screen stats/statement.
-async function saveIntroInfo(){
-  const statusEl = document.getElementById('intro-status');
-  const statHomes = document.getElementById('intro-stat-homes').value.trim() || '150+';
-  const statAvgDays = document.getElementById('intro-stat-days').value.trim() || '11';
-  const statLocalTag = document.getElementById('intro-stat-local').value.trim() || 'Local';
-  const introStatement = document.getElementById('intro-statement').value.trim();
-  const phone = document.getElementById('intro-phone').value.trim();
-  statusEl.textContent = 'Saving…';
-  try{
-    const res = await fetch('/.netlify/functions/agent-branding', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ agentId: state.agentId, statHomes, statAvgDays, statLocalTag, introStatement, phone }),
-    });
-    if(!res.ok) throw new Error('Could not save');
-    state.statHomes = statHomes;
-    state.statAvgDays = statAvgDays;
-    state.statLocalTag = statLocalTag;
-    state.introStatement = introStatement;
-    state.phone = phone;
-    statusEl.textContent = '✓ Saved.';
-  }catch(err){
-    console.error(err);
-    statusEl.textContent = '❌ Could not save, try again.';
-  }
-}
-
-/* ================= RENDER COLD / HOT ================= */
-function padListForDisplay(leads, kind){
-  const padded = leads.slice();
-  let i = 1;
-  while(padded.length < 10){
-    padded.push(kind === 'cold'
-      ? { id: `pad-cold-${i}`, address: 'Address hidden until unlocked', createdTime: null, locked: true, isPad: true }
-      : { id: `pad-hot-${i}`, address: 'Address hidden until unlocked', name: '', mobile: '', email: '', locked: true, isPad: true }
-    );
-    i++;
-  }
-  return padded;
-}
-
-function renderCold(){
-  const wrap = document.getElementById('cold-list');
-  wrap.innerHTML = '';
-  padListForDisplay(coldLeads, 'cold').forEach((l) => {
-    const when = l.createdTime ? new Date(l.createdTime).toLocaleDateString('en-AU', {day:'numeric', month:'short'}) : '';
-    if(!l.locked){
-      const photoCount = (l.photos || []).length;
-      const sendBtn = `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); sendLeadToMeById('${l.id}')">Send it to me →</button>`;
-      wrap.innerHTML += `<div class="listing-row" style="cursor:pointer;" onclick="openLeadDetail('${l.id}')"><div><div class="listing-addr">${l.address}</div><div class="listing-meta">Started ${when} · ${photoCount} photo${photoCount === 1 ? '' : 's'}</div></div><div class="listing-right">${sendBtn}<span class="pill pill-grey">In progress</span></div></div>`;
-    } else {
-      const ctaLabel = 'Upgrade to unlock';
-      const meta = l.isPad ? 'Waiting to be claimed' : `Started ${when}`;
-      wrap.innerHTML += `<div class="locked-wrap">
-        <div class="listing-row listing-locked"><div><div class="listing-addr">${l.address}</div><div class="listing-meta">${meta}</div></div><span class="pill pill-grey">In progress</span></div>
-        <div class="locked-overlay"><button class="btn btn-primary btn-sm" onclick="showView('subscription', document.querySelector('[data-view=subscription]'))">${ctaLabel}</button></div>
-      </div>`;
-    }
-  });
-  const banner = document.getElementById('cold-unlock-banner');
-  const unlocked = coldLeads.filter(l => !l.locked).length;
-  document.getElementById('cold-unlock-msg').innerHTML = `You've unlocked <b>${unlocked} of ${coldLeads.length}</b> warm leads on the ${planLabel()} plan.`;
-  banner.classList.toggle('hidden', coldLeads.length === 0 || unlocked >= coldLeads.length);
-}
-
-// A hot lead where the client asked for a call (consumer app's "Want a call?"
-// step): contact preference "Call" plus a mobile number. These are the most
-// valuable leads, so they sort to the top and get a pulsing signal.
-function wantsCall(l){ return (l.contactPreference || '').toLowerCase() === 'call' && !!l.mobile; }
-function sortCallFirst(list){
-  return list.slice().sort((a, b) => (wantsCall(b) ? 1 : 0) - (wantsCall(a) ? 1 : 0));
-}
-function renderHot(){
-  const wrap = document.getElementById('hot-list');
-  wrap.innerHTML = '';
-  padListForDisplay(sortCallFirst(hotLeads), 'hot').forEach((l) => {
-    if(!l.locked){
-      const sendBtn = `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); sendLeadToMeById('${l.id}')">Send it to me →</button>`;
-      const call = wantsCall(l);
-      const pill = call ? `<span class="pill pill-call">📞 Client requesting call</span>` : `<span class="pill pill-orange">Unlocked</span>`;
-      wrap.innerHTML += `<div class="listing-row${call ? ' call-requested' : ''}" style="cursor:pointer;" onclick="openLeadDetail('${l.id}')"><div><div class="listing-addr">${l.address}</div><div class="listing-meta">${l.name || ''} · ${l.mobile || ''} · ${l.email || ''}</div></div><div class="listing-right">${sendBtn}${pill}</div></div>`;
-    } else {
-      const ctaLabel = 'Upgrade to unlock';
-      const meta = l.isPad ? 'Waiting to be claimed' : 'Name · Phone · Email';
-      wrap.innerHTML += `<div class="locked-wrap">
-        <div class="listing-row listing-locked"><div><div class="listing-addr">${l.address}</div><div class="listing-meta">${meta}</div></div><span class="pill pill-grey">Locked</span></div>
-        <div class="locked-overlay"><button class="btn btn-primary btn-sm" onclick="showView('subscription', document.querySelector('[data-view=subscription]'))">${ctaLabel}</button></div>
-      </div>`;
-    }
-  });
-  const banner = document.getElementById('hot-unlock-banner');
-  const unlocked = hotLeads.filter(l => !l.locked).length;
-  document.getElementById('hot-unlock-msg').innerHTML = `You've unlocked <b>${unlocked} of ${hotLeads.length}</b> hot leads on the ${planLabel()} plan.`;
-  banner.classList.toggle('hidden', hotLeads.length === 0 || unlocked >= hotLeads.length);
-}
-
-function planKey(){ return (state.plan || 'Free') === 'Full Access' ? 'fullaccess' : 'free'; }
-function planLabel(){
-  const p = state.plan || 'Free';
-  // legacy tier names from before the Free / Full Access model
-  return ['Standard','Premium','Platinum'].includes(p) ? 'Full Access' : p;
-}
-function refreshPlanUI(){
-  const trialTag = state.trial ? ' · <span style="color:#FF5A1F;">Free trial</span>' : '';
-  document.getElementById('plan-badge').innerHTML = `<b>${planLabel()} Plan</b>${hotLeads.filter(l=>!l.locked).length} of ${hotLeads.length} hot leads unlocked${trialTag}`;
-  document.getElementById('trial-banner').classList.toggle('hidden', !state.trial);
-  document.getElementById('trial-plan-name').textContent = planLabel();
-
-  const onFullAccess = planKey() === 'fullaccess' && state.hasAccess;
-  document.getElementById('tier-free').classList.toggle('current', !onFullAccess);
-  document.getElementById('tag-free').classList.toggle('hidden', onFullAccess);
-  document.getElementById('tier-fullaccess').classList.toggle('current', onFullAccess);
-  document.getElementById('tag-fullaccess').classList.toggle('hidden', !onFullAccess);
-
-  ['btn-monthly','btn-sixmonth','btn-annual'].forEach(id => {
-    const btn = document.getElementById(id);
-    if(onFullAccess){ btn.textContent = 'Current plan'; btn.disabled = true; }
-    else { btn.disabled = false; }
-  });
-
-  renderCold();
-  renderHot();
-}
-
-/* ================= SUBSCRIPTION PAYMENT FLOW (real Stripe Checkout) ================= */
-async function goToPayment(billing){
-  const btnIdMap = { monthly: 'btn-monthly', sixmonth: 'btn-sixmonth', annual: 'btn-annual' };
-  const btn = document.getElementById(btnIdMap[billing]);
-  const originalText = btn.textContent;
-  const promoCode = document.getElementById('promo-code-input').value.trim().toUpperCase();
-  document.getElementById('promo-code-error').classList.add('hidden');
-  btn.textContent = 'Redirecting to payment…'; btn.disabled = true;
-  try{
-    const res = await fetch('/.netlify/functions/stripe-checkout', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ agentId: state.agentId, billing, promoCode, returnUrl: window.location.origin + window.location.pathname }),
-    });
-    if(!res.ok) throw new Error(await res.text());
-    const data = await res.json();
-    window.location.href = data.url; // hands off to Stripe's real hosted Checkout page
-  }catch(err){
-    console.error(err);
-    showToast('❌ Could not start checkout, try again.');
-    btn.textContent = originalText; btn.disabled = false;
-  }
-}
-
-/* ================= SEND TO AGENT (Full Access) ================= */
-let sendingAddr = null;
-function openSendModal(addr){
-  sendingAddr = addr;
-  document.getElementById('send-modal-addr').textContent = addr + ', sent securely via Snap Appraisal';
-  document.getElementById('send-agent-name').value = '';
-  document.getElementById('send-agent-email').value = '';
-  document.getElementById('send-modal').classList.remove('hidden');
-}
-function closeSendModal(){
-  document.getElementById('send-modal').classList.add('hidden');
-}
-function sendToAgent(){
-  const name = document.getElementById('send-agent-name').value.trim() || 'that agent';
-  closeSendModal();
-  showToast(`↗ Sent "${sendingAddr}" to ${name}.`);
-}
-
-/* ================= LEAD DETAIL (A2/A3) ================= */
-let currentLeadForEmail = null;
-let lightboxPhotos = [];
-let lightboxIndex = 0;
-
-function openLeadDetail(id){
-  const lead = hotLeads.find(l => l.id === id) || coldLeads.find(l => l.id === id) || founderModalLeads.find(l => l.id === id);
-  if(!lead) return;
-  const isWarm = !lead.name && !lead.mobile && !lead.email;
-  currentLeadForEmail = lead;
-
-  document.getElementById('ld-addr').textContent = lead.address;
-  document.getElementById('ld-when').textContent = lead.createdTime
-    ? (isWarm ? 'Started ' : 'Completed ') + new Date(lead.createdTime).toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'})
-    : '';
-
-  const contactEl = document.getElementById('ld-contact');
-  const oldBanner = document.getElementById('ld-call-banner'); if(oldBanner) oldBanner.remove();
-  if(wantsCall(lead)){
-    contactEl.insertAdjacentHTML('beforebegin', `<div class="call-banner" id="ld-call-banner">📞 Client requesting a call · <a href="tel:${(lead.mobile||'').replace(/[^\d+]/g,'')}">${lead.mobile}</a></div>`);
-  }
-  if(isWarm){
-    contactEl.innerHTML = `This visitor hasn't finished their appraisal yet, so there's no contact info to show. Here's what they've photographed so far.`;
-  } else {
-    contactEl.innerHTML = `
-      <b>${lead.name || 'No name given'}</b><br>
-      Mobile: ${lead.mobile || 'Not given'}<br>
-      Email: ${lead.email || 'Not given'}<br>
-      Prefers: ${lead.contactPreference || 'Not specified'}
-    `;
-  }
-
-  const detailsEl = document.getElementById('ld-details');
-  if(isWarm){
-    detailsEl.innerHTML = `<b>Rooms photographed so far:</b> ${lead.roomsPhotographed || (lead.photos ? lead.photos.length : 0)}`;
-  } else {
-    const featuresText = (lead.featuresSelected && lead.featuresSelected.length)
-      ? lead.featuresSelected.join(', ') : 'None selected';
-    detailsEl.innerHTML = `
-      <b>Bedrooms:</b> ${lead.bedroomCount || 'Not specified'}<br>
-      <b>Rooms photographed:</b> ${lead.roomsPhotographed || (lead.photos ? lead.photos.length : 0)}<br>
-      <b>Features:</b> ${featuresText}
-    `;
-  }
-
-  const photoObjs = (lead.photos || []).filter(p => (typeof p === 'string' ? p : p.url));
-  lightboxPhotos = photoObjs.map(p => typeof p === 'string' ? p : p.url);
-  const photosWrap = document.getElementById('ld-photos');
-  photosWrap.innerHTML = '';
-  photoObjs.forEach((p, i) => {
-    const url = typeof p === 'string' ? p : p.url;
-    const label = (typeof p === 'object' && p.room) ? p.room : `Photo ${i + 1}`;
-    photosWrap.innerHTML += `
-      <div>
-        <img src="${url}" alt="${label}" onclick="openLightbox(${i})" style="width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:8px; cursor:pointer; display:block;">
-        <div style="font-size:11px; color:#888; margin-top:4px; text-align:center;">${label}</div>
-      </div>`;
-  });
-
-  // "Send to me" works for warm leads too (address + photos, no contact yet)
-  document.getElementById('ld-send-btn').classList.remove('hidden');
-
-  document.getElementById('lead-detail-modal').classList.remove('hidden');
-}
-function closeLeadDetail(){
-  document.getElementById('lead-detail-modal').classList.add('hidden');
-}
-
-// "Send it to me" — emails the full lead detail to the agent's own inbox.
-// Uses a mailto link (opens their own mail app) rather than a server-side
-// sender, since there's no transactional email provider wired up yet.
-function copyReferralLink(){
-  const code = state.referralCode || state.slug || '';
-  const link = `https://portal.austsnapappraisal.com/?mode=signup&ref=${encodeURIComponent(code)}`;
-  navigator.clipboard.writeText(link).then(()=>showToast('Referral link copied.')).catch(()=>showToast(link));
-}
-function sendLeadToMe(){
-  const lead = currentLeadForEmail;
-  if(!lead) return;
-  emailLeadToSelf(lead);
-}
-// Same action, callable directly from a listing row without opening the modal first.
-function sendLeadToMeById(id){
-  const lead = hotLeads.find(l => l.id === id) || coldLeads.find(l => l.id === id);
-  if(!lead) return;
-  emailLeadToSelf(lead);
-}
-async function emailLeadToSelf(lead){
-  // Preferred: server-side HTML email (Resend) so each room is a real
-  // hyperlink, e.g. KITCHEN. Falls back to a plain mailto if the email
-  // service isn't configured yet (function answers 503).
-  showToast('Sending…');
-  try{
-    const res = await fetch('/.netlify/functions/send-lead-email', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ agentId: state.agentId, leadId: lead.id }),
-    });
-    if(res.ok){ showToast('Sent to ' + (state.email || 'your inbox') + '.'); return; }
-    if(res.status !== 503) console.warn('send-lead-email failed', res.status);
-  }catch(err){ console.warn('send-lead-email error', err); }
-  emailLeadToSelfMailto(lead);
-}
-function emailLeadToSelfMailto(lead){
-  const photoLines = (lead.photos || [])
-    .filter(p => (typeof p === 'string' ? p : p.url))
-    .map((p, i) => {
-      if (typeof p === 'string') return `PHOTO ${i + 1}: ${p}`;
-      return `${(p.room || `Photo ${i + 1}`).toUpperCase()}: ${p.url}`;
-    });
-  const subject = encodeURIComponent(`SnapAppraisal lead: ${lead.address}`);
-  const body = encodeURIComponent(
-    (wantsCall(lead) ? `*** CLIENT REQUESTING A CALL: ${lead.mobile} ***\n\n` : '') +
-    `Address: ${lead.address}\n` +
-    `Name: ${lead.name || 'Not given'}\n` +
-    `Mobile: ${lead.mobile || 'Not given'}\n` +
-    `Email: ${lead.email || 'Not given'}\n` +
-    `Prefers: ${lead.contactPreference || 'Not specified'}\n` +
-    `Bedrooms: ${lead.bedroomCount || 'Not specified'}\n` +
-    `Features: ${(lead.featuresSelected||[]).join(', ') || 'None selected'}\n\n` +
-    `Photos:\n${photoLines.join('\n')}`
-  );
-  window.location.href = `mailto:${state.email || ''}?subject=${subject}&body=${body}`;
-}
-
-/* ================= PHOTO LIGHTBOX (arrows on desktop, swipe on mobile) ================= */
-let lightboxRotation = 0;
-function openLightbox(index){
-  lightboxIndex = index;
-  lightboxRotation = 0;
-  renderLightbox();
-  document.getElementById('lightbox').classList.remove('hidden');
-}
-function closeLightbox(){
-  document.getElementById('lightbox').classList.add('hidden');
-}
-function lightboxNav(dir){
-  lightboxIndex = (lightboxIndex + dir + lightboxPhotos.length) % lightboxPhotos.length;
-  lightboxRotation = 0; // each photo starts upright again when you navigate
-  renderLightbox();
-}
-function rotateLightboxImage(){
-  lightboxRotation = (lightboxRotation + 90) % 360;
-  const img = document.getElementById('lightbox-img');
-  img.style.transform = `rotate(${lightboxRotation}deg)`;
-  const sideways = lightboxRotation === 90 || lightboxRotation === 270;
-  img.style.width = sideways ? '82vh' : '88vw';
-  img.style.height = sideways ? '88vw' : '82vh';
-}
-function renderLightbox(){
-  const img = document.getElementById('lightbox-img');
-  img.src = lightboxPhotos[lightboxIndex];
-  img.style.transform = 'rotate(0deg)';
-  img.style.width = '88vw';
-  img.style.height = '82vh';
-  document.getElementById('lightbox-counter').textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
-  const multi = lightboxPhotos.length > 1;
-  document.getElementById('lightbox-prev').style.display = multi ? 'flex' : 'none';
-  document.getElementById('lightbox-next').style.display = multi ? 'flex' : 'none';
-}
-// Swipe support for touch devices
 (function(){
-  let touchStartX = 0;
-  document.addEventListener('touchstart', (e) => {
-    if(e.target.id === 'lightbox-img') touchStartX = e.touches[0].clientX;
+  const canvas = document.getElementById('photo-canvas');
+  let isDrawing = false;
+  const BRUSH = 30;
+  function posFromEvent(e){ const rect = canvas.getBoundingClientRect(); return {x:e.clientX-rect.left, y:e.clientY-rect.top}; }
+  // pixelate a brush-sized square on one canvas
+  function pixelate(c, x, y, brush){
+    const ctx = c.getContext('2d');
+    const sx = Math.max(0, Math.round(x-brush/2)), sy = Math.max(0, Math.round(y-brush/2));
+    const sw = Math.min(brush, c.width-sx), sh = Math.min(brush, c.height-sy);
+    if(sw<=0||sh<=0) return;
+    const data = ctx.getImageData(sx,sy,sw,sh).data;
+    let r=0,g=0,b=0,n=0;
+    for(let i=0;i<data.length;i+=4){r+=data[i];g+=data[i+1];b+=data[i+2];n++;}
+    if(!n) return;
+    ctx.fillStyle = `rgb(${Math.round(r/n)},${Math.round(g/n)},${Math.round(b/n)})`;
+    ctx.fillRect(sx,sy,sw,sh);
+  }
+  // blur on the preview AND the same spot on the full-res upload copy
+  function blurAt(x,y){
+    // pointer coords are CSS px; canvas may be scaled by CSS, so map to canvas px
+    const rect = canvas.getBoundingClientRect();
+    const cx = x * (canvas.width / rect.width), cy = y * (canvas.height / rect.height);
+    pixelate(canvas, cx, cy, BRUSH);
+    const k = fullCanvas.width / canvas.width;
+    pixelate(fullCanvas, cx*k, cy*k, Math.round(BRUSH*k));
+  }
+  canvas.addEventListener('pointerdown', e=>{
+    isDrawing=true;
+    // snapshot before this stroke so it can be undone as one step
+    blurHistory.push({
+      preview: canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),
+      full: fullCanvas.getContext('2d').getImageData(0,0,fullCanvas.width,fullCanvas.height),
+    });
+    if(blurHistory.length > 8) blurHistory.shift();   // full-res snapshots are big, keep 8
+    document.getElementById('undo-blur-btn').classList.remove('hidden');
+    const p=posFromEvent(e); blurAt(p.x,p.y);
   });
-  document.addEventListener('touchend', (e) => {
-    if(e.target.id !== 'lightbox-img') return;
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    if(Math.abs(dx) > 40) lightboxNav(dx > 0 ? -1 : 1);
-  });
+  canvas.addEventListener('pointermove', e=>{if(isDrawing){const p=posFromEvent(e); blurAt(p.x,p.y);}});
+  window.addEventListener('pointerup', ()=>isDrawing=false);
 })();
 
-/* ================= TOAST ================= */
-let toastTimer;
-function showToast(msg){
-  let t = document.getElementById('toast');
-  if(!t){ t = document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t); }
-  t.textContent = msg;
-  t.style.display = 'block';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ t.style.display = 'none'; }, 3200);
-}
+async function confirmPhoto(){
+  const room = roomQueue[currentIndex];
 
-/* ================= FLYER TEMPLATES ================= */
-// Every design carries the same call-to-action line, personalised with the
-// agent's name and agency (filled from state, falls back to placeholders).
-function flyerCta(){
-  return `Take photos of your house to get an accurate appraisal from ${state.name || '[agent name]'} from ${state.agencyName || '[company name]'}`;
-}
-const flyers = [
-  {name:'Just Listed', bg:'#FFF3EC'},
-  {name:'Free Appraisal', bg:'#EAF3FF'},
-  {name:'Local Expert', bg:'#EFFFE8'},
-  {name:'Sold Recently', bg:'#FFF0F5'},
-  {name:'Market Update', bg:'#F3EFFF'},
-  {name:'Open Home', bg:'#FFFBE8'},
-  {name:'Client Review', bg:'#EAFFFB'},
-  {name:'Neighbourhood Snapshot', bg:'#F0F0F0'},
-  {name:'Spring Selling Season', bg:'#FFF0FA'},
-  {name:'Scan For Your Price', bg:'#EFEFFF'},
-];
-const grid = document.getElementById('flyer-grid');
-flyers.forEach((f,i)=>{
-  const el = document.createElement('div');
-  el.className = 'flyer-card' + (i===0 ? ' selected' : '');
-  el.dataset.name = f.name;
-  el.innerHTML = `<div class="flyer-thumb" style="background:${f.bg}"></div><div class="name">${f.name}</div>`;
-  el.onclick = () => {
-    document.querySelectorAll('.flyer-card').forEach(c=>c.classList.remove('selected'));
-    el.classList.add('selected');
-    updateFlyerPreview(f);
-  };
-  grid.appendChild(el);
-});
-function updateFlyerPreview(f){
-  const top = document.getElementById('dl-top');
-  top.style.backgroundColor = f.bg;
-  top.style.backgroundImage = state.logoUrl ? `url(${state.logoUrl})` : 'none';
-  document.getElementById('dl-cta').textContent = flyerCta();
-}
-updateFlyerPreview(flyers[0]);
-
-/* ================= MAIL OUT STEPPER ================= */
-function mailStep(n){
-  if(n === 3 && mailMode === 'postcode' && selectedQuarters().length === 0){
-    showToast('Tick at least one quarter of the postcode.');
+  // A7: Front of House is where the address gets captured — don't let
+  // someone continue with a vague "street only" address, since that
+  // makes the lead far less valuable/sellable.
+  if(room.isFront && !isValidStreetAddress(propertyAddress)){
+    const errEl = document.getElementById('address-error');
+    if(errEl){
+      errEl.textContent = 'Please select a full address with a street number — not just a suburb or street.';
+      errEl.classList.remove('hidden');
+    }
+    document.getElementById('address-input').focus();
     return;
   }
-  for(let i=1;i<=4;i++) document.getElementById('mailstep-'+i).classList.add('hidden');
-  document.getElementById('mailstep-'+n).classList.remove('hidden');
-  for(let i=1;i<=4;i++) document.getElementById('dot-'+i).classList.toggle('done', i<=n);
-  if(n===3){
-    const selected = document.querySelector('.flyer-card.selected');
-    document.getElementById('sum-flyer').textContent = '"' + (selected ? selected.dataset.name : 'Just Listed') + '"';
-    updateMailPricing();
-  }
-}
-/* ---- mail out pricing constants (edit here) ---- */
-const MAIL_PRICE_POSTED = 0.70;   // per flyer, print + letterbox delivery (includes our margin)
-const MAIL_PRICE_OFFICE = 0.40;   // per flyer, print only, couriered to the agent's office
-const MAIL_OFFICE_COURIER = 29;   // flat courier fee per office order
-const OFFICE_QTYS = [250, 500, 1000, 2000, 5000, 10000];
-let mailMode = 'postcode';        // 'postcode' | 'office'
-let officeQty = 500;
 
-function setMailMode(mode){
-  mailMode = mode;
-  document.getElementById('choice-postcode').classList.toggle('selected', mode === 'postcode');
-  document.getElementById('choice-office').classList.toggle('selected', mode === 'office');
-  updateMailPricing();
-}
+  const btn = document.querySelector('#post-actions .btn-brand');
+  const original = btn.textContent;
+  btn.textContent = 'Uploading…'; btn.disabled = true;
+  try{
+    const url = await uploadCurrentPhoto(room.id);
+    uploadedPhotos.push({room: room.label, url});
+  }catch(err){ console.error('upload failed', err); }
+  btn.textContent = original; btn.disabled = false;
 
-// Four tick boxes, one per quarter of the selected postcode
-function renderQuarters(){
-  const pcOpt = document.getElementById('postcode-select').selectedOptions[0];
-  const households = parseInt(pcOpt.dataset.count, 10);
-  const per = Math.round(households / 4);
-  const labels = ['1st quarter', '2nd quarter', '3rd quarter', '4th quarter'];
-  const grid = document.getElementById('quarter-grid');
-  const prev = Array.from(grid.querySelectorAll('input')).map(i => i.checked);
-  grid.innerHTML = '';
-  labels.forEach((lbl, i) => {
-    const checked = prev.length ? prev[i] : (i < 2); // default: first two quarters (50%)
-    const el = document.createElement('label');
-    el.className = 'tick' + (checked ? ' on' : '');
-    el.innerHTML = `<input type="checkbox" value="${i}" ${checked ? 'checked' : ''}><span>${lbl} (25%)<small>~${per.toLocaleString()} households</small></span>`;
-    el.querySelector('input').addEventListener('change', e => { el.classList.toggle('on', e.target.checked); updateMailPricing(); });
-    grid.appendChild(el);
-  });
-  updateMailPricing();
-}
+  markTileDone();
 
-// Tick boxes for office quantity, behaves as pick-one
-function renderOfficeQtys(){
-  const grid = document.getElementById('office-qty-grid');
-  grid.innerHTML = '';
-  OFFICE_QTYS.forEach(q => {
-    const el = document.createElement('label');
-    el.className = 'tick' + (q === officeQty ? ' on' : '');
-    el.innerHTML = `<input type="checkbox" value="${q}" ${q === officeQty ? 'checked' : ''}><span>${q.toLocaleString()} flyers<small>$${(q * MAIL_PRICE_OFFICE + MAIL_OFFICE_COURIER).toLocaleString('en-AU', {minimumFractionDigits:2})} delivered</small></span>`;
-    el.querySelector('input').addEventListener('change', () => { officeQty = q; renderOfficeQtys(); });
-    grid.appendChild(el);
-  });
-  updateMailPricing();
-}
-
-function selectedQuarters(){
-  return Array.from(document.querySelectorAll('#quarter-grid input')).filter(i => i.checked).map(i => parseInt(i.value, 10));
-}
-
-function updateMailPricing(){
-  let qty, total, areaText;
-  if(mailMode === 'office'){
-    qty = officeQty;
-    total = qty * MAIL_PRICE_OFFICE + MAIL_OFFICE_COURIER;
-    areaText = 'Couriered to my office';
+  // Sync progress after EVERY photo (not just Front of House) so the portal's
+  // Warm Leads shows the rooms photographed so far, even if the visitor stops
+  // part-way. The first call (Front of House) is awaited so we get the record
+  // ID back; later calls reuse it and run in the background so there's no lag.
+  if(room.isFront){
+    await sendColdLead();
+    frontOfHouseDone = true; // D2: skip option only unlocks after this point
   } else {
-    const pcOpt = document.getElementById('postcode-select').selectedOptions[0];
-    const households = parseInt(pcOpt.dataset.count, 10);
-    const quarters = selectedQuarters();
-    qty = Math.round(households * quarters.length / 4);
-    total = qty * MAIL_PRICE_POSTED;
-    const qLabel = quarters.length === 4 ? 'full postcode'
-      : quarters.length === 0 ? 'no quarters selected'
-      : quarters.map(i => ['1st','2nd','3rd','4th'][i]).join(', ') + ' quarter' + (quarters.length > 1 ? 's' : '');
-    areaText = pcOpt.textContent.split(' (')[0] + ' (' + qLabel + ', ' + (quarters.length * 25) + '%)';
+    sendColdLead();
   }
-  const totalStr = '$' + total.toLocaleString('en-AU', {minimumFractionDigits:2, maximumFractionDigits:2});
-  document.getElementById('sum-qty').textContent = qty.toLocaleString() + ' flyers';
-  document.getElementById('sum-area').textContent = areaText;
-  document.getElementById('sum-price').textContent = totalStr;
-  document.getElementById('sum-total').textContent = totalStr;
-  document.getElementById('pay-amount').textContent = totalStr;
-}
-function mailComplete(){
-  document.getElementById('mailstep-4').classList.add('hidden');
-  document.getElementById('mailstep-done').classList.remove('hidden');
-}
-function resetMailOut(){
-  document.getElementById('mailstep-done').classList.add('hidden');
-  mailStep(1);
-}
-renderQuarters();
-renderOfficeQtys();
 
-/* ================= FOUNDERS DASHBOARD ================= */
-// Gated by an access code (checked server-side by founder-usage.js). The
-// code is remembered for this browser tab only.
-function foundersCode(){ try{ return sessionStorage.getItem('foundersCode') || ''; }catch(e){ return ''; } }
-function unlockFounders(){
-  const code = (document.getElementById('founders-code').value || '').trim().toUpperCase();
-  if(!code) return;
-  try{ sessionStorage.setItem('foundersCode', code); }catch(e){}
-  loadUsageData();
+  if(room.isBedroom){
+    document.getElementById('bedroom-extras').style.display = 'flex';
+    // don't auto-advance — wait for user to tap ensuite / skip / continue
+    document.getElementById('post-actions').style.display = 'none';
+    showBedroomContinue();
+    return;
+  }
+
+  if(room.continueBedroomLoop){
+    // an ensuite just finished — resume the bedroom loop rather than falling through to Agent Intro
+    afterBedroomAdvance();
+    return;
+  }
+
+  advanceQueue();
 }
-function showFoundersGate(show, error){
-  document.getElementById('founders-gate').classList.toggle('hidden', !show);
-  document.getElementById('founders-dash').classList.toggle('hidden', show);
-  document.getElementById('founders-gate-error').classList.toggle('hidden', !error);
-}
-const fmtDate = d => d ? new Date(d).toLocaleDateString('en-AU', {day:'numeric', month:'short', year:'numeric'}) : '—';
 
-async function loadUsageData(){
-  const code = foundersCode();
-  if(!code && !state.isFounder){ showFoundersGate(true, false); return; }
-  const wrap = document.getElementById('usage-agent-list');
-  wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:13px;">Loading…</div>';
-  try{
-    const res = await fetch(`/.netlify/functions/founder-usage?founderId=${state.agentId}&code=${encodeURIComponent(code)}`);
-    if(res.status === 403){ try{ sessionStorage.removeItem('foundersCode'); }catch(e){} showFoundersGate(true, !!code); return; }
-    if(!res.ok) throw new Error('Failed to load');
-    const data = await res.json();
-    showFoundersGate(false, false);
-    const agents = data.agents || [];
-    const leads = data.leads || [];
-
-    document.getElementById('usage-total-agents').textContent = agents.length;
-    document.getElementById('usage-active-agents').textContent = agents.filter(a => a.subscriptionStatus === 'active').length;
-    document.getElementById('usage-trial-agents').textContent = agents.filter(a => a.trialActive && a.subscriptionStatus !== 'active').length;
-    document.getElementById('usage-total-leads').textContent = leads.length;
-    document.getElementById('usage-hot-leads').textContent = leads.filter(l => l.leadType === 'Hot Lead').length;
-
-    renderFounderCharts(agents, leads);
-
-    wrap.innerHTML = '';
-    if(!agents.length){
-      wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:13px;">No agents yet.</div>';
-      return;
-    }
-    agents.forEach(a => {
-      const paid = a.subscriptionStatus === 'active';
-      const trialEnd = a.trialStarted ? new Date(new Date(a.trialStarted).getTime() + 30*86400000) : null;
-      const trialLive = a.trialActive && trialEnd && trialEnd > new Date();
-      let payment, paymentPill;
-      if(paid){ payment = 'Paid · subscription active'; paymentPill = '<span class="pill pill-green">Paid</span>'; }
-      else if(trialLive){ payment = `Due ${fmtDate(trialEnd)} (trial ends)`; paymentPill = '<span class="pill pill-orange">Free trial</span>'; }
-      else if(a.trialActive && trialEnd){ payment = `Overdue since ${fmtDate(trialEnd)}`; paymentPill = '<span class="pill pill-red">Trial ended, unpaid</span>'; }
-      else { payment = 'Not paid · Free plan'; paymentPill = '<span class="pill pill-grey">Free</span>'; }
-      const founderPill = a.isFounder ? '<span class="pill pill-grey">Founder</span>' : '';
-      const leftPill = !a.isActive ? '<span class="pill pill-red">Left platform</span>' : '';
-      const planShow = ['Standard','Premium','Platinum'].includes(a.plan) ? 'Full Access' : (a.plan || 'Free');
-      wrap.innerHTML += `<div class="agent-card" onclick="openUsageAgentModal('${a.id}')">
-        <div class="ac-top">
-          <div class="ac-head" style="${a.headshotUrl ? `background-image:url('${a.headshotUrl}')` : ''}"></div>
-          <div style="flex:1; min-width:0;">
-            <div class="ac-name">${a.name}</div>
-            <div class="ac-agency">${a.agencyName || 'No agency set'}</div>
-          </div>
-          <div class="ac-logo" style="${a.logoUrl ? `background-image:url('${a.logoUrl}')` : ''}"></div>
-        </div>
-        <div class="ac-rows">
-          <div><b>Email</b>${a.email}</div>
-          <div><b>Mobile</b>${a.phone || '—'}</div>
-          <div><b>Signed up</b>${fmtDate(a.createdTime)}</div>
-          <div><b>Plan</b>${planShow}${a.billing ? ' · ' + a.billing : ''}</div>
-          <div><b>Payment</b>${payment}</div>
-          <div><b>Leads</b>${a.hotCount} hot · ${a.coldCount} warm</div>
-          <div><b>App link</b>app.austsnapappraisal.com/${a.slug || '—'}</div>
-          <div><b>Last lead</b>${fmtDate(a.lastLeadTime)}</div>
-        </div>
-        <div class="ac-pills">${paymentPill}${founderPill}${leftPill}</div>
-      </div>`;
-    });
-  }catch(err){
-    console.error(err);
-    wrap.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:13px;">Could not load the founders dashboard.</div>';
+function showBedroomContinue(){
+  // add a "Next Bedroom" style continue into bedroom-extras area
+  const wrap = document.getElementById('bedroom-extras');
+  let cont = document.getElementById('bedroom-continue-btn');
+  if(!cont){
+    cont = document.createElement('button');
+    cont.id = 'bedroom-continue-btn';
+    cont.className = 'btn btn-brand';
+    cont.textContent = 'Continue →';
+    cont.onclick = afterBedroomAdvance;
+    wrap.prepend(cont);
   }
 }
 
-/* ---- tiny dependency-free SVG bar charts ---- */
-function weekBuckets(n){
-  const out = []; const now = new Date(); now.setHours(0,0,0,0);
-  const day = now.getDay(); const monday = new Date(now); monday.setDate(now.getDate() - ((day + 6) % 7));
-  for(let i = n-1; i >= 0; i--){ const d = new Date(monday); d.setDate(monday.getDate() - i*7); out.push(d); }
-  return out;
-}
-function bucketIndex(weeks, dateStr){
-  const t = new Date(dateStr).getTime();
-  for(let i = weeks.length-1; i >= 0; i--){ if(t >= weeks[i].getTime()) return i; }
-  return -1;
-}
-function barChart(el, labels, series, colors, stacked){
-  const W = 520, H = 180, padL = 28, padB = 26, padT = 12;
-  const n = Math.max(1, labels.length);
-  const totals = labels.map((_, i) => stacked ? series.reduce((s, sr) => s + sr[i], 0) : Math.max(...series.map(sr => sr[i])));
-  const max = Math.max(1, ...totals);
-  const cw = (W - padL) / n, bw = Math.max(6, cw * 0.62);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-  [0, 0.5, 1].forEach(f => { const y = padT + (H - padT - padB) * (1 - f); svg += `<line x1="${padL}" x2="${W}" y1="${y}" y2="${y}" stroke="#EEECE6"/><text x="${padL-6}" y="${y+4}" font-size="10" fill="#999" text-anchor="end">${Math.round(max*f)}</text>`; });
-  labels.forEach((lbl, i) => {
-    const x = padL + i*cw + (cw - bw)/2; let yTop = H - padB;
-    series.forEach((sr, si) => {
-      const h = (sr[i] / max) * (H - padT - padB);
-      if(stacked){ yTop -= h; svg += `<rect x="${x}" y="${yTop}" width="${bw}" height="${h}" fill="${colors[si]}" rx="2"/>`; }
-      else { const sw = bw / series.length; svg += `<rect x="${x + si*sw}" y="${H - padB - h}" width="${sw-1}" height="${h}" fill="${colors[si]}" rx="2"/>`; }
-    });
-    if(totals[i] > 0) svg += `<text x="${x + bw/2}" y="${(stacked ? yTop : H - padB - (totals[i]/max)*(H-padT-padB)) - 4}" font-size="10" fill="#555" text-anchor="middle">${totals[i]}</text>`;
-    svg += `<text x="${x + bw/2}" y="${H - 8}" font-size="9.5" fill="#999" text-anchor="middle">${lbl}</text>`;
+function uploadCurrentPhoto(roomId){
+  return new Promise((resolve,reject)=>{
+    // upload the FULL-RES copy (with any blurring applied), not the preview
+    fullCanvas.toBlob(async blob=>{
+      if(!blob) return reject(new Error('no image'));
+      try{
+        const sigRes = await fetch(`/.netlify/functions/get-upload-signature?sessionId=${SESSION_ID}`);
+        if(!sigRes.ok) throw new Error('sig failed');
+        const sig = await sigRes.json();
+        const fd = new FormData();
+        fd.append('file', blob, `${roomId}.jpg`);
+        fd.append('api_key', sig.apiKey);
+        fd.append('timestamp', sig.timestamp);
+        fd.append('signature', sig.signature);
+        fd.append('folder', sig.folder);
+        const upRes = await fetch(`https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`, {method:'POST', body:fd});
+        if(!upRes.ok) throw new Error('upload failed');
+        const uploaded = await upRes.json();
+        resolve(uploaded.secure_url);
+      }catch(err){ reject(err); }
+    }, 'image/jpeg', PHOTO_JPEG_QUALITY);
   });
-  el.innerHTML = svg + '</svg>';
-}
-function renderFounderCharts(agents, leads){
-  const weeks = weekBuckets(12);
-  const wl = weeks.map(d => d.toLocaleDateString('en-AU', {day:'numeric', month:'short'}));
-  const signups = new Array(12).fill(0);
-  agents.forEach(a => { const i = bucketIndex(weeks, a.createdTime); if(i >= 0) signups[i]++; });
-  barChart(document.getElementById('chart-signups'), wl, [signups], ['#FF5A1F'], false);
-
-  const hot = new Array(12).fill(0), warm = new Array(12).fill(0);
-  leads.forEach(l => { const i = bucketIndex(weeks, l.createdTime); if(i < 0) return; (l.leadType === 'Hot Lead' ? hot : warm)[i]++; });
-  barChart(document.getElementById('chart-leads'), wl, [hot, warm], ['#FF5A1F', '#C9C7C1'], true);
-
-  const top = [...agents].sort((a,b) => (b.hotCount+b.coldCount) - (a.hotCount+a.coldCount)).slice(0, 8);
-  barChart(document.getElementById('chart-agents'), top.map(a => a.name.split(' ')[0]), [top.map(a => a.hotCount), top.map(a => a.coldCount)], ['#FF5A1F', '#C9C7C1'], true);
-
-  const mix = { 'Paid': 0, 'Free trial': 0, 'Free': 0, 'Left': 0 };
-  agents.forEach(a => { if(!a.isActive) mix['Left']++; else if(a.subscriptionStatus === 'active') mix['Paid']++; else if(a.trialActive) mix['Free trial']++; else mix['Free']++; });
-  barChart(document.getElementById('chart-plans'), Object.keys(mix), [Object.values(mix)], ['#0D0D0D'], false);
 }
 
-let founderModalLeads = [];   // leads of the agent currently open in the Founders drill-down
-async function openUsageAgentModal(agentId){
-  const modal = document.getElementById('usage-agent-modal');
-  document.getElementById('usage-modal-name').textContent = 'Loading…';
-  document.getElementById('usage-modal-meta').textContent = '';
-  document.getElementById('usage-modal-cold').innerHTML = '';
-  document.getElementById('usage-modal-hot').innerHTML = '';
-  modal.classList.remove('hidden');
+function markTileDone(){
+  const i = tileIndexForCurrent();
+  const tile = document.getElementById('tile-'+i);
+  if(tile){ tile.classList.add('done'); tile.querySelector('.dot').textContent = '✓'; }
+}
 
-  try{
-    // pass the founders code so code-based access works here too, not just is_founder accounts
-    const res = await fetch(`/.netlify/functions/founder-usage?founderId=${state.agentId}&agentId=${agentId}&code=${encodeURIComponent(foundersCode())}`);
-    if(!res.ok) throw new Error('Failed to load agent detail');
-    const data = await res.json();
-    const agent = data.agent;
+function markSkippedTile(){
+  const i = tileIndexForCurrent();
+  const tile = document.getElementById('tile-'+i);
+  if(tile){ tile.classList.add('done'); tile.querySelector('.dot').textContent = '–'; }
+}
 
-    document.getElementById('usage-modal-name').textContent = agent.name;
-    document.getElementById('usage-modal-meta').textContent =
-      `${agent.agencyName || 'No agency set'} · ${agent.email} · ${agent.plan} plan · ${agent.subscriptionStatus}${agent.isActive === false ? ' · Left platform' : ''}`;
-
-    // keep this agent's leads so openLeadDetail() can show photos/address/lightbox
-    founderModalLeads = [...data.hot, ...data.cold];
-    const when = l => l.createdTime ? new Date(l.createdTime).toLocaleDateString('en-AU', {day:'numeric', month:'short'}) : '';
-
-    const coldWrap = document.getElementById('usage-modal-cold');
-    coldWrap.innerHTML = data.cold.length
-      ? data.cold.map(l => `<div class="listing-row" style="cursor:pointer;" onclick="openLeadDetail('${l.id}')"><div><div class="listing-addr">${l.address}</div><div class="listing-meta">Started ${when(l)} · ${(l.photos||[]).length} photos</div></div><span class="pill pill-grey">In progress</span></div>`).join('')
-      : '<p style="font-size:12.5px; color:#999;">None yet.</p>';
-
-    const hotWrap = document.getElementById('usage-modal-hot');
-    hotWrap.innerHTML = data.hot.length
-      ? data.hot.map(l => `<div class="listing-row" style="cursor:pointer;" onclick="openLeadDetail('${l.id}')"><div><div class="listing-addr">${l.address}</div><div class="listing-meta">${l.name || ''} · ${l.mobile || ''} · ${l.email || ''} · ${(l.photos||[]).length} photos</div></div><span class="pill pill-orange">Completed</span></div>`).join('')
-      : '<p style="font-size:12.5px; color:#999;">None yet.</p>';
-  }catch(err){
-    console.error(err);
-    document.getElementById('usage-modal-name').textContent = 'Could not load this agent.';
+// Skip button available on every room screen, before a photo is taken.
+// No photo is uploaded, but everything else behaves exactly like a
+// completed room (cold lead still fires on Front of House, the bedroom
+// loop still continues normally, etc).
+function skipPhoto(){
+  const room = roomQueue[currentIndex];
+  markSkippedTile();
+  if(room.isExtra){ goTo('extras'); return; }   // skipped extra: back to the list, not ticked
+  if(room.isFront){ sendColdLead(); }
+  if(room.isBedroom || room.continueBedroomLoop){
+    afterBedroomAdvance();
+  } else {
+    advanceQueue();
   }
 }
-function closeUsageAgentModal(){
-  document.getElementById('usage-agent-modal').classList.add('hidden');
+
+/* ---------- QUEUE ADVANCEMENT ---------- */
+function advanceQueue(){
+  const finishedRoom = roomQueue[currentIndex];
+  currentIndex++;
+
+  if(finishedRoom.isFront){
+    // after front of house, start bedroom loop
+    insertNextBedroom();
+  }
+
+  if(finishedRoom.isExtra){
+    // extras are photographed one at a time, always back to "Anything else?"
+    markExtraDone(finishedRoom);
+    goTo('extras');
+    return;
+  }
+  if(currentIndex >= roomQueue.length){
+    goTo('agent');
+    return;
+  }
+  renderRoom();
+  goTo('capture');
 }
 
-/* ================= INIT ================= */
-// Deliberately no auto-login here. Every visit requires email + password,
-// even on the same browser/device, even right after signing up.
+function insertNextBedroom(){
+  bedroomCount++;
+  const room = {id:'bed'+bedroomCount, label: bedroomCount===1?'Main Bedroom':'Bedroom '+bedroomCount, emoji:'🛏️', hint:'Wide shot from the doorway, include any built-in robe.', isBedroom:true, continueBedroomLoop:true, bedroomIndex:bedroomCount};
+  roomQueue.splice(currentIndex, 0, room);
+  allTilesRendered.push(room);
+  addTileForNewRoom();
+}
+
+function addEnsuite(){
+  const ensuite = {id:'ensuite'+bedroomCount, label:'Ensuite (Bedroom '+bedroomCount+')', emoji:'🚿', hint:'Vanity, shower and any recent updates.', continueBedroomLoop:true};
+  roomQueue.splice(currentIndex+1, 0, ensuite);
+  allTilesRendered.push(ensuite);
+  addTileForNewRoom();
+  currentIndex++;
+  renderRoom();
+  goTo('capture');
+}
+
+function skipToAgent(){
+  // drop any remaining bedrooms from the queue, jump to agent intro
+  roomQueue = roomQueue.slice(0, currentIndex+1);
+  advanceQueueToAgent();
+}
+function advanceQueueToAgent(){
+  currentIndex++;
+  goTo('agent');
+}
+
+function afterBedroomAdvance(){
+  // called when leaving a bedroom (via Continue) or an ensuite (auto) to resume the bedroom loop
+  const finishedRoom = roomQueue[currentIndex];
+  currentIndex++;
+  if(finishedRoom.continueBedroomLoop && bedroomCount < MAX_AUTO_BEDROOMS){
+    insertNextBedroom();
+    renderRoom();
+    goTo('capture');
+  } else {
+    goTo('agent');
+  }
+}
+
+/* Override advanceQueue behaviour for bedrooms via the continue button */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // no-op, logic handled inline below by re-pointing the continue button
+});
+
+/* ---------- EXTRAS ---------- */
+const grid = document.getElementById('feature-grid');
+const extraRoomObjs = {};   // one room object per feature so tiles/photos stay linked
+FEATURES.forEach(f=>{
+  const card = document.createElement('div');
+  card.className = 'feature-card';
+  card.id = 'feature-card-' + f.id;
+  card.innerHTML = `<div class="emoji">${f.emoji}</div><div class="label">${f.label}</div><div class="tap">Tap to photograph</div>`;
+  card.onclick = ()=> photographExtra(f);
+  grid.appendChild(card);
+});
+// "Other" card: type what it is (up to 5), it becomes its own feature card
+const otherCard = document.createElement('div');
+otherCard.className = 'feature-card feature-other';
+otherCard.id = 'feature-card-other';
+otherCard.innerHTML = `<div class="emoji">✏️</div><div class="label">Other</div><div class="tap">Type what it is</div>
+  <div class="other-input hidden" id="other-input-wrap" onclick="event.stopPropagation()">
+    <input type="text" id="other-input" maxlength="30" placeholder="e.g. Wine cellar" onkeydown="if(event.key==='Enter') addOtherFeature()">
+    <button class="btn btn-brand btn-sm" onclick="addOtherFeature()">Add →</button>
+  </div>`;
+otherCard.onclick = ()=>{
+  if(otherCount >= MAX_OTHER) return;
+  const wrap = document.getElementById('other-input-wrap');
+  wrap.classList.toggle('hidden');
+  if(!wrap.classList.contains('hidden')) document.getElementById('other-input').focus();
+};
+grid.appendChild(otherCard);
+function addOtherFeature(){
+  const input = document.getElementById('other-input');
+  const label = input.value.trim();
+  if(!label) { input.focus(); return; }
+  otherCount++;
+  const f = { id: 'other' + otherCount, label, emoji: '📸', hint: 'A clear, wide shot of it.', isOther: true };
+  FEATURES.push(f);
+  const card = document.createElement('div');
+  card.className = 'feature-card';
+  card.id = 'feature-card-' + f.id;
+  card.innerHTML = `<div class="emoji">${f.emoji}</div><div class="label">${f.label}</div><div class="tap">Tap to photograph</div>`;
+  card.onclick = ()=> photographExtra(f);
+  grid.insertBefore(card, otherCard);
+  input.value = '';
+  document.getElementById('other-input-wrap').classList.add('hidden');
+  if(otherCount >= MAX_OTHER){
+    otherCard.classList.add('disabled');
+    otherCard.querySelector('.tap').textContent = 'Max 5 added';
+  }
+  photographExtra(f);   // straight into photographing it
+}
+// Tapping a feature opens the capture screen for just that feature. When the
+// photo is confirmed (or skipped) advanceQueue() brings them straight back
+// here, with the card ticked, until they press "Finished Taking Photos".
+function photographExtra(f){
+  if(!extraRoomObjs[f.id]){
+    extraRoomObjs[f.id] = {...f, isExtra:true};
+    allTilesRendered.push(extraRoomObjs[f.id]);
+  }
+  roomQueue = [extraRoomObjs[f.id]];
+  currentIndex = 0;
+  buildRoomStrip();
+  // restore done ticks on the strip for anything already photographed
+  allTilesRendered.forEach((r,i)=>{ if(r.isExtra && selectedFeatures.has(r.id)){ const t=document.getElementById('tile-'+i); if(t){ t.classList.add('done'); t.querySelector('.dot').textContent='✓'; } } });
+  renderRoom();
+  goTo('capture');
+}
+function markExtraDone(room){
+  selectedFeatures.add(room.id);
+  const card = document.getElementById('feature-card-' + room.id);
+  if(card){ card.classList.add('done'); card.querySelector('.tap').textContent = 'Photographed'; }
+}
+function finishExtras(){
+  goTo('final');
+}
+
+/* ---------- ADDRESS: autocomplete + geolocation (OpenStreetMap Nominatim, no API key) ---------- */
+// A7: a real address starts with a street number — "Kelso" or "Smith
+// Street" on their own aren't specific enough to be a sellable lead.
+function isValidStreetAddress(addr){
+  return /^\d+[a-zA-Z]?[\s\/-]/.test((addr || '').trim());
+}
+
+// Google Places session token — one per address-entry session. Reusing
+// the same token across every keystroke + the final selection is what
+// makes the typing itself free under Google's billing model; a fresh
+// token gets generated after each completed selection.
+let placesSessionToken = crypto.randomUUID();
+
+let addressDebounce;
+function onAddressType(value){
+  propertyAddress = value;
+  document.getElementById('address-error').classList.add('hidden');
+  clearTimeout(addressDebounce);
+  if(value.length < 3){ document.getElementById('address-suggestions').innerHTML=''; return; }
+  addressDebounce = setTimeout(async ()=>{
+    try{
+      const res = await fetch(`/.netlify/functions/address-autocomplete?mode=search&input=${encodeURIComponent(value)}&sessionToken=${placesSessionToken}`);
+      if(!res.ok) throw new Error('lookup failed');
+      const data = await res.json();
+      const box = document.getElementById('address-suggestions');
+      box.innerHTML = '';
+      (data.suggestions || []).forEach(s=>{
+        const div = document.createElement('div');
+        div.textContent = s.text;
+        div.onclick = async ()=>{
+          box.innerHTML = '';
+          document.getElementById('address-input').value = s.text; // shown immediately, refined below
+          try{
+            const detailsRes = await fetch(`/.netlify/functions/address-autocomplete?mode=details&placeId=${encodeURIComponent(s.placeId)}&sessionToken=${placesSessionToken}`);
+            const details = await detailsRes.json();
+            const finalAddr = details.formattedAddress || s.text;
+            document.getElementById('address-input').value = finalAddr;
+            propertyAddress = finalAddr;
+          }catch(err){
+            console.error('place details failed, using suggestion text', err);
+            propertyAddress = s.text;
+          }
+          document.getElementById('address-error').classList.add('hidden');
+          placesSessionToken = crypto.randomUUID(); // session's done — fresh token for next time
+        };
+        box.appendChild(div);
+      });
+    }catch(err){ console.error('address lookup failed', err); }
+  }, 400);
+}
+function useMyLocation(){
+  const btn = document.getElementById('locate-btn');
+  if(!navigator.geolocation){ alert('Location not supported on this device/browser.'); return; }
+  btn.textContent = 'Locating…';
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    try{
+      const {latitude, longitude} = pos.coords;
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+      const data = await res.json();
+      document.getElementById('address-input').value = data.display_name || '';
+      propertyAddress = data.display_name || '';
+      const errEl = document.getElementById('address-error');
+      // A6: this genuinely can't always get a house number — OpenStreetMap
+      // just doesn't have every residential address tagged that precisely.
+      // Rather than silently accept a vague result, tell them immediately.
+      if(!isValidStreetAddress(propertyAddress)){
+        errEl.textContent = "That only found your street, not your exact address — please type your house number to complete it.";
+        errEl.classList.remove('hidden');
+        document.getElementById('address-input').focus();
+      } else {
+        errEl.classList.add('hidden');
+      }
+    }catch(err){ console.error('reverse geocode failed', err); }
+    btn.textContent = '📍 Use my location';
+  }, err=>{
+    console.error(err);
+    btn.textContent = '📍 Use my location';
+    alert("Couldn't get your location — you can type the address instead.");
+  });
+}
+
+/* ---------- LEAD SUBMISSION ---------- */
+// Progress syncs are chained so they never overlap — the first one must
+// finish (and hand back the Airtable record ID) before the next one runs,
+// otherwise two in-flight calls without a recordId would create duplicates.
+let coldLeadSyncChain = Promise.resolve();
+function sendColdLead(){
+  coldLeadSyncChain = coldLeadSyncChain.then(sendColdLeadNow, sendColdLeadNow);
+  return coldLeadSyncChain;
+}
+async function sendColdLeadNow(){
+  try{
+    const res = await fetch('/.netlify/functions/submit-lead', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        recordId: coldLeadRecordId, // update the same Airtable row on later syncs, never duplicate
+        address: propertyAddress,
+        leadType: 'Cold Lead',
+        photos: uploadedPhotos,
+        agentId: currentAgent.agentId,
+      })
+    });
+    const data = await res.json();
+    if(data && data.recordId) coldLeadRecordId = data.recordId;
+  }catch(err){ console.error('cold lead send failed', err); }
+}
+
+let hotLeadName = '', hotLeadEmail = '';
+function renderCallCard(){
+  const first = (currentAgent.agentName || 'your agent').split(' ')[0];
+  document.getElementById('call-agent-name').textContent = first;
+  document.getElementById('call-agent-name-2').textContent = first;
+  document.getElementById('call-done-name').textContent = first;
+  document.getElementById('call-form').classList.remove('hidden');
+  document.getElementById('call-done').classList.add('hidden');
+}
+// Second step after "Get My Appraisal": the client asks for a call. We update
+// the SAME hot lead (recordId / session) with their mobile and set the
+// contact preference to "Call" - the portal shows that as "Client requesting
+// call" and pushes it to the top of Hot Leads.
+async function requestCall(){
+  const err = document.getElementById('call-error');
+  const btn = document.getElementById('call-btn');
+  const mobile = document.getElementById('call-mobile').value.trim();
+  err.style.display = 'none';
+  if(mobile.replace(/\D/g,'').length < 8){
+    err.textContent = 'Please enter a valid mobile number.';
+    err.style.display = 'block';
+    return;
+  }
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try{
+    const res = await fetch('/.netlify/functions/submit-lead', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        recordId: coldLeadRecordId,
+        fullName: hotLeadName, email: hotLeadEmail, mobile,
+        contactPreference: 'Call',
+        address: propertyAddress,
+        leadType: 'Hot Lead',
+        featuresSelected: Array.from(selectedFeatures),
+        photos: uploadedPhotos,
+        agentId: currentAgent.agentId,
+      })
+    });
+    if(!res.ok) throw new Error('call request failed');
+    document.getElementById('call-done-mobile').textContent = mobile;
+    document.getElementById('call-form').classList.add('hidden');
+    document.getElementById('call-done').classList.remove('hidden');
+  }catch(e){
+    console.error(e);
+    err.textContent = "Couldn't send that just now — check your connection and try again.";
+    err.style.display = 'block';
+    btn.textContent = 'Yes, call me →'; btn.disabled = false;
+  }
+}
+function selectContactPref(el){
+  document.querySelectorAll('.pref-opt').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  contactPreference = el.dataset.pref;
+}
+
+async function submitHotLead(){
+  const errorBox = document.getElementById('submit-error');
+  const btn = document.getElementById('submit-btn');
+  errorBox.style.display = 'none';
+  const fullName = document.getElementById('input-name').value.trim();
+  const email = document.getElementById('input-email').value.trim();
+  if(!fullName || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    errorBox.textContent = 'Please add your name and a valid email address.';
+    errorBox.style.display = 'block';
+    return;
+  }
+  hotLeadName = fullName; hotLeadEmail = email;
+  btn.textContent = 'Sending…'; btn.disabled = true;
+  try{
+    const res = await fetch('/.netlify/functions/submit-lead', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        recordId: coldLeadRecordId,
+        fullName, email,
+        contactPreference: 'Email',
+        address: propertyAddress,
+        leadType: 'Hot Lead',
+        featuresSelected: Array.from(selectedFeatures),
+        photos: uploadedPhotos,
+        agentId: currentAgent.agentId,
+      })
+    });
+    if(!res.ok) throw new Error('submit failed');
+    renderCantWait();
+    renderCallCard();
+    goTo('confirm');
+  }catch(err){
+    console.error(err);
+    errorBox.textContent = "Couldn't send that just now — check your connection and try again.";
+    errorBox.style.display = 'block';
+    btn.textContent = 'Get My Appraisal →'; btn.disabled = false;
+  }
+}
+
+/* Wire the bedroom "Continue" button behaviour to go through afterBedroomAdvance */
+const _origConfirmPhoto = confirmPhoto;
 </script>
 </body>
 </html>
