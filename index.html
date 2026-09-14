@@ -62,6 +62,13 @@
   .app-header{padding:20px 22px 12px; display:flex; align-items:center; gap:12px; background:var(--warmwhite); border-bottom:1px solid var(--line); flex-shrink:0;}
   .app-header .title{font-weight:800; font-size:15.5px;}
   .app-header .subtitle{font-size:11.5px; color:var(--charcoal); opacity:0.7;}
+  .app-header .header-agent{margin-left:auto; text-align:right; font-weight:700; font-size:13px; color:var(--charcoal); line-height:1.2; max-width:45%;}
+  .app-header .header-agent small{display:block; font-weight:500; font-size:10.5px; opacity:0.65;}
+  .agent-header-logo{max-height:38px; max-width:120px; height:auto; width:auto; object-fit:contain;}
+  .landing-agent-logo{max-height:64px; max-width:100%; width:auto; margin:0 auto; display:block;}
+  .landing-powered{margin-top:18px; opacity:0.85;}
+  .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
+  .landing-powered img{height:30px; width:auto; margin:0 auto; display:block;}
 
   /* CAPTURE */
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
@@ -102,10 +109,7 @@
   .agent-photo{width:100px; height:100px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-size:38px; margin:0 auto 18px; color:white; overflow:hidden;}
   .agent-photo img{width:100%; height:100%; object-fit:cover; display:block;}
   #screen-agent h2{font-size:21px;}
-  .agent-stats{display:flex; gap:10px; margin:20px 0; justify-content:center;}
-  .agent-stat{background:var(--white); border:1px solid var(--line); border-radius:12px; padding:12px 14px; text-align:center; flex:1;}
-  .agent-stat b{display:block; font-size:18px;}
-  .agent-stat span{font-size:10px; color:var(--charcoal); opacity:0.7;}
+  .agent-tagline{background:var(--white); border:1px solid var(--line); border-radius:12px; padding:14px 16px; text-align:center; margin:18px 0 0; font-size:15px; font-weight:600; line-height:1.5; color:var(--charcoal);}
   .agent-statement{font-size:16.5px; line-height:1.6; margin-top:16px; color:var(--charcoal);}
   .agent-statement b{color:var(--charcoal);}
   .agent-footer{padding:18px 24px 24px;}
@@ -163,7 +167,9 @@
   .cant-wait{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:1.5px solid var(--line); border-radius:16px; padding:16px;}
   .cant-wait h3{font-size:16px;}
   .cant-wait p{margin-top:4px; font-size:12.5px;}
-  .cw-btn{width:100%; margin-top:9px; text-decoration:none; font-size:13.5px; word-break:break-all;}
+  .cw-btn{display:flex; width:100%; margin-top:10px; text-decoration:none; font-size:14.5px; padding:14px 18px; word-break:break-all;}
+  .cw-btn.cw-call{background:var(--gradient); color:var(--white); border:none; box-shadow:0 8px 18px rgba(255,49,49,0.22);}
+  .cw-btn.cw-mail{background:var(--charcoal); color:var(--white); border:none;}
 </style>
 </head>
 <body>
@@ -174,11 +180,10 @@
     <!-- LANDING -->
     <div class="screen active" id="screen-landing">
       <div>
-        <div class="logo-panel"><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+        <div class="logo-panel" id="landing-agent-logo-panel"><img id="landing-agent-logo" class="landing-agent-logo hidden" src="" alt=""><div class="brand-word" id="landing-brand-word" style="font-size:22px; letter-spacing:0.02em; color:var(--charcoal);">YOUR BUSINESS NAME HERE</div></div>
       </div>
       <div>
-        <div class="brand-word" id="landing-brand-word" style="font-size:26px; letter-spacing:0.02em;">YOUR BUSINESS NAME HERE</div>
-        <h1 style="margin-top:18px;">Snap Appraisal</h1>
+        <h1 style="margin-top:0;">Snap Appraisal</h1>
         <p class="tagline accent">Let's get started</p>
         <p class="sub" id="landing-sub">Walk through your home, snap a few photos, and get a real, accurate appraisal from Your Name Here – Your Business Name Here.</p>
         <div id="landing-agent-row" class="hidden">
@@ -188,16 +193,18 @@
       </div>
       <div>
         <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
+        <div class="landing-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
     <!-- CAPTURE (shared for every room) -->
     <div class="screen" id="screen-capture">
       <div class="app-header">
-        <img class="header-logo" src="logo-light.svg" alt="Snap Appraisal">
+        <img class="header-logo agent-header-logo" src="logo-light.svg" alt="">
         <div>
           <div class="subtitle" id="capture-subtitle">Your Business Name Here</div>
         </div>
+        <div class="header-agent agent-header-name">Your Name Here</div>
       </div>
       <div class="capture-body">
         <div class="room-now">
@@ -243,15 +250,11 @@
 
     <!-- AGENT INTRO -->
     <div class="screen" id="screen-agent">
-      <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Meet your agent</div></div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo" src="logo-light.svg" alt=""><div><div class="title">Meet your agent</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
       <div class="content">
         <div class="agent-photo"><img id="agent-photo-img" src="data:image/svg+xml;utf8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23F1EEE9%27/%3E%3Ccircle cx=%2750%27 cy=%2738%27 r=%2718%27 fill=%27%23C9C7C1%27/%3E%3Cpath d=%27M18 92c4-20 18-30 32-30s28 10 32 30z%27 fill=%27%23C9C7C1%27/%3E%3C/svg%3E" alt="Your Name Here"></div>
         <h2 id="agent-name-heading">Your Name Here</h2>
-        <div class="agent-stats">
-          <div class="agent-stat"><b id="agent-stat-homes">150+</b><span>Homes appraised</span></div>
-          <div class="agent-stat"><b id="agent-stat-days">11 days</b><span>Average days on Market</span></div>
-          <div class="agent-stat"><b id="agent-stat-local">Local</b><span id="agent-stat-local-label">Local expert</span></div>
-        </div>
+        <div class="agent-tagline hidden" id="agent-tagline"></div>
         <p class="agent-statement" id="agent-statement-text">Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">Your Name Here</b>. Every photo you've taken goes straight to them, who'll follow up personally with a real market-based comparison, not a guess.</p>
       </div>
       <div class="agent-footer">
@@ -261,9 +264,9 @@
 
     <!-- EXTRAS -->
     <div class="screen" id="screen-extras">
-      <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Anything else?</div></div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo" src="logo-light.svg" alt=""><div><div class="title">Anything else?</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
       <div class="content">
-        <p class="extras-lead">Tap anything else on the property to photograph it — extra features can lift your appraisal. You'll come back here after each one.</p>
+        <p class="extras-lead">Show any other features in your home by photographing them here — extra features can lift your appraisal. You'll come back to this page after each one.</p>
         <div class="feature-grid" id="feature-grid"></div>
       </div>
       <div class="extras-footer">
@@ -273,7 +276,7 @@
 
     <!-- FINAL FORM -->
     <div class="screen" id="screen-final">
-      <div class="app-header"><img class="header-logo" src="logo-light.svg" alt="Snap Appraisal"><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo" src="logo-light.svg" alt=""><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
       <div class="content">
         <div class="trust-line" id="trust-line">🔒 Your details go straight to Your Name Here at Your Business Name Here — no spam, no cold calls from anyone else.</div>
         <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
@@ -306,8 +309,8 @@
       <div class="cant-wait" id="cant-wait">
         <h3>Can't wait?</h3>
         <p>Get in touch with <span id="cw-agent-name">your agent</span> right now.</p>
-        <a class="btn btn-outline cw-btn hidden" id="cw-call" href="">📞 Call <span id="cw-phone"></span></a>
-        <a class="btn btn-outline cw-btn hidden" id="cw-email" href="">✉️ Email <span id="cw-email-name"></span></a>
+        <a class="btn cw-btn cw-call hidden" id="cw-call" href="">📞 Call <span id="cw-phone"></span></a>
+        <a class="btn cw-btn cw-mail hidden" id="cw-email" href="">✉️ Email <span id="cw-email-name"></span></a>
         <div id="cw-email-addr" style="font-size:11px; color:var(--charcoal); opacity:0.6; margin-top:5px; word-break:break-all;"></div>
       </div>
 
@@ -323,6 +326,7 @@
 let AGENT_NAME = 'Your Name Here';
 const SESSION_ID = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
 let currentAgent = { agentId: null, agentName: 'Your Name Here', agencyName: 'Your Business Name Here', phone: '', email: '' };
+function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // "Can't wait?" block on the final screen: call + prefilled email to the agent
 function renderCantWait(){
@@ -376,28 +380,27 @@ async function loadAgentBySlug(){
       `${data.agentName.split(' ')[0]} has everything they need and will be in touch personally with your appraisal. Thanks for walking through your home with us.`;
     document.getElementById('agent-name-heading').textContent = data.agentName;
 
-    // Change #3: use the agent's own saved stats instead of the hardcoded
-    // generic demo defaults, and their custom intro statement if they
-    // wrote one — otherwise fall back to the standard wording.
-    if(data.statHomes) document.getElementById('agent-stat-homes').textContent = data.statHomes;
-    if(data.statAvgDays){
-      // B7/portal change: the field now just holds a number (e.g. "11") —
-      // append "days" for display, but don't double it up if an older
-      // saved value already includes the word.
-      const days = String(data.statAvgDays).trim();
-      document.getElementById('agent-stat-days').textContent = /day/i.test(days) ? days : `${days} days`;
+    // Every page after the landing: agent logo on the left, agent name on the right
+    document.querySelectorAll('.agent-header-name').forEach(el => {
+      el.innerHTML = `${escapeHtml(data.agentName)}<small>${escapeHtml(agencyDisplay)}</small>`;
+    });
+    if(data.logoUrl){
+      document.querySelectorAll('.agent-header-logo').forEach(el => { el.src = data.logoUrl; el.alt = agencyDisplay; });
+      const ll = document.getElementById('landing-agent-logo');
+      ll.src = data.logoUrl; ll.alt = agencyDisplay; ll.classList.remove('hidden');
+      document.getElementById('landing-brand-word').classList.add('hidden');
     }
-    if(data.statLocalTag) document.getElementById('agent-stat-local').textContent = data.statLocalTag;
 
-    if(data.introStatement && data.introStatement.trim()){
-      document.getElementById('agent-statement-text').innerHTML = data.introStatement
-        .replace(/\[Name\]/g, data.agentName)
-        .replace(/\[name\]/g, data.agentName.split(' ')[0]);
-    } else {
-      document.getElementById('agent-statement-name').textContent = data.agentName;
-      document.getElementById('agent-statement-text').innerHTML =
-        `Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">${data.agentName}</b>. Every photo you've taken goes straight to ${data.agentName.split(' ')[0]}, who'll follow up personally with a real market-based comparison, not a guess.`;
+    // "Meet your agent": one box with the agent's own tagline (if they've written one)
+    const tagEl = document.getElementById('agent-tagline');
+    if(data.tagline && data.tagline.trim()){
+      tagEl.textContent = data.tagline.trim();
+      tagEl.classList.remove('hidden');
     }
+
+    // The intro statement is fixed wording — agents can't change it, only the name fills in.
+    document.getElementById('agent-statement-text').innerHTML =
+      `Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">${escapeHtml(data.agentName)}</b>. Every photo you've taken goes straight to ${escapeHtml(data.agentName.split(' ')[0])}, who'll follow up personally with a real market-based comparison, not a guess.`;
 
     if(data.headshotUrl){
       document.getElementById('agent-photo-img').src = data.headshotUrl;
