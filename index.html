@@ -69,12 +69,10 @@
   .step-tag{font-size:11.5px; font-weight:700; color:var(--orange); letter-spacing:0.08em; text-transform:uppercase;}
   .room-emoji{font-size:42px; margin:10px 0 6px;}
   .room-now h2{font-size:20px;}
-  .capture-preview{margin-top:14px; height:230px; border-radius:14px; background:#F1EEE9; border:1.5px dashed var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;}
-  .capture-preview canvas{max-width:100%; max-height:100%; touch-action:none;}
-  .capture-preview canvas{display:none; width:100%; height:100%; touch-action:none; cursor:crosshair;}
+  .capture-preview{margin-top:14px; min-height:230px; border-radius:14px; background:#F1EEE9; border:1.5px dashed var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;}
+  .capture-preview.has-photo{min-height:0; border:none; background:transparent;}
+  .capture-preview canvas{display:none; width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:14px;}
   .placeholder-icon{font-size:28px; opacity:0.35;}
-  .blur-hint{display:none; font-size:11px; color:var(--charcoal); opacity:0.7; text-align:center; margin-top:8px;}
-  .privacy-note{display:none; font-size:10px; color:var(--charcoal); opacity:0.6; background:#F1EEE9; border-radius:10px; padding:7px 10px; margin-top:7px; text-align:center;}
   .capture-actions{margin-top:14px; display:flex; flex-direction:column; gap:9px;}
   .row-actions{display:none; flex-direction:row; gap:9px; margin-top:12px;}
   .row-actions .btn{flex:1;}
@@ -211,9 +209,6 @@
             <span class="placeholder-icon" id="preview-placeholder">📷</span>
             <canvas id="photo-canvas"></canvas>
           </div>
-          <div class="blur-hint" id="blur-hint">👆 Drag over anything you'd rather not show</div>
-          <button class="btn btn-outline btn-sm hidden" id="undo-blur-btn" onclick="undoBlur()" style="margin:8px auto 0; display:block; width:auto;">↩ Undo blur</button>
-          <div class="privacy-note" id="privacy-note">🔒 Blurring is for privacy only — please don't hide real condition issues.</div>
 
           <!-- Front of House address block -->
           <div class="address-block" id="address-block">
@@ -550,14 +545,13 @@ function resetPreview(){
   document.getElementById('preview-placeholder').style.display = 'block';
   const canvas = document.getElementById('photo-canvas');
   canvas.style.display = 'none';
-  document.getElementById('blur-hint').style.display = 'none';
-  document.getElementById('privacy-note').style.display = 'none';
+  document.getElementById('capture-preview').classList.remove('has-photo');
   document.getElementById('pre-actions').style.display = 'flex';
   document.getElementById('post-actions').style.display = 'none';
   document.getElementById('file-input').value = '';
 }
 
-/* ---------- PHOTO CAPTURE + BLUR ---------- */
+/* ---------- PHOTO CAPTURE ---------- */
 function handlePhoto(e){
   const file = e.target.files[0];
   if(!file) return;
@@ -566,28 +560,24 @@ function handlePhoto(e){
     const img = new Image();
     img.onload = ()=>{
       // FULL-RES copy is what gets uploaded: long edge capped at PHOTO_MAX_EDGE
-      // (phone cameras are 3000-4000px; 1600px is plenty for an appraisal and
-      // keeps each file ~300-500KB so Cloudinary storage/bandwidth stays cheap).
+      // (2048px @ 0.92 keeps fine detail for appraisal viewing while staying
+      // ~600-900KB per photo).
       const fscale = Math.min(1, PHOTO_MAX_EDGE / Math.max(img.width, img.height));
       fullCanvas.width = Math.round(img.width * fscale);
       fullCanvas.height = Math.round(img.height * fscale);
       fullCanvas.getContext('2d').drawImage(img, 0, 0, fullCanvas.width, fullCanvas.height);
 
-      // PREVIEW shows the whole photo (no cropping), fitted inside the box
+      // PREVIEW is the whole photo in its own shape (portrait, landscape or
+      // square) — the box takes the picture's aspect ratio, nothing is cropped.
       const preview = document.getElementById('capture-preview');
       const canvas = document.getElementById('photo-canvas');
-      const boxW = preview.clientWidth, boxH = preview.clientHeight;
-      const pscale = Math.min(boxW / fullCanvas.width, boxH / fullCanvas.height);
+      const pscale = Math.min(1, 1200 / Math.max(fullCanvas.width, fullCanvas.height));
       canvas.width = Math.round(fullCanvas.width * pscale);
       canvas.height = Math.round(fullCanvas.height * pscale);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(fullCanvas, 0, 0, canvas.width, canvas.height);
+      canvas.getContext('2d').drawImage(fullCanvas, 0, 0, canvas.width, canvas.height);
       document.getElementById('preview-placeholder').style.display = 'none';
+      preview.classList.add('has-photo');
       canvas.style.display = 'block';
-      document.getElementById('blur-hint').style.display = 'block';
-      document.getElementById('privacy-note').style.display = 'block';
-      blurHistory = [];
-      document.getElementById('undo-blur-btn').classList.add('hidden');
       document.getElementById('pre-actions').style.display = 'none';
       document.getElementById('post-actions').style.display = 'flex';
     };
@@ -597,58 +587,9 @@ function handlePhoto(e){
 }
 function retakePhoto(){ resetPreview(); document.getElementById('file-input').click(); }
 
-const PHOTO_MAX_EDGE = 1600;             // px, long edge of the uploaded photo
-const PHOTO_JPEG_QUALITY = 0.85;
+const PHOTO_MAX_EDGE = 2048;             // px, long edge of the uploaded photo
+const PHOTO_JPEG_QUALITY = 0.92;
 const fullCanvas = document.createElement('canvas');   // offscreen, full-res, what we upload
-let blurHistory = [];   // {preview, full} snapshots, one per blur stroke, for Undo
-function undoBlur(){
-  if(!blurHistory.length) return;
-  const snap = blurHistory.pop();
-  document.getElementById('photo-canvas').getContext('2d').putImageData(snap.preview, 0, 0);
-  fullCanvas.getContext('2d').putImageData(snap.full, 0, 0);
-  if(!blurHistory.length) document.getElementById('undo-blur-btn').classList.add('hidden');
-}
-(function(){
-  const canvas = document.getElementById('photo-canvas');
-  let isDrawing = false;
-  const BRUSH = 30;
-  function posFromEvent(e){ const rect = canvas.getBoundingClientRect(); return {x:e.clientX-rect.left, y:e.clientY-rect.top}; }
-  // pixelate a brush-sized square on one canvas
-  function pixelate(c, x, y, brush){
-    const ctx = c.getContext('2d');
-    const sx = Math.max(0, Math.round(x-brush/2)), sy = Math.max(0, Math.round(y-brush/2));
-    const sw = Math.min(brush, c.width-sx), sh = Math.min(brush, c.height-sy);
-    if(sw<=0||sh<=0) return;
-    const data = ctx.getImageData(sx,sy,sw,sh).data;
-    let r=0,g=0,b=0,n=0;
-    for(let i=0;i<data.length;i+=4){r+=data[i];g+=data[i+1];b+=data[i+2];n++;}
-    if(!n) return;
-    ctx.fillStyle = `rgb(${Math.round(r/n)},${Math.round(g/n)},${Math.round(b/n)})`;
-    ctx.fillRect(sx,sy,sw,sh);
-  }
-  // blur on the preview AND the same spot on the full-res upload copy
-  function blurAt(x,y){
-    // pointer coords are CSS px; canvas may be scaled by CSS, so map to canvas px
-    const rect = canvas.getBoundingClientRect();
-    const cx = x * (canvas.width / rect.width), cy = y * (canvas.height / rect.height);
-    pixelate(canvas, cx, cy, BRUSH);
-    const k = fullCanvas.width / canvas.width;
-    pixelate(fullCanvas, cx*k, cy*k, Math.round(BRUSH*k));
-  }
-  canvas.addEventListener('pointerdown', e=>{
-    isDrawing=true;
-    // snapshot before this stroke so it can be undone as one step
-    blurHistory.push({
-      preview: canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height),
-      full: fullCanvas.getContext('2d').getImageData(0,0,fullCanvas.width,fullCanvas.height),
-    });
-    if(blurHistory.length > 8) blurHistory.shift();   // full-res snapshots are big, keep 8
-    document.getElementById('undo-blur-btn').classList.remove('hidden');
-    const p=posFromEvent(e); blurAt(p.x,p.y);
-  });
-  canvas.addEventListener('pointermove', e=>{if(isDrawing){const p=posFromEvent(e); blurAt(p.x,p.y);}});
-  window.addEventListener('pointerup', ()=>isDrawing=false);
-})();
 
 async function confirmPhoto(){
   const room = roomQueue[currentIndex];
@@ -721,7 +662,7 @@ function showBedroomContinue(){
 
 function uploadCurrentPhoto(roomId){
   return new Promise((resolve,reject)=>{
-    // upload the FULL-RES copy (with any blurring applied), not the preview
+    // upload the FULL-RES copy, not the preview
     fullCanvas.toBlob(async blob=>{
       if(!blob) return reject(new Error('no image'));
       try{
