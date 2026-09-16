@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>Snap Appraisal</title>
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="512x512" href="favicon-512.png">
@@ -59,13 +60,14 @@
   #screen-landing .sub{margin-top:16px; font-size:14.5px; color:#D8D5D2; max-width:280px; margin-left:auto; margin-right:auto;}
 
   /* HEADER (used on most screens) */
-  .app-header{padding:20px 22px 12px; display:flex; align-items:center; gap:12px; background:var(--warmwhite); border-bottom:1px solid var(--line); flex-shrink:0;}
-  .app-header .title{font-weight:800; font-size:15.5px;}
+  .app-header{padding:20px 22px 12px; display:grid; grid-template-columns:88px 1fr 88px; align-items:center; gap:10px; background:var(--warmwhite); border-bottom:1px solid var(--line); flex-shrink:0;}
+  .app-header > div:not(.header-agent){text-align:center;}
+  .app-header .title{font-weight:800; font-size:15px; line-height:1.25;}
   .app-header .subtitle{font-size:11.5px; color:var(--charcoal); opacity:0.7;}
-  .app-header .header-agent{margin-left:auto; text-align:right; font-weight:700; font-size:13px; color:var(--charcoal); line-height:1.2; max-width:45%;}
+  .app-header .header-agent{text-align:right; font-weight:700; font-size:13px; color:var(--charcoal); line-height:1.2;}
   .app-header .header-agent small{display:block; font-weight:500; font-size:10.5px; opacity:0.65;}
   /* Agent logos are NEVER stretched: fixed box, image scaled to fit inside it, shape preserved */
-  .app-header img.agent-header-logo{height:38px; width:120px; max-width:120px; object-fit:contain; object-position:left center;}
+  .app-header img.agent-header-logo{height:38px; width:88px; max-width:88px; object-fit:contain; object-position:left center;}
   .logo-panel img.landing-agent-logo{width:100%; height:72px; object-fit:contain; object-position:center; margin:0 auto; display:block;}
   .landing-powered{margin-top:18px; opacity:0.85;}
   .page-powered{padding:12px 22px 18px; text-align:center; opacity:0.9; flex-shrink:0;}
@@ -74,6 +76,22 @@
   .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
   .landing-powered img{height:48px; width:auto; margin:0 auto; display:block;}
 
+  /* CONSENT */
+  #screen-consent .content{padding:22px; flex:1; overflow-y:auto;}
+  .consent-agent{display:flex; align-items:center; gap:12px; background:var(--white); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:16px;}
+  .consent-agent img{width:46px; height:46px; border-radius:50%; object-fit:cover; flex-shrink:0; background:#EEE;}
+  .consent-agent b{display:block; font-size:14.5px;}
+  .consent-agent span{font-size:12px; color:var(--charcoal); opacity:0.7;}
+  .consent-list{list-style:none; padding:0; margin:0 0 14px;}
+  .consent-list li{position:relative; padding-left:24px; font-size:13.5px; line-height:1.5; margin-bottom:10px;}
+  .consent-list li::before{content:'✓'; position:absolute; left:0; top:0; color:var(--orange); font-weight:800;}
+  .consent-note{font-size:12px; color:var(--charcoal); opacity:0.75; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
+  .consent-note a{color:var(--orange); font-weight:600;}
+  .consent-footer{padding:14px 22px 20px; border-top:1px solid var(--line);}
+  .consent-footer .btn{width:100%;}
+  .consent-tiny{font-size:11px; color:var(--charcoal); opacity:0.6; text-align:center; margin-top:8px;}
+  .check-row{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; line-height:1.45; margin:10px 0 0; color:var(--charcoal);}
+  .check-row input{margin-top:3px; width:18px; height:18px; flex-shrink:0; accent-color:var(--orange);}
   /* CAPTURE */
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
   .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center;}
@@ -201,6 +219,29 @@
       </div>
     </div>
 
+    <!-- CONSENT: shown once, before the first photo -->
+    <div class="screen" id="screen-consent">
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Before you start</div></div><div class="header-agent agent-header-name"></div></div>
+      <div class="content">
+        <div class="consent-agent">
+          <img id="consent-agent-photo" src="" alt="" class="hidden">
+          <div><b id="consent-agent-name">Your agent</b><span id="consent-agent-agency">receives everything you share here</span></div>
+        </div>
+        <ul class="consent-list">
+          <li>Your property address and the photos you choose to take go <b>only</b> to the agent named above — not to anyone else.</li>
+          <li>You choose which rooms to photograph. Skip anything you'd rather not show. Please don't photograph people, valuables, IDs or security codes.</li>
+          <li>Your name and email are asked for at the very end, so your agent can send your appraisal. Nothing is shared until you send it.</li>
+          <li>If you stop part-way, your agent can see the address and photos you've added so far, and unfinished walk-throughs are deleted automatically.</li>
+        </ul>
+        <div class="consent-note">Your agent provides the appraisal — this app never estimates value itself. Full details in the <a href="https://austsnapappraisal.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</div>
+      </div>
+      <div class="consent-footer">
+        <button class="btn btn-brand" onclick="acceptConsent()">I understand, let's go →</button>
+        <div class="consent-tiny">Recorded so your agent knows you've agreed to share these details.</div>
+        <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      </div>
+    </div>
+
     <!-- CAPTURE (shared for every room) -->
     <div class="screen" id="screen-capture">
       <div class="app-header">
@@ -286,6 +327,8 @@
         <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
         <div class="field"><label>Email</label><input type="email" id="input-email" placeholder="you@email.com" autocomplete="email"></div>
         <p style="font-size:12px; color:var(--charcoal); opacity:0.7; margin-top:-4px;">That's all we need. Your appraisal will be emailed to you.</p>
+        <p style="font-size:12px; color:var(--charcoal); opacity:0.7;" id="service-consent-line">By sending, you're asking your agent to contact you about this appraisal.</p>
+        <label class="check-row"><input type="checkbox" id="marketing-consent"><span id="marketing-consent-label">Also send me occasional local property updates. Optional — you can unsubscribe any time.</span></label>
         <div class="submit-error" id="submit-error"></div>
       </div>
       <div class="final-footer">
@@ -372,7 +415,7 @@ async function loadAgentBySlug(){
     const data = await res.json();
     if(!data.ok) return;
 
-    currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName, phone: data.phone || '', email: data.email || '' };
+    currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName, phone: data.phone || '', email: data.email || '', headshotUrl: data.headshotUrl || '' };
     AGENT_NAME = data.agentName;
     document.title = `Snap Appraisal — ${data.agencyName || data.agentName}`;
     const agencyDisplay = data.agencyName || data.agentName;
@@ -492,7 +535,28 @@ let contactPreference = 'Email';
 let selectedFeatures = new Set();
 let allTilesRendered = []; // for strip display (grows as bedrooms/extras added)
 
+const CONSENT_VERSION = 'app-consent-2026-09-16';
+let consentRecord = null;   // {at, version, agentId, agentName} - set when the client accepts the disclosure
+function renderConsent(){
+  const first = currentAgent.agentName || '';
+  const nameEl = document.getElementById('consent-agent-name');
+  const agEl = document.getElementById('consent-agent-agency');
+  nameEl.textContent = first || 'Your agent';
+  agEl.textContent = currentAgent.agencyName ? currentAgent.agencyName + ' · receives everything you share here' : 'receives everything you share here';
+  const ph = document.getElementById('consent-agent-photo');
+  if(currentAgent.headshotUrl){ ph.src = currentAgent.headshotUrl; ph.classList.remove('hidden'); }
+  const ml = document.getElementById('marketing-consent-label');
+  if(ml && currentAgent.agencyName) ml.textContent = `Also send me occasional local property updates from ${currentAgent.agencyName}. Optional — you can unsubscribe any time.`;
+}
+function acceptConsent(){
+  consentRecord = { at: new Date().toISOString(), version: CONSENT_VERSION, agentId: currentAgent.agentId || null, agentName: currentAgent.agentName || '' };
+  beginWalkthrough();
+}
 function startFlow(){
+  renderConsent();
+  goTo('consent');
+}
+function beginWalkthrough(){
   roomQueue = [...CORE_START];
   currentIndex = 0;
   allTilesRendered = [...roomQueue];
@@ -963,6 +1027,8 @@ async function sendColdLeadNow(){
         leadType: 'Cold Lead',
         photos: uploadedPhotos,
         agentId: currentAgent.agentId,
+        consent: consentRecord,
+        marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
       })
     });
     const data = await res.json();
@@ -1007,6 +1073,8 @@ async function requestCall(){
         featuresSelected: Array.from(selectedFeatures),
         photos: uploadedPhotos,
         agentId: currentAgent.agentId,
+        consent: consentRecord,
+        marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
       })
     });
     if(!res.ok) throw new Error('call request failed');
@@ -1052,6 +1120,8 @@ async function submitHotLead(){
         featuresSelected: Array.from(selectedFeatures),
         photos: uploadedPhotos,
         agentId: currentAgent.agentId,
+        consent: consentRecord,
+        marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
       })
     });
     if(!res.ok) throw new Error('submit failed');
