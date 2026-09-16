@@ -19,6 +19,7 @@
 //   SUPABASE_SERVICE_ROLE_KEY = only needed once agents beyond Rob exist
 
 require('dns').setDefaultResultOrder('ipv4first');
+const { rateLimit, clientIp, validEmail } = require('./lib/ratelimit');
 
 const BASE_ID = 'appiGi6bBUSFYDLha';
 const LEADS_TABLE_ID = 'tblmj5PyEAfZwPHOP';
@@ -60,7 +61,7 @@ function sbHeaders() {
 // Best-effort — a Supabase hiccup should never break the Airtable-backed
 // flow real agents already depend on, so every error here is swallowed
 // after logging rather than failing the whole request.
-async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos }) {
+async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent }) {
   if (!agentId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   try {
     const findRes = await fetchWithRetry(
@@ -83,7 +84,16 @@ async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullN
     if (Array.isArray(featuresSelected)) fields.features_selected = featuresSelected;
     if (Array.isArray(photos)) {
       fields.rooms_photographed = photos.length;
-      fields.photos = photos.map((p) => ({ url: p.url }));
+      fields.photos = photos.map((p) => ({ room: p.room || '', url: p.url }));
+    }
+    // Consent evidence: recorded when the client accepted the disclosure screen
+    if (consent && consent.at) {
+      fields.consent_at = consent.at;
+      fields.consent_version = String(consent.version || '').slice(0, 60);
+    }
+    if (typeof marketingConsent === 'boolean') {
+      fields.marketing_consent = marketingConsent;
+      if (marketingConsent) fields.marketing_consent_at = new Date().toISOString();
     }
 
     if (existing.length) {
@@ -115,6 +125,12 @@ exports.handler = async (event) => {
   } catch (err) {
     return { statusCode: 400, body: 'Invalid JSON' };
   }
+  // Abuse control: 60 lead syncs per IP per 10 minutes (a normal walk-through makes ~15)
+  const rl = await rateLimit(`lead:${clientIp(event)}`, 60, 10 * 60);
+  if (rl.blocked) return rl.response;
+  if (payload.email && !validEmail(payload.email)) {
+    return { statusCode: 400, body: 'Please enter a valid email address' };
+  }
 
   const {
     sessionId,
@@ -128,11 +144,13 @@ exports.handler = async (event) => {
     featuresSelected,
     photos,
     agentId,        // present once this link belongs to an agent beyond Rob
+    consent,        // {at, version, agentId} from the disclosure screen
+    marketingConsent,
   } = payload;
 
   // Fire the Supabase write in the background — never let it slow down or
   // break the Airtable-backed response below.
-  upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos });
+  upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent });
 
   const noteLines = [];
   if (leadType) noteLines.push(`[${leadType}]`);
