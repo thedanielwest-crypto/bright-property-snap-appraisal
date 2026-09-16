@@ -68,11 +68,11 @@
   .app-header img.agent-header-logo{height:38px; width:120px; max-width:120px; object-fit:contain; object-position:left center;}
   .logo-panel img.landing-agent-logo{width:100%; height:72px; object-fit:contain; object-position:center; margin:0 auto; display:block;}
   .landing-powered{margin-top:18px; opacity:0.85;}
-  .page-powered{padding:10px 22px 16px; text-align:center; opacity:0.75; flex-shrink:0;}
+  .page-powered{padding:12px 22px 18px; text-align:center; opacity:0.9; flex-shrink:0;}
   .page-powered .powered-label{font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--charcoal); opacity:0.6; margin-bottom:6px;}
-  .page-powered img{height:26px; width:auto; margin:0 auto; display:block;}
+  .page-powered img{height:46px; width:auto; margin:0 auto; display:block;}
   .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
-  .landing-powered img{height:30px; width:auto; margin:0 auto; display:block;}
+  .landing-powered img{height:48px; width:auto; margin:0 auto; display:block;}
 
   /* CAPTURE */
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
@@ -204,7 +204,7 @@
     <!-- CAPTURE (shared for every room) -->
     <div class="screen" id="screen-capture">
       <div class="app-header">
-        <img class="header-logo agent-header-logo" src="logo-light.svg" alt="">
+        <img class="header-logo agent-header-logo hidden" src="" alt="">
         <div class="header-agent agent-header-name">Your Name Here</div>
       </div>
       <div class="capture-body">
@@ -252,7 +252,7 @@
 
     <!-- AGENT INTRO -->
     <div class="screen" id="screen-agent">
-      <div class="app-header"><img class="header-logo agent-header-logo" src="logo-light.svg" alt=""><div><div class="title">Meet your agent</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Meet your agent</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
       <div class="content">
         <div class="agent-photo"><img id="agent-photo-img" src="data:image/svg+xml;utf8,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 fill=%27%23F1EEE9%27/%3E%3Ccircle cx=%2750%27 cy=%2738%27 r=%2718%27 fill=%27%23C9C7C1%27/%3E%3Cpath d=%27M18 92c4-20 18-30 32-30s28 10 32 30z%27 fill=%27%23C9C7C1%27/%3E%3C/svg%3E" alt="Your Name Here"></div>
         <h2 id="agent-name-heading">Your Name Here</h2>
@@ -267,7 +267,7 @@
 
     <!-- EXTRAS -->
     <div class="screen" id="screen-extras">
-      <div class="app-header"><img class="header-logo agent-header-logo" src="logo-light.svg" alt=""><div><div class="title">Anything else?</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Anything else?</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
       <div class="content">
         <p class="extras-lead">Show any other features in your home by photographing them here — extra features can lift your appraisal. You'll come back to this page after each one.</p>
         <div class="feature-grid" id="feature-grid"></div>
@@ -280,7 +280,7 @@
 
     <!-- FINAL FORM -->
     <div class="screen" id="screen-final">
-      <div class="app-header"><img class="header-logo agent-header-logo" src="logo-light.svg" alt=""><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div><div class="header-agent agent-header-name">Your Name Here</div></div>
       <div class="content">
         <div class="trust-line" id="trust-line">🔒 Your details go straight to Your Name Here at Your Business Name Here — no spam, no cold calls from anyone else.</div>
         <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
@@ -390,7 +390,7 @@ async function loadAgentBySlug(){
       el.textContent = data.agentName;
     });
     if(data.logoUrl){
-      document.querySelectorAll('.agent-header-logo').forEach(el => { el.src = data.logoUrl; el.alt = agencyDisplay; });
+      document.querySelectorAll('.agent-header-logo').forEach(el => { el.src = data.logoUrl; el.alt = agencyDisplay; el.classList.remove('hidden'); });
       const ll = document.getElementById('landing-agent-logo');
       ll.src = data.logoUrl; ll.alt = agencyDisplay; ll.classList.remove('hidden');
       document.getElementById('landing-brand-word').classList.add('hidden');
