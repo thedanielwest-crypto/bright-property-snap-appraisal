@@ -17,9 +17,15 @@
 //   AIRTABLE_API_KEY          = Personal Access Token, data.records:write
 //   SUPABASE_URL              = only needed once agents beyond Rob exist
 //   SUPABASE_SERVICE_ROLE_KEY = only needed once agents beyond Rob exist
+//   RESEND_API_KEY + LEAD_EMAIL_FROM = email alerts to the agent (see lib/notify.js)
+//
+// After the Supabase save the agent is emailed according to their Notifications
+// preferences: call request, hot lead, warm lead (first photo), or "lead
+// locked" on the free plan. Email only; de-duplicated per lead in lib/notify.js.
 
 require('dns').setDefaultResultOrder('ipv4first');
 const { rateLimit, clientIp, validEmail } = require('./lib/ratelimit');
+const { notifyForLead } = require('./lib/notify');
 
 const BASE_ID = 'appiGi6bBUSFYDLha';
 const LEADS_TABLE_ID = 'tblmj5PyEAfZwPHOP';
@@ -50,11 +56,12 @@ async function fetchWithRetry(url, options, retries = 2, delayMs = 400) {
   }
 }
 
-function sbHeaders() {
+function sbHeaders(extra = {}) {
   return {
     apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
     'Content-Type': 'application/json',
+    ...extra,
   };
 }
 
@@ -96,19 +103,25 @@ async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullN
       if (marketingConsent) fields.marketing_consent_at = new Date().toISOString();
     }
 
+    let res;
     if (existing.length) {
-      await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/leads?id=eq.${existing[0].id}`, {
+      res = await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/leads?id=eq.${existing[0].id}`, {
         method: 'PATCH',
-        headers: sbHeaders(),
+        headers: sbHeaders({ Prefer: 'return=representation' }),
         body: JSON.stringify(fields),
       });
     } else {
-      await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/leads`, {
+      res = await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/leads`, {
         method: 'POST',
-        headers: sbHeaders(),
+        headers: sbHeaders({ Prefer: 'return=representation' }),
         body: JSON.stringify(fields),
       });
     }
+    if (!res || !res.ok) { console.error('Supabase lead upsert error:', res && res.status); return; }
+    const rows = await res.json();
+    const saved = rows && rows[0];
+    // Email the agent (preferences + de-duplication handled inside; never throws)
+    if (saved) await notifyForLead(saved, { isNew: !existing.length });
   } catch (err) {
     console.error('Supabase lead upsert failed (non-fatal):', err);
   }
@@ -148,9 +161,11 @@ exports.handler = async (event) => {
     marketingConsent,
   } = payload;
 
-  // Fire the Supabase write in the background — never let it slow down or
-  // break the Airtable-backed response below.
-  upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent });
+  // Start the Supabase write + agent email now and let it run alongside the
+  // Airtable save; we wait for it just before responding so the email is
+  // actually sent before the function is frozen. It can never break the
+  // Airtable-backed response below (every error inside is swallowed).
+  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent });
 
   const noteLines = [];
   if (leadType) noteLines.push(`[${leadType}]`);
@@ -200,11 +215,13 @@ exports.handler = async (event) => {
     if (!res.ok) {
       const errText = await res.text();
       console.error('Airtable error:', res.status, errText);
+      await supabaseWork;
       return { statusCode: 502, body: 'Failed to save lead' };
     }
 
     const data = await res.json();
     const savedId = isUpdate ? recordId : data.records[0].id;
+    await supabaseWork;
     return {
       statusCode: 200,
       body: JSON.stringify({ ok: true, recordId: savedId }),
