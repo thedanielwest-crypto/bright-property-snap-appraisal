@@ -68,7 +68,7 @@ function sbHeaders(extra = {}) {
 // Best-effort — a Supabase hiccup should never break the Airtable-backed
 // flow real agents already depend on, so every error here is swallowed
 // after logging rather than failing the whole request.
-async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent }) {
+async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces }) {
   if (!agentId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   try {
     const findRes = await fetchWithRetry(
@@ -88,6 +88,10 @@ async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullN
     if (email) fields.email = email;
     if (mobile) fields.mobile = mobile;
     if (contactPreference) fields.contact_preference = contactPreference;
+    const count = (v) => (Number.isFinite(Number(v)) && v !== null && v !== '' ? Math.max(0, Math.min(50, Math.round(Number(v)))) : null);
+    if (count(bedrooms) !== null) fields.bedroom_count = count(bedrooms);
+    if (count(bathrooms) !== null) fields.bathroom_count = count(bathrooms);
+    if (count(carSpaces) !== null) fields.car_spaces = count(carSpaces);
     if (Array.isArray(featuresSelected)) fields.features_selected = featuresSelected;
     if (Array.isArray(photos)) {
       fields.rooms_photographed = photos.length;
@@ -157,6 +161,7 @@ exports.handler = async (event) => {
     featuresSelected,
     photos,
     agentId,        // present once this link belongs to an agent beyond Rob
+    bedrooms, bathrooms, carSpaces,   // owner-confirmed counts from the final form
     consent,        // {at, version, agentId} from the disclosure screen
     marketingConsent,
   } = payload;
@@ -165,7 +170,7 @@ exports.handler = async (event) => {
   // Airtable save; we wait for it just before responding so the email is
   // actually sent before the function is frozen. It can never break the
   // Airtable-backed response below (every error inside is swallowed).
-  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent });
+  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces });
 
   const noteLines = [];
   if (leadType) noteLines.push(`[${leadType}]`);
