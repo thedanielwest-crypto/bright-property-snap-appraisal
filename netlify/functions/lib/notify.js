@@ -202,11 +202,20 @@ function extraRows(lead) {
   return out;
 }
 const upper = (s) => String(s || '').toUpperCase();
+const CHANNEL_LABEL = { postcard: 'Postcard', letter: 'Letter', flyer: 'Flyer', property_sign: 'Property sign', billboard: 'Billboard', window_display: 'Window display', social: 'Social media', email_signature: 'Email signature', other: 'Other' };
+// "Source" row: campaign QR (Full Access) or what the client tapped
+function sourceRow(lead, agent) {
+  const hasAccess = !!(agent && (agent.trial_active || agent.subscription_status === 'active'));
+  if (!hasAccess) return null;
+  if (!lead.source_channel) return ['Source', 'Direct (main app link)'];
+  const label = CHANNEL_LABEL[lead.source_channel] || lead.source_channel;
+  return ['Source', lead.source_self_reported ? `${label} (client told us)` : `${label}${lead.source_name ? ' — ' + lead.source_name : ''}`];
+}
 
 /* 02 · Client requesting a call  /  03 · New hot lead */
 function hotEmail(lead, isCall, agent) {
   const tel = String(lead.mobile || '').replace(/[^\d+]/g, '');
-  const rows = [['Name', lead.full_name], ['Mobile', lead.mobile], ['Email', lead.email], ['Prefers', lead.contact_preference], ['Home', homeLine(lead)], ...extraRows(lead), ['Features', (lead.features_selected || []).join(', ') || null], [isCall ? 'Requested' : 'Completed', fmtWhen(lead.created_at)]];
+  const rows = [['Name', lead.full_name], ['Mobile', lead.mobile], ['Email', lead.email], ['Prefers', lead.contact_preference], ['Home', homeLine(lead)], ...extraRows(lead), ['Features', (lead.features_selected || []).join(', ') || null], [isCall ? 'Requested' : 'Completed', fmtWhen(lead.created_at)], sourceRow(lead, agent) || ['', '']];
   const body = isCall
     ? `${P(`Hi ${esc(firstName(agent))},`)}${P(`<b>${esc(lead.full_name || `A ${CLIENT_NOUN}`)}</b> has specifically requested a call from you regarding:`)}${propertyBox('Property', lead.address, rows)}
        ${lead.mobile ? `<a href="tel:${esc(tel)}" style="display:inline-block; background:${INK}; color:#fff; text-decoration:none; font-weight:800; font-size:15px; padding:12px 20px; border-radius:100px; margin:0 0 16px;">📞 Call ${esc(lead.mobile)}</a>` : ''}
@@ -230,7 +239,7 @@ function hotEmail(lead, isCall, agent) {
 function warmEmail(lead, agent) {
   const photos = Array.isArray(lead.photos) ? lead.photos : [];
   const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(`A ${CLIENT_NOUN} has just uploaded their first property photo. That makes this more than a website visit: they are actively taking steps to have their property assessed.`)}
-    ${propertyBox('Property', lead.address, [['Started', fmtWhen(lead.created_at)], ['Photos uploaded', String(photos.length)], ['Status', `${upper(LEAD_NOUN)[0] + LEAD_NOUN.slice(1)} in progress`]])}
+    ${propertyBox('Property', lead.address, [['Started', fmtWhen(lead.created_at)], ['Photos uploaded', String(photos.length)], ['Status', `${upper(LEAD_NOUN)[0] + LEAD_NOUN.slice(1)} in progress`], sourceRow(lead, agent) || ['', '']])}
     ${P(`They have not completed the process yet, so this lead remains classified as <b>Warm</b>. If they complete their ${LEAD_NOUN} or request contact, we will let you know immediately.`)}${photoList(photos)}${notesBlock(lead)}`;
   return {
     subject: `New Warm Lead: ${lead.address || `new ${LEAD_NOUN}`}`,
@@ -247,7 +256,7 @@ function warmEmail(lead, agent) {
 function lockedEmail(lead, hotCount, agent) {
   const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(`A ${CLIENT_NOUN} has completed ${AN_LEAD} in your area and provided their contact information.`)}
     ${P(`That normally makes them a Hot Lead. However, you have reached the lead allowance included in your current plan: the free plan shows your ${FREE_LIMIT} most recent hot leads, and you now have ${hotCount}.`)}
-    ${propertyBox('New opportunity', lead.address, [['Received', fmtWhen(lead.created_at)], ['Status', 'LOCKED']])}
+    ${propertyBox('New opportunity', lead.address, [['Received', fmtWhen(lead.created_at)], ['Status', 'LOCKED'], sourceRow(lead, agent) || ['', '']])}
     ${P(`Upgrade your plan to unlock every lead and keep receiving new Hot Leads as they arrive.`)}`;
   return {
     subject: 'A new Hot Lead has arrived, but it is currently locked',
