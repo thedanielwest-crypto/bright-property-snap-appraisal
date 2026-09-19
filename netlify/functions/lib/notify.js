@@ -27,6 +27,15 @@ const PORTAL_LABEL = 'Agent Portal';
 const ACCENT = '#FF5A1F';
 const LEAD_NOUN = 'appraisal';       // "appraisal" / "rent appraisal"
 const CLIENT_NOUN = 'homeowner';   // "homeowner" / "owner"
+const SITE_URL = 'https://www.austsnapappraisal.com';
+const LOGO_URL = 'https://www.austsnapappraisal.com/logo-icon.png';
+const TAGLINE = 'The Smarter Way to Find Your Next Listing.';
+const WIN_NOUN = 'listing';         // "listing" / "management"
+const AGENT_NOUN = 'agent';     // "agent" / "property manager"
+const INK = '#0B0B0C';
+const WORDMARK = 'snap <span style="color:#FF5A1F;">appraisal</span>';         // HTML for the text logo
+const AN_LEAD = 'an appraisal';           // "an appraisal" / "a rent appraisal"
+const WIN_LINE = 'Keep finding listings.';         // closing line of the weekly summary
 const FREE_LIMIT = 3;
 
 // What each alert type means. Email defaults apply when the agent has never
@@ -124,88 +133,185 @@ async function notify({ agent, kind, leadId = null, subject, html }) {
   return r;
 }
 
-/* ---------------- templates ---------------- */
-function shell(kicker, title, body) {
+/* ---------------- templates ----------------
+   Layout follows the agent email templates: dark brand header, kicker + headline,
+   "Hi {first}", property box, CTA button, "why this matters" box, brand footer.
+   Table-based + inline styles so Gmail / Outlook / Apple Mail all render it. */
+const firstName = (agent) => String((agent && agent.agent_name) || '').trim().split(/\s+/)[0] || 'there';
+const P = (t) => `<p style="margin:0 0 14px; font-size:15px; line-height:1.6; color:#333;">${t}</p>`;
+
+function shell({ kicker, headline, sub, body, cta, ctaHref, why, whyTitle, preheader, unsubNote = true }) {
   return `
-    <div style="font-family:Arial,Helvetica,sans-serif; max-width:560px; margin:0 auto; color:#0D0D0D;">
-      <div style="font-size:11px; letter-spacing:0.12em; color:${ACCENT}; font-weight:700;">${esc(BRAND).toUpperCase()} · ${esc(kicker)}</div>
-      <h2 style="margin:6px 0 14px; font-size:22px;">${title}</h2>
-      ${body}
-      <div style="margin-top:22px; font-size:11px; color:#999;">You're getting this because it's ticked on your Notifications page in the ${esc(PORTAL_LABEL)} · <a href="${PORTAL_URL}" style="color:#999;">${esc(PORTAL_URL.replace(/^https?:\/\//, ''))}</a></div>
-    </div>`;
+<!doctype html><html><body style="margin:0; padding:0; background:#F5F4F1;">
+<span style="display:none; max-height:0; overflow:hidden; opacity:0;">${esc(preheader || '')}</span>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F4F1; padding:24px 12px;"><tr><td align="center">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%; background:#ffffff; border-radius:16px; overflow:hidden; font-family:Poppins,Arial,Helvetica,sans-serif;">
+  <tr><td style="background:${INK}; padding:18px 28px;">
+    <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+      <td style="vertical-align:middle; padding-right:10px;"><img src="${LOGO_URL}" width="34" height="34" alt="" style="display:block; border-radius:8px;"></td>
+      <td style="vertical-align:middle; font-size:19px; font-weight:800; color:#ffffff; letter-spacing:-0.01em;">${WORDMARK}</td>
+    </tr></table>
+  </td></tr>
+  <tr><td style="padding:30px 28px 6px;">
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.14em; color:${ACCENT}; text-transform:uppercase;">${esc(kicker)}</div>
+    <div style="font-size:24px; font-weight:800; color:${INK}; line-height:1.25; margin:8px 0 6px;">${headline}</div>
+    ${sub ? `<div style="font-size:14px; color:#777; line-height:1.5;">${sub}</div>` : ''}
+  </td></tr>
+  <tr><td style="padding:18px 28px 6px;">${body}</td></tr>
+  ${cta ? `<tr><td style="padding:6px 28px 26px;"><a href="${ctaHref || PORTAL_URL}" style="display:inline-block; background:${ACCENT}; color:#ffffff; text-decoration:none; font-weight:800; font-size:15px; padding:14px 24px; border-radius:100px;">${esc(cta)} &nbsp;›</a></td></tr>` : ''}
+  ${why ? `<tr><td style="padding:0 28px 28px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td style="background:#FFF6F1; border-left:4px solid ${ACCENT}; border-radius:10px; padding:14px 16px;">
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:${ACCENT}; text-transform:uppercase; margin-bottom:4px;">${esc(whyTitle || 'Why this matters')}</div>
+    <div style="font-size:13.5px; color:#444; line-height:1.55;">${why}</div></td></tr></table></td></tr>` : ''}
+  <tr><td style="background:#FAF9F6; border-top:1px solid #EEECE6; padding:18px 28px;">
+    <div style="font-size:13px; font-weight:800; color:${INK};">${esc(BRAND)} Australia</div>
+    <div style="font-size:12.5px; color:#777; font-style:italic; margin:2px 0 6px;">${esc(TAGLINE)}</div>
+    <a href="${SITE_URL}" style="font-size:12px; color:${ACCENT}; text-decoration:none;">${esc(SITE_URL.replace(/^https?:\/\//, ''))}</a>
+    ${unsubNote ? `<div style="font-size:11px; color:#AAA; margin-top:12px; line-height:1.5;">You're receiving this because it's switched on under Notifications in your ${esc(PORTAL_LABEL)}. Change what you get any time at <a href="${PORTAL_URL}" style="color:#AAA;">${esc(PORTAL_URL.replace(/^https?:\/\//, ''))}</a>.</div>` : ''}
+  </td></tr>
+</table></td></tr></table></body></html>`;
 }
-const row = (label, value) => `<tr><td style="padding:6px 12px 6px 0; color:#888; font-size:13px; white-space:nowrap; vertical-align:top;">${esc(label)}</td><td style="padding:6px 0; font-size:14px;">${esc(value || 'Not given')}</td></tr>`;
-const button = (label) => `<a href="${PORTAL_URL}" style="display:inline-block; background:${ACCENT}; color:#fff; text-decoration:none; font-weight:700; padding:12px 18px; border-radius:10px; margin:12px 0 4px;">${esc(label)}</a>`;
+function propertyBox(title, address, rows) {
+  const r = rows.filter(([, v]) => v !== null && v !== undefined && v !== '').map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0; font-size:13px; color:#888; white-space:nowrap; vertical-align:top;">${esc(k)}</td><td style="padding:4px 0; font-size:14px; color:#222; font-weight:600;">${esc(v)}</td></tr>`).join('');
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 16px;"><tr><td style="background:#F7F6F3; border-radius:12px; padding:14px 16px;">
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase;">${esc(title)}</div>
+    <div style="font-size:17px; font-weight:800; color:${INK}; margin:4px 0 8px;">${esc(address || '(no address given)')}</div>
+    ${r ? `<table role="presentation" cellpadding="0" cellspacing="0">${r}</table>` : ''}
+  </td></tr></table>`;
+}
 function photoList(photos) {
   const links = (Array.isArray(photos) ? photos : [])
     .map((p, i) => (typeof p === 'string' ? { url: p, room: `Photo ${i + 1}` } : p))
     .filter((p) => p && p.url)
-    .map((p, i) => `<li style="margin:6px 0;"><a href="${esc(p.url)}" style="color:${ACCENT}; font-weight:700; text-decoration:underline;">${esc(p.room || `Photo ${i + 1}`)}</a>${p.note ? ` <span style="color:#7A4A1E;">— ${esc(p.note)}</span>` : ''}</li>`)
+    .map((p, i) => `<li style="margin:5px 0;"><a href="${esc(p.url)}" style="color:${ACCENT}; font-weight:700; text-decoration:underline;">${esc(p.room || `Photo ${i + 1}`)}</a>${p.note ? ` <span style="color:#7A4A1E;">— ${esc(p.note)}</span>` : ''}</li>`)
     .join('');
-  return `<div style="font-size:13px; color:#888; margin:14px 0 6px;">Photos, tap a room name to open the full-size photo:</div><ul style="padding-left:18px; margin:0;">${links || '<li style="color:#999;">No photos yet</li>'}</ul>`;
+  if (!links) return '';
+  return `<div style="font-size:12px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase; margin:6px 0 4px;">Photos</div><div style="font-size:12.5px; color:#888; margin-bottom:4px;">Tap a room name to open the full-size photo.</div><ul style="padding-left:18px; margin:0 0 14px; font-size:14px;">${links}</ul>`;
 }
 function notesBlock(lead) {
   const photoRooms = new Set((Array.isArray(lead.photos) ? lead.photos : []).map((p) => p && p.room));
   const extra = (Array.isArray(lead.room_notes) ? lead.room_notes : []).filter((n) => n && n.note && !photoRooms.has(n.room));
   if (!extra.length) return '';
-  return `<div style="font-size:13px; color:#888; margin:12px 0 4px;">Other notes from the client:</div><ul style="padding-left:18px; margin:0;">${extra.map((n) => `<li style="margin:4px 0; color:#7A4A1E;"><b style="color:#333;">${esc(n.room)}:</b> ${esc(n.note)}</li>`).join('')}</ul>`;
+  return `<div style="font-size:12px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase; margin:6px 0 4px;">Other notes from the ${esc(CLIENT_NOUN)}</div><ul style="padding-left:18px; margin:0 0 14px; font-size:14px;">${extra.map((n) => `<li style="margin:4px 0; color:#7A4A1E;"><b style="color:#333;">${esc(n.room)}:</b> ${esc(n.note)}</li>`).join('')}</ul>`;
 }
+const homeLine = (lead) => [lead.bedroom_count != null ? `${lead.bedroom_count} bed` : null, lead.bathroom_count != null ? `${lead.bathroom_count} bath` : null, lead.car_spaces != null ? `${lead.car_spaces} car` : null].filter(Boolean).join(' · ') || null;
 function extraRows(lead) {
-  // Product-specific fields (rent app only); harmless when absent
-  let out = '';
-  if (lead.tenancy_status) out += row('Tenancy', lead.tenancy_status);
-  if (lead.availability) out += row('Available', lead.availability);
-  if (lead.current_management) out += row('Managed by', lead.current_management);
-  if (lead.bedroom_count) out += row('Bedrooms', lead.bedroom_count);
+  const out = [];
+  if (lead.tenancy_status) out.push(['Tenancy', lead.tenancy_status]);
+  if (lead.availability) out.push(['Available', lead.availability]);
+  if (lead.current_management) out.push(['Managed by', lead.current_management]);
   return out;
 }
+const upper = (s) => String(s || '').toUpperCase();
 
-function hotEmail(lead, isCall) {
+/* 02 · Client requesting a call  /  03 · New hot lead */
+function hotEmail(lead, isCall, agent) {
   const tel = String(lead.mobile || '').replace(/[^\d+]/g, '');
-  const banner = isCall && lead.mobile
-    ? `<div style="background:${ACCENT}; color:#fff; border-radius:10px; padding:12px 14px; font-weight:700; margin:0 0 14px;">📞 ${CLIENT_NOUN.toUpperCase()} REQUESTING A CALL · <a href="tel:${esc(tel)}" style="color:#fff;">${esc(lead.mobile)}</a></div>`
-    : '';
-  const body = `${banner}
-    <table cellpadding="0" cellspacing="0" style="border-collapse:collapse; margin-bottom:6px;">
-      ${row('Name', lead.full_name)}${row('Mobile', lead.mobile)}${row('Email', lead.email)}${row('Prefers', lead.contact_preference)}
-      ${extraRows(lead)}
-      ${row('Features', (lead.features_selected || []).join(', ') || 'None selected')}
-      ${row('Completed', fmtWhen(lead.created_at))}
-    </table>
-    ${photoList(lead.photos)}${notesBlock(lead)}
-    <div style="margin-top:16px;">${button(isCall ? 'Open the lead and call them' : 'Open in your portal')}</div>`;
+  const rows = [['Name', lead.full_name], ['Mobile', lead.mobile], ['Email', lead.email], ['Prefers', lead.contact_preference], ['Home', homeLine(lead)], ...extraRows(lead), ['Features', (lead.features_selected || []).join(', ') || null], [isCall ? 'Requested' : 'Completed', fmtWhen(lead.created_at)]];
+  const body = isCall
+    ? `${P(`Hi ${esc(firstName(agent))},`)}${P(`<b>${esc(lead.full_name || `A ${CLIENT_NOUN}`)}</b> has specifically requested a call from you regarding:`)}${propertyBox('Property', lead.address, rows)}
+       ${lead.mobile ? `<a href="tel:${esc(tel)}" style="display:inline-block; background:${INK}; color:#fff; text-decoration:none; font-weight:800; font-size:15px; padding:12px 20px; border-radius:100px; margin:0 0 16px;">📞 Call ${esc(lead.mobile)}</a>` : ''}
+       ${P(`They have moved beyond browsing and are actively asking to speak with ${AGENT_NOUN === 'agent' ? 'an agent' : 'a property manager'}.`)}${photoList(lead.photos)}${notesBlock(lead)}`
+    : `${P(`Hi ${esc(firstName(agent))},`)}${P(`You've got a new <b>Hot Lead</b>. A ${CLIENT_NOUN} has completed their ${LEAD_NOUN} and provided their contact details.`)}${propertyBox('Property', lead.address, rows)}
+       ${P(`They have already taken a meaningful step toward understanding the ${WIN_NOUN === 'listing' ? 'value' : 'rental return'} of their property. Now it is your opportunity to start the conversation.`)}${photoList(lead.photos)}${notesBlock(lead)}`;
   return {
-    subject: isCall ? `📞 Call requested: ${lead.address || 'new ' + LEAD_NOUN}` : `🔥 Hot lead: ${lead.address || 'new ' + LEAD_NOUN}`,
-    html: shell(isCall ? 'CALL REQUESTED' : 'HOT LEAD', esc(lead.address || '(no address given)'), body),
+    subject: isCall ? `CALL REQUEST: ${lead.full_name || `A ${CLIENT_NOUN}`} wants to speak with you` : `New Hot Lead: ${lead.address || `new ${LEAD_NOUN}`}`,
+    html: shell({
+      preheader: isCall ? `This is a high-intent ${BRAND} opportunity.` : `A ${CLIENT_NOUN} has completed their ${LEAD_NOUN} and provided contact details.`,
+      kicker: isCall ? 'Priority alert' : 'New hot lead',
+      headline: isCall ? `A ${CLIENT_NOUN} wants to speak with you.` : `This ${CLIENT_NOUN} completed their ${LEAD_NOUN}.`,
+      sub: isCall ? `This is your highest-intent ${BRAND} notification.` : 'A meaningful property action has just become a contactable opportunity.',
+      body, cta: isCall ? 'View lead & call now' : 'View hot lead',
+      whyTitle: 'Why this matters',
+      why: isCall ? 'Quick response matters. Their interest is active right now.' : `This is not a cold database record. The ${CLIENT_NOUN} has actively engaged with their property and completed the ${LEAD_NOUN} process. Move while the lead is warm.`,
+    }),
   };
 }
-function warmEmail(lead) {
-  const body = `
-    <p style="font-size:14px; line-height:1.6; margin:0 0 6px;">A ${CLIENT_NOUN} has started photographing their property on your app. No contact details yet — if they finish, you'll get a hot lead alert. Warm leads with photos are still worth a doorknock or a letter.</p>
-    <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${row('Started', fmtWhen(lead.created_at))}${row('Rooms so far', String((lead.photos || []).length))}</table>
-    ${photoList(lead.photos)}${notesBlock(lead)}
-    <div style="margin-top:16px;">${button('See warm leads')}</div>`;
-  return { subject: `Warm lead: ${lead.address || 'new ' + LEAD_NOUN} (in progress)`, html: shell('WARM LEAD', esc(lead.address || '(no address yet)'), body) };
+/* 04 · New warm lead */
+function warmEmail(lead, agent) {
+  const photos = Array.isArray(lead.photos) ? lead.photos : [];
+  const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(`A ${CLIENT_NOUN} has just uploaded their first property photo. That makes this more than a website visit: they are actively taking steps to have their property assessed.`)}
+    ${propertyBox('Property', lead.address, [['Started', fmtWhen(lead.created_at)], ['Photos uploaded', String(photos.length)], ['Status', `${upper(LEAD_NOUN)[0] + LEAD_NOUN.slice(1)} in progress`]])}
+    ${P(`They have not completed the process yet, so this lead remains classified as <b>Warm</b>. If they complete their ${LEAD_NOUN} or request contact, we will let you know immediately.`)}${photoList(photos)}${notesBlock(lead)}`;
+  return {
+    subject: `New Warm Lead: ${lead.address || `new ${LEAD_NOUN}`}`,
+    html: shell({
+      preheader: `Someone has uploaded their first property photo through your ${BRAND} experience.`,
+      kicker: 'New warm lead', headline: `Someone has started their ${LEAD_NOUN} journey.`,
+      sub: 'A photo upload is more than a page view. It is an active intent signal.',
+      body, cta: 'View warm lead', whyTitle: 'Intent signal',
+      why: `Small actions can be strong intent signals. ${BRAND} helps you see them earlier.`,
+    }),
+  };
 }
-function lockedEmail(lead, hotCount) {
-  const body = `
-    <p style="font-size:14px; line-height:1.6; margin:0 0 10px;">A new hot lead just came in for <b>${esc(lead.address || 'a property')}</b>. You now have <b>${hotCount}</b> hot leads but the free plan shows the ${FREE_LIMIT} most recent, so an older lead's contact details are now hidden.</p>
-    <p style="font-size:14px; line-height:1.6; margin:0;">Upgrade in your portal to unlock every lead, past and future.</p>
-    <div style="margin-top:16px;">${button('Unlock all leads')}</div>`;
-  return { subject: `You're over the free limit: ${hotCount} hot leads waiting`, html: shell('LEAD LOCKED', 'A hot lead is now locked', body) };
+/* 05 · Hot lead locked */
+function lockedEmail(lead, hotCount, agent) {
+  const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(`A ${CLIENT_NOUN} has completed ${AN_LEAD} in your area and provided their contact information.`)}
+    ${P(`That normally makes them a Hot Lead. However, you have reached the lead allowance included in your current plan: the free plan shows your ${FREE_LIMIT} most recent hot leads, and you now have ${hotCount}.`)}
+    ${propertyBox('New opportunity', lead.address, [['Received', fmtWhen(lead.created_at)], ['Status', 'LOCKED']])}
+    ${P(`Upgrade your plan to unlock every lead and keep receiving new Hot Leads as they arrive.`)}`;
+  return {
+    subject: 'A new Hot Lead has arrived, but it is currently locked',
+    html: shell({
+      preheader: 'You have reached the lead allowance included in your current plan.',
+      kicker: 'Hot lead locked', headline: `There is a new ${WIN_NOUN} opportunity waiting for you.`,
+      sub: 'The opportunity is real; the contact details are currently locked.',
+      body, cta: 'Unlock my hot lead', ctaHref: PORTAL_URL,
+      whyTitle: `Do not let the next ${WIN_NOUN} pass by`,
+      why: `${BRAND} is designed to help you identify ${CLIENT_NOUN}s showing real property intent before they become somebody else's ${WIN_NOUN}.`,
+    }),
+  };
 }
+/* 06 · Weekly summary */
 function weeklyEmail(agent, stats) {
-  const stat = (n, label) => `<td style="padding:12px 14px; border:1px solid #eee; border-radius:10px; text-align:center;"><div style="font-size:26px; font-weight:800; color:${ACCENT};">${n}</div><div style="font-size:12px; color:#888;">${esc(label)}</div></td>`;
-  const body = `
-    <p style="font-size:14px; line-height:1.6; margin:0 0 12px;">Hi ${esc((agent.agent_name || '').split(' ')[0] || 'there')}, here's your last 7 days on ${esc(BRAND)}.</p>
-    <table cellpadding="0" cellspacing="8" style="border-collapse:separate; margin:0 0 8px;"><tr>${stat(stats.hot, 'hot leads')}${stat(stats.calls, 'call requests')}${stat(stats.warm, 'warm leads')}${stat(stats.total, 'all-time leads')}</tr></table>
-    ${stats.pending ? `<p style="font-size:14px; line-height:1.6; margin:8px 0 0;"><b>${stats.pending}</b> hot lead${stats.pending === 1 ? ' has' : 's have'} not been marked as appraised yet.</p>` : ''}
-    <div style="margin-top:16px;">${button('Open your portal')}</div>`;
-  return { subject: `Your week: ${stats.hot} hot, ${stats.warm} warm`, html: shell('WEEKLY SUMMARY', 'Weekly summary', body) };
+  const cell = (label, n) => `<tr><td style="padding:9px 0; border-bottom:1px solid #EEECE6; font-size:14px; color:#444;">${esc(label)}</td><td align="right" style="padding:9px 0; border-bottom:1px solid #EEECE6; font-size:18px; font-weight:800; color:${INK};">${n}</td></tr>`;
+  const total = (stats.hot || 0) + (stats.warm || 0);
+  const body = `${P(`Morning ${esc(firstName(agent))},`)}${P(`Here is what happened across your ${BRAND} account over the last seven days.`)}
+    <div style="font-size:12px; color:#999; margin-bottom:6px;">${esc(stats.weekStart || '')} – ${esc(stats.weekEnd || '')}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+      ${cell('Hot leads', stats.hot || 0)}${cell('Warm leads', stats.warm || 0)}${cell('Call requests', stats.calls || 0)}${cell(`${upper(LEAD_NOUN)[0] + LEAD_NOUN.slice(1)}s started`, stats.started || 0)}${cell(`${upper(LEAD_NOUN)[0] + LEAD_NOUN.slice(1)}s completed`, stats.hot || 0)}${cell('Property photos uploaded', stats.photos || 0)}
+    </table>
+    ${stats.topAddress ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr><td style="background:#F7F6F3; border-radius:12px; padding:14px 16px;"><div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase;">Strongest opportunity this week</div><div style="font-size:15px; font-weight:800; color:${INK}; margin-top:4px;">${esc(stats.topAddress)}</div><div style="font-size:13px; color:#666; margin-top:2px;">Status: ${esc(stats.topStatus || '')} &nbsp;|&nbsp; Activity: ${esc(stats.topActivity || '')}</div></td></tr></table>` : ''}
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:${ACCENT}; text-transform:uppercase;">Your total opportunity</div>
+    ${P(`<b>${total}</b> ${CLIENT_NOUN}${total === 1 ? '' : 's'} showed property intent this week.${stats.pending ? ` <b>${stats.pending}</b> hot lead${stats.pending === 1 ? ' has' : 's have'} not been marked as ${WIN_NOUN === 'listing' ? 'appraised' : 'appraised'} yet.` : ''}`)}
+    ${P('Keep following up. Keep building relationships. ' + WIN_LINE)}`;
+  return {
+    subject: `Your ${BRAND} week: ${total} new opportunit${total === 1 ? 'y' : 'ies'}`,
+    html: shell({ preheader: `Here is what happened across your ${BRAND} account over the last 7 days.`, kicker: 'Your week in Snap', headline: 'A quick view of property intent from the last seven days.', body, cta: 'Review my leads' }),
+  };
+}
+/* 01 · Welcome (sent once, at signup) */
+function welcomeEmail(agent) {
+  const pillar = (tag, title, text) => `<tr><td style="padding:10px 0; border-bottom:1px solid #EEECE6;"><div style="font-size:10.5px; font-weight:800; letter-spacing:0.14em; color:${ACCENT}; text-transform:uppercase;">${esc(tag)}</div><div style="font-size:15px; font-weight:800; color:${INK}; margin:2px 0;">${esc(title)}</div><div style="font-size:13.5px; color:#555; line-height:1.5;">${esc(text)}</div></td></tr>`;
+  const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(`Welcome to <b>${esc(BRAND)} Australia</b>.`)}
+    ${P(`You now have a smarter way to discover ${CLIENT_NOUN}s who are already thinking about their property, before they become just another cold prospect in somebody else's database.`)}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 18px;">
+      ${pillar('Smart', 'See intent, not just names.', `Identify ${CLIENT_NOUN}s actively engaging with their property, requesting ${AN_LEAD} or asking to speak with ${AGENT_NOUN === 'agent' ? 'an agent' : 'a property manager'}.`)}
+      ${pillar('Bold', 'Stand out in your marketplace.', `Give ${CLIENT_NOUN}s an easy, modern ${LEAD_NOUN} experience while positioning yourself as the local ${AGENT_NOUN} ready to help.`)}
+      ${pillar('Fast', 'Know when opportunity happens.', `Receive alerts when ${CLIENT_NOUN}s start, upload photos, complete ${AN_LEAD}, provide details or request a call.`)}
+      ${pillar('Trustworthy', `Professional for ${CLIENT_NOUN}s. Powerful for ${AGENT_NOUN}s.`, `Create a simple, credible ${CLIENT_NOUN} experience while receiving clearer signals about potential ${WIN_NOUN === 'listing' ? 'selling' : 'leasing'} intent.`)}
+    </table>
+    <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase; margin-bottom:6px;">Your portal</div>
+    <ul style="padding-left:18px; margin:0 0 16px; font-size:14px; color:#333; line-height:1.7;"><li>View new leads</li><li>See ${LEAD_NOUN} activity</li><li>Review ${CLIENT_NOUN} details</li><li>Track warm and hot opportunities</li><li>Manage your account and subscription</li></ul>
+    ${P(`Your next ${WIN_NOUN} may already be looking for you.`)}`;
+  return {
+    subject: `Welcome to ${BRAND}, your next ${WIN_NOUN} starts here`,
+    html: shell({ preheader: `Turn ${CLIENT_NOUN} interest into warmer, higher-quality property leads.`, kicker: `Welcome to ${BRAND}`, headline: `You're in. Let's find your next ${WIN_NOUN}.`, sub: `Smart technology. Better intent signals. Faster ${AGENT_NOUN} follow-up.`, body, cta: `Open my ${PORTAL_LABEL.toLowerCase()}`, unsubNote: false }),
+  };
+}
+/* 07 · Mail-out status (ready for when the mail-out service goes live; nothing sends it yet) */
+function mailoutEmail(agent, stage, c = {}) {
+  const S = {
+    production: { kicker: 'Mail-out update', headline: 'Your campaign is being produced.', subject: `Your ${BRAND} mail-out is now in production`, pre: 'Your campaign is being prepared for printing and distribution.', cta: 'View campaign', why: 'We will keep you updated as your campaign moves from production to post and delivery.', status: 'IN PRODUCTION', intro: `Your ${BRAND} mail campaign has moved into production.` },
+    posted: { kicker: 'Your mail is on the move', headline: 'Your campaign has been posted.', subject: `Your ${BRAND} mail-out has been posted`, pre: 'Your campaign is officially on its way.', cta: 'Watch my campaign', why: `As ${CLIENT_NOUN}s begin interacting with your ${BRAND} campaign, you will receive Warm Lead, Hot Lead and Call Request notifications.`, status: 'POSTED', intro: `Your ${BRAND} campaign has now been posted.` },
+    delivery: { kicker: 'Delivery window', headline: `Your campaign should now be reaching ${CLIENT_NOUN}s.`, subject: 'Your mail-out should be reaching homes now', pre: `Watch your portal for incoming ${CLIENT_NOUN} activity.`, cta: 'View live activity', why: 'This is when things get interesting. Watch for Warm Leads, Hot Leads and Call Requests as they respond.', status: 'DELIVERING', intro: `Your ${BRAND} mail campaign is now within its estimated delivery window.` },
+  }[stage] || null;
+  if (!S) return null;
+  const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(S.intro)}${propertyBox('Campaign', c.name || 'Your campaign', [['Area', c.area], ['Quantity', c.quantity], ['Posted', c.posted], ['Estimated delivery', c.delivery], ['Status', S.status]])}`;
+  return { subject: S.subject, html: shell({ preheader: S.pre, kicker: S.kicker, headline: S.headline, body, cta: S.cta, whyTitle: 'What happens next', why: S.why }) };
 }
 function testEmail(agent) {
-  const body = `<p style="font-size:14px; line-height:1.6;">This is a test from your Notifications page. If you can read this, lead alerts will reach <b>${esc(agent.email)}</b>.</p><div>${button('Back to your portal')}</div>`;
-  return { subject: `${BRAND} test email`, html: shell('TEST', 'Email alerts are working', body) };
+  const body = `${P(`Hi ${esc(firstName(agent))},`)}${P(`This is a test from your Notifications page. If you can read this, lead alerts will reach <b>${esc(agent.email)}</b>.`)}`;
+  return { subject: `${BRAND} test email`, html: shell({ preheader: 'Your email alerts are working.', kicker: 'Test', headline: 'Email alerts are working.', body, cta: `Back to my ${PORTAL_LABEL.toLowerCase()}` }) };
 }
 
 /* ---------------- high-level: called after a lead is saved ---------------- */
@@ -220,7 +326,7 @@ async function notifyForLead(lead, { isNew } = {}) {
     if (lead.lead_type === 'Hot Lead') {
       const isCall = String(lead.contact_preference || '').toLowerCase() === 'call' && !!lead.mobile;
       const kind = isCall ? 'call' : 'hot';
-      const { subject, html } = hotEmail(lead, isCall);
+      const { subject, html } = hotEmail(lead, isCall, agent);
       await notify({ agent, kind, leadId: lead.id, subject, html });
 
       // Free-plan limit: only the FREE_LIMIT most recent hot leads are unlocked
@@ -229,7 +335,7 @@ async function notifyForLead(lead, { isNew } = {}) {
         const res = await fetch(`${process.env.SUPABASE_URL}/rest/v1/leads?agent_id=eq.${agent.id}&lead_type=eq.Hot%20Lead&banked=not.is.true&select=id`, { headers: sbHeaders({ Prefer: 'count=exact' }) });
         const hotCount = res.ok ? (await res.json()).length : 0;
         if (hotCount > FREE_LIMIT) {
-          const t = lockedEmail(lead, hotCount);
+          const t = lockedEmail(lead, hotCount, agent);
           await notify({ agent, kind: 'locked', leadId: lead.id, subject: t.subject, html: t.html });
         }
       }
@@ -238,7 +344,7 @@ async function notifyForLead(lead, { isNew } = {}) {
 
     // Warm lead: alert once, the first time a photo lands (address alone is too early)
     if (photos.length >= 1) {
-      const { subject, html } = warmEmail(lead);
+      const { subject, html } = warmEmail(lead, agent);
       await notify({ agent, kind: 'warm', leadId: lead.id, subject, html });
     }
   } catch (err) {
@@ -246,4 +352,14 @@ async function notifyForLead(lead, { isNew } = {}) {
   }
 }
 
-module.exports = { notify, notifyForLead, sendEmail, getAgent, wantsEmail, weeklyEmail, testEmail, NOTIFY_DEFAULTS, sbHeaders, log };
+// Welcome email at signup: sent once, logged, never blocks the signup response
+async function sendWelcome(agent) {
+  try {
+    if (!agent || !agent.email) return;
+    const { subject, html } = welcomeEmail(agent);
+    const r = await sendEmail({ to: agent.email, subject, html });
+    await log({ agent_id: agent.id, kind: 'welcome', to_email: agent.email, subject, status: r.ok ? 'sent' : (r.skipped ? 'skipped' : 'failed'), error: r.ok ? null : r.error, provider_id: r.id || null });
+  } catch (e) { console.error('welcome email failed (non-fatal)', e); }
+}
+
+module.exports = { notify, notifyForLead, sendEmail, getAgent, wantsEmail, weeklyEmail, welcomeEmail, sendWelcome, mailoutEmail, hotEmail, warmEmail, lockedEmail, testEmail, NOTIFY_DEFAULTS, sbHeaders, log };
