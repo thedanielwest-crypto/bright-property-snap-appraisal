@@ -76,6 +76,13 @@
   .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
   .landing-powered img{height:48px; width:auto; margin:0 auto; display:block;}
 
+  /* DESKTOP CAMERA (webcam) */
+  #cam-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px;}
+  #cam-overlay.open{display:flex;}
+  #cam-video{max-width:min(92vw,900px); max-height:70vh; border-radius:14px; background:#000;}
+  .cam-actions{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; justify-content:center;}
+  .cam-actions .btn{width:auto; min-width:160px;}
+  #cam-hint{color:#ddd; font-size:13px; margin-top:12px; text-align:center;}
   /* CONSENT */
   #screen-consent .content{padding:22px; flex:1; overflow-y:auto;}
   .consent-agent{display:flex; align-items:center; gap:12px; background:var(--white); border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:16px;}
@@ -169,6 +176,12 @@
   .trust-line{font-size:12px; color:var(--charcoal); opacity:0.75; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:16px;}
   .field{margin-bottom:13px;}
   .field label{display:block; font-size:12px; font-weight:700; margin-bottom:6px;}
+  .facts-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:2px 0 14px;}
+  .fact{background:#F7F6F3; border-radius:12px; padding:9px 4px; text-align:center; min-width:0;}
+  .fact .fact-lbl{font-size:11px; font-weight:700; color:#666; margin-bottom:6px;}
+  .fact .stepper{display:flex; align-items:center; justify-content:center; gap:6px;}
+  .fact .stepper button{width:30px; height:30px; border-radius:50%; border:1.5px solid #D9D5CD; background:#fff; font-size:18px; line-height:1; cursor:pointer; color:var(--charcoal); flex:0 0 auto; padding:0;}
+  .fact .stepper span{font-size:19px; font-weight:800; min-width:20px;}
   .field input{width:100%; padding:13px 14px; border-radius:12px; border:1.5px solid var(--line); font-size:14.5px; font-family:inherit;}
   .contact-pref{display:flex; gap:8px;}
   .pref-opt{flex:1; text-align:center; padding:11px 6px; border-radius:12px; border:1.5px solid var(--line); background:var(--white); font-size:12.5px; font-weight:700; cursor:pointer; color:var(--charcoal);}
@@ -196,6 +209,15 @@
 </head>
 <body>
 
+<div id="cam-overlay" role="dialog" aria-label="Camera">
+  <video id="cam-video" autoplay playsinline muted></video>
+  <div class="cam-actions">
+    <button class="btn btn-brand" onclick="camCapture()">📸 Take photo</button>
+    <button class="btn btn-outline" onclick="camSwitch()" id="cam-switch">🔄 Switch camera</button>
+    <button class="btn btn-outline" onclick="camClose()">Cancel</button>
+  </div>
+  <div id="cam-hint">Allow camera access when your browser asks. You can also <a href="#" onclick="camClose(); document.getElementById('file-input-upload').click(); return false;" style="color:#fff;">upload a photo</a> instead.</div>
+</div>
 <div class="frame" id="frame">
   <div class="screens">
 
@@ -271,7 +293,7 @@
           <div class="capture-actions" id="pre-actions">
             <input type="file" accept="image/*" capture="environment" id="file-input" style="display:none" onchange="handlePhoto(event)">
             <input type="file" accept="image/*" id="file-input-upload" style="display:none" onchange="handlePhoto(event)">
-            <button class="btn btn-brand" onclick="document.getElementById('file-input').click()">📸 Take Photo</button>
+            <button class="btn btn-brand" onclick="takePhoto()">📸 Take Photo</button>
             <button class="btn btn-outline" onclick="document.getElementById('file-input-upload').click()">🖼️ Upload a photo from your phone or computer</button>
             <div class="skip-link" id="skip-photo-link" onclick="skipPhoto()">Skip this photo →</div>
           </div>
@@ -326,6 +348,12 @@
         <div class="trust-line" id="trust-line">🔒 Your details go straight to your agent — no spam, no cold calls from anyone else.</div>
         <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
         <div class="field"><label>Email</label><input type="email" id="input-email" placeholder="you@email.com" autocomplete="email"></div>
+        <div class="field" style="margin-bottom:6px;"><label>Your home at a glance <span style="font-weight:400; color:#888;">(we counted from your photos, tap to fix)</span></label></div>
+        <div class="facts-row">
+          <div class="fact"><div class="fact-lbl">🛏️ Bedrooms</div><div class="stepper"><button type="button" onclick="stepFact('bedrooms',-1)">−</button><span id="fact-bedrooms">0</span><button type="button" onclick="stepFact('bedrooms',1)">+</button></div></div>
+          <div class="fact"><div class="fact-lbl">🛁 Bathrooms</div><div class="stepper"><button type="button" onclick="stepFact('bathrooms',-1)">−</button><span id="fact-bathrooms">0</span><button type="button" onclick="stepFact('bathrooms',1)">+</button></div></div>
+          <div class="fact"><div class="fact-lbl">🚗 Cars</div><div class="stepper"><button type="button" onclick="stepFact('carSpaces',-1)">−</button><span id="fact-carSpaces">0</span><button type="button" onclick="stepFact('carSpaces',1)">+</button></div></div>
+        </div>
         <p style="font-size:12px; color:var(--charcoal); opacity:0.7; margin-top:-4px;">That's all we need. Your appraisal will be emailed to you.</p>
         <p style="font-size:12px; color:var(--charcoal); opacity:0.7;" id="service-consent-line">By sending, you're asking your agent to contact you about this appraisal.</p>
         <label class="check-row"><input type="checkbox" id="marketing-consent"><span id="marketing-consent-label">Also send me occasional local property updates. Optional — you can unsubscribe any time.</span></label>
@@ -568,7 +596,25 @@ function beginWalkthrough(){
 function goTo(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
+  if(name === 'final') prefillHomeFacts();
 }
+
+/* ---------- HOME FACTS (beds / baths / cars) ----------
+   Counted from the photos taken, then confirmed by the owner on the final form.
+   These feed the agent's Property Intel panel; nothing online gives them for free. */
+const homeFacts = { bedrooms: null, bathrooms: null, carSpaces: null };
+function prefillHomeFacts(){
+  const rooms = uploadedPhotos.map(p => String(p.room || ''));
+  if(homeFacts.bedrooms === null)  homeFacts.bedrooms  = Math.max(bedroomCount, rooms.filter(r => /bedroom/i.test(r) && !/ensuite/i.test(r)).length);
+  if(homeFacts.bathrooms === null) homeFacts.bathrooms = rooms.filter(r => /bathroom|ensuite/i.test(r)).length;
+  if(homeFacts.carSpaces === null) homeFacts.carSpaces = rooms.some(r => /garage|carport/i.test(r)) || selectedFeatures.has('garage') ? 1 : 0;
+  renderHomeFacts();
+}
+function renderHomeFacts(){
+  for(const k of ['bedrooms','bathrooms','carSpaces']){ const el = document.getElementById('fact-'+k); if(el) el.textContent = homeFacts[k] ?? 0; }
+}
+function stepFact(k, d){ homeFacts[k] = Math.max(0, Math.min(20, (homeFacts[k] ?? 0) + d)); renderHomeFacts(); }
+function homeFactsPayload(){ return { bedrooms: homeFacts.bedrooms ?? 0, bathrooms: homeFacts.bathrooms ?? 0, carSpaces: homeFacts.carSpaces ?? 0 }; }
 
 /* ---------- ROOM STRIP ---------- */
 function buildRoomStrip(){
@@ -626,6 +672,62 @@ function resetPreview(){
 function handlePhoto(e){
   const file = e.target.files[0];
   if(!file) return;
+  processPhotoFile(file);
+}
+
+/* ---------- TAKE PHOTO: native camera on phones, live webcam on computers ---------- */
+// Phones/tablets: the file input with capture="environment" opens the camera app directly.
+// Computers ignore "capture" and just show a file picker, so there we open the webcam
+// in-page (getUserMedia), let the user frame the shot, and hand the capture to the same
+// processing path as a chosen file.
+function isTouchDevice(){ return ('ontouchstart' in window) || navigator.maxTouchPoints > 0; }
+function takePhoto(){
+  if(!isTouchDevice() && navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    camOpen();
+  } else {
+    document.getElementById('file-input').click();
+  }
+}
+let camStream = null, camFacing = 'environment';
+async function camOpen(){
+  const overlay = document.getElementById('cam-overlay');
+  const video = document.getElementById('cam-video');
+  overlay.classList.add('open');
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing, width: { ideal: 2048 }, height: { ideal: 1536 } }, audio: false });
+    video.srcObject = camStream;
+    const cams = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    document.getElementById('cam-switch').style.display = cams.length > 1 ? '' : 'none';
+  }catch(err){
+    console.warn('camera unavailable, falling back to file picker', err);
+    camClose();
+    document.getElementById('file-input-upload').click();
+  }
+}
+function camClose(){
+  document.getElementById('cam-overlay').classList.remove('open');
+  if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  document.getElementById('cam-video').srcObject = null;
+}
+async function camSwitch(){
+  camFacing = camFacing === 'environment' ? 'user' : 'environment';
+  if(camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  await camOpen();
+}
+function camCapture(){
+  const video = document.getElementById('cam-video');
+  if(!video.videoWidth){ return; }
+  const c = document.createElement('canvas');
+  c.width = video.videoWidth; c.height = video.videoHeight;
+  c.getContext('2d').drawImage(video, 0, 0);
+  c.toBlob(blob => {
+    camClose();
+    if(!blob) return;
+    processPhotoFile(new File([blob], 'webcam.jpg', { type: 'image/jpeg' }));
+  }, 'image/jpeg', 0.95);
+}
+
+function processPhotoFile(file){
   const reader = new FileReader();
   reader.onload = ev=>{
     const img = new Image();
@@ -656,7 +758,7 @@ function handlePhoto(e){
   };
   reader.readAsDataURL(file);
 }
-function retakePhoto(){ resetPreview(); document.getElementById('file-input').click(); }
+function retakePhoto(){ resetPreview(); takePhoto(); }
 
 const PHOTO_MAX_EDGE = 2048;             // px, long edge of the uploaded photo
 const PHOTO_JPEG_QUALITY = 0.92;
@@ -1070,6 +1172,7 @@ async function requestCall(){
         contactPreference: 'Call',
         address: propertyAddress,
         leadType: 'Hot Lead',
+        ...homeFactsPayload(),
         featuresSelected: Array.from(selectedFeatures),
         photos: uploadedPhotos,
         agentId: currentAgent.agentId,
@@ -1117,6 +1220,7 @@ async function submitHotLead(){
         contactPreference: 'Email',
         address: propertyAddress,
         leadType: 'Hot Lead',
+        ...homeFactsPayload(),
         featuresSelected: Array.from(selectedFeatures),
         photos: uploadedPhotos,
         agentId: currentAgent.agentId,
