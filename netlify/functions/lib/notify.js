@@ -140,9 +140,15 @@ function photoList(photos) {
   const links = (Array.isArray(photos) ? photos : [])
     .map((p, i) => (typeof p === 'string' ? { url: p, room: `Photo ${i + 1}` } : p))
     .filter((p) => p && p.url)
-    .map((p, i) => `<li style="margin:6px 0;"><a href="${esc(p.url)}" style="color:${ACCENT}; font-weight:700; text-decoration:underline;">${esc(p.room || `Photo ${i + 1}`)}</a></li>`)
+    .map((p, i) => `<li style="margin:6px 0;"><a href="${esc(p.url)}" style="color:${ACCENT}; font-weight:700; text-decoration:underline;">${esc(p.room || `Photo ${i + 1}`)}</a>${p.note ? ` <span style="color:#7A4A1E;">— ${esc(p.note)}</span>` : ''}</li>`)
     .join('');
   return `<div style="font-size:13px; color:#888; margin:14px 0 6px;">Photos, tap a room name to open the full-size photo:</div><ul style="padding-left:18px; margin:0;">${links || '<li style="color:#999;">No photos yet</li>'}</ul>`;
+}
+function notesBlock(lead) {
+  const photoRooms = new Set((Array.isArray(lead.photos) ? lead.photos : []).map((p) => p && p.room));
+  const extra = (Array.isArray(lead.room_notes) ? lead.room_notes : []).filter((n) => n && n.note && !photoRooms.has(n.room));
+  if (!extra.length) return '';
+  return `<div style="font-size:13px; color:#888; margin:12px 0 4px;">Other notes from the client:</div><ul style="padding-left:18px; margin:0;">${extra.map((n) => `<li style="margin:4px 0; color:#7A4A1E;"><b style="color:#333;">${esc(n.room)}:</b> ${esc(n.note)}</li>`).join('')}</ul>`;
 }
 function extraRows(lead) {
   // Product-specific fields (rent app only); harmless when absent
@@ -166,7 +172,7 @@ function hotEmail(lead, isCall) {
       ${row('Features', (lead.features_selected || []).join(', ') || 'None selected')}
       ${row('Completed', fmtWhen(lead.created_at))}
     </table>
-    ${photoList(lead.photos)}
+    ${photoList(lead.photos)}${notesBlock(lead)}
     <div style="margin-top:16px;">${button(isCall ? 'Open the lead and call them' : 'Open in your portal')}</div>`;
   return {
     subject: isCall ? `📞 Call requested: ${lead.address || 'new ' + LEAD_NOUN}` : `🔥 Hot lead: ${lead.address || 'new ' + LEAD_NOUN}`,
@@ -177,7 +183,7 @@ function warmEmail(lead) {
   const body = `
     <p style="font-size:14px; line-height:1.6; margin:0 0 6px;">A ${CLIENT_NOUN} has started photographing their property on your app. No contact details yet — if they finish, you'll get a hot lead alert. Warm leads with photos are still worth a doorknock or a letter.</p>
     <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;">${row('Started', fmtWhen(lead.created_at))}${row('Rooms so far', String((lead.photos || []).length))}</table>
-    ${photoList(lead.photos)}
+    ${photoList(lead.photos)}${notesBlock(lead)}
     <div style="margin-top:16px;">${button('See warm leads')}</div>`;
   return { subject: `Warm lead: ${lead.address || 'new ' + LEAD_NOUN} (in progress)`, html: shell('WARM LEAD', esc(lead.address || '(no address yet)'), body) };
 }
