@@ -180,7 +180,7 @@
   .room-notes{margin:10px 0 2px; text-align:left;}
   .room-notes label{display:block; font-size:11.5px; font-weight:700; color:var(--charcoal); opacity:0.75; margin-bottom:4px;}
   .room-notes textarea{width:100%; min-height:44px; max-height:110px; resize:vertical; border:1.5px solid #E2DED6; border-radius:12px; padding:9px 12px; font-family:inherit; font-size:13.5px; line-height:1.4; background:#fff;}
-  .room-notes textarea:focus{outline:none; border-color:var(--brand, #FF5A1F);}
+  .room-notes textarea:focus{outline:none; border-color:var(--orange);}
   /* Bedroom count picker */
   #screen-bedrooms .content{padding:22px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
   .bed-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:320px; margin:18px auto 0;}
@@ -191,6 +191,10 @@
   #confetti-canvas{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:50; display:none;}
   .confirm-icon.pop{animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;}
   @keyframes pop{0%{transform:scale(0.2); opacity:0;} 70%{transform:scale(1.15); opacity:1;} 100%{transform:scale(1);}}
+  .src-row{display:flex; gap:6px; overflow-x:auto; padding:2px 0 6px; scrollbar-width:none;}
+  .src-row::-webkit-scrollbar{display:none;}
+  .src-chip{flex:0 0 auto; border:1.5px solid #E2DED6; background:#fff; border-radius:100px; padding:8px 12px; font-size:12.5px; font-weight:600; color:var(--charcoal); font-family:inherit; cursor:pointer; white-space:nowrap;}
+  .src-chip.on{border-color:var(--orange); background:var(--orange); color:#fff;}
   .facts-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:2px 0 14px;}
   .fact{background:#F7F6F3; border-radius:12px; padding:9px 4px; text-align:center; min-width:0;}
   .fact .fact-lbl{font-size:11px; font-weight:700; color:#666; margin-bottom:6px;}
@@ -389,6 +393,10 @@
         <div class="trust-line" id="trust-line">🔒 Your details go straight to your agent — no spam, no cold calls from anyone else.</div>
         <div class="field"><label>Full name</label><input type="text" id="input-name" placeholder="e.g. Jordan Taylor" autocomplete="name"></div>
         <div class="field"><label>Email</label><input type="email" id="input-email" placeholder="you@email.com" autocomplete="email"></div>
+        <div id="source-wrap" class="hidden" style="margin-bottom:12px;">
+          <div class="field" style="margin-bottom:6px;"><label>Where did you see us? <span style="font-weight:400; color:#888;">(optional)</span></label></div>
+          <div class="src-row" id="source-chips"></div>
+        </div>
         <div class="field" style="margin-bottom:6px;"><label>Your home at a glance <span style="font-weight:400; color:#888;">(we counted from your photos, tap to fix)</span></label></div>
         <div class="facts-row">
           <div class="fact"><div class="fact-lbl">🛏️ Bedrooms</div><div class="stepper"><button type="button" onclick="stepFact('bedrooms',-1)">−</button><span id="fact-bedrooms">0</span><button type="button" onclick="stepFact('bedrooms',1)">+</button></div></div>
@@ -444,6 +452,32 @@
 /* ---------- CONFIG ---------- */
 let AGENT_NAME = '';
 const SESSION_ID = 'sess-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8);
+
+/* ---------- CAMPAIGN SOURCE ----------
+   A campaign QR (postcard, sign, billboard…) goes via the marketing site's
+   /q/CODE redirect, which lands here with ?c=CODE. Remember it for the browser
+   so the lead is stamped even if they come back tomorrow. If there is no code,
+   the final form asks "Where did you see us?" (one tap, optional). */
+const SOURCE_CHANNELS = [
+  ['postcard','📮','Postcard'], ['letter','✉️','Letter'], ['flyer','📄','Flyer'], ['property_sign','🪧','Property sign'],
+  ['billboard','🛣️','Billboard'], ['window_display','🏬','Window display'], ['social','📱','Social media'], ['email_signature','📧','Email'], ['other','💬','Other'],
+];
+let campaignCode = null, sourceSelf = null;
+(function pickUpCampaign(){
+  try{
+    const c = new URLSearchParams(location.search).get('c');
+    if(c && /^[A-Za-z0-9]{3,12}$/.test(c)){ campaignCode = c.toUpperCase(); localStorage.setItem('snapCampaign', JSON.stringify({ code: campaignCode, at: Date.now() })); history.replaceState(null, '', location.pathname); }
+    else { const saved = JSON.parse(localStorage.getItem('snapCampaign') || 'null'); if(saved && saved.code && Date.now() - saved.at < 30 * 864e5) campaignCode = saved.code; }
+  }catch(_){}
+})();
+function sourcePayload(){ return { campaignCode: campaignCode || null, sourceSelf: campaignCode ? null : (sourceSelf || null) }; }
+function renderSourceChips(){
+  const wrap = document.getElementById('source-wrap'); if(!wrap) return;
+  wrap.classList.toggle('hidden', !!campaignCode);
+  const row = document.getElementById('source-chips');
+  row.innerHTML = SOURCE_CHANNELS.map(([k, e, l]) => `<button type="button" class="src-chip${sourceSelf === k ? ' on' : ''}" onclick="pickSource('${k}')">${e} ${l}</button>`).join('');
+}
+function pickSource(k){ sourceSelf = sourceSelf === k ? null : k; renderSourceChips(); }
 let currentAgent = { agentId: null, agentName: '', agencyName: '', phone: '', email: '' };
 function escapeHtml(v){ return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -640,7 +674,7 @@ function beginWalkthrough(){
 function goTo(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
-  if(name === 'final') prefillHomeFacts();
+  if(name === 'final'){ prefillHomeFacts(); renderSourceChips(); }
 }
 
 /* ---------- HOME FACTS (beds / baths / cars) ----------
@@ -1250,6 +1284,7 @@ async function sendColdLeadNow(){
         roomNotes: roomNotesPayload(),
         agentId: currentAgent.agentId,
         consent: consentRecord,
+        ...sourcePayload(),
         marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
       })
     });
@@ -1298,6 +1333,7 @@ async function requestCall(){
         roomNotes: roomNotesPayload(),
         agentId: currentAgent.agentId,
         consent: consentRecord,
+        ...sourcePayload(),
         marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
       })
     });
@@ -1347,6 +1383,7 @@ async function submitHotLead(){
         roomNotes: roomNotesPayload(),
         agentId: currentAgent.agentId,
         consent: consentRecord,
+        ...sourcePayload(),
         marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
       })
     });
