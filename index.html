@@ -176,6 +176,21 @@
   .trust-line{font-size:12px; color:var(--charcoal); opacity:0.75; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-bottom:16px;}
   .field{margin-bottom:13px;}
   .field label{display:block; font-size:12px; font-weight:700; margin-bottom:6px;}
+  /* Notes on each photo page */
+  .room-notes{margin:10px 0 2px; text-align:left;}
+  .room-notes label{display:block; font-size:11.5px; font-weight:700; color:var(--charcoal); opacity:0.75; margin-bottom:4px;}
+  .room-notes textarea{width:100%; min-height:44px; max-height:110px; resize:vertical; border:1.5px solid #E2DED6; border-radius:12px; padding:9px 12px; font-family:inherit; font-size:13.5px; line-height:1.4; background:#fff;}
+  .room-notes textarea:focus{outline:none; border-color:var(--brand, #FF5A1F);}
+  /* Bedroom count picker */
+  #screen-bedrooms .content{padding:22px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  .bed-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:320px; margin:18px auto 0;}
+  .bed-btn{border:2px solid #E2DED6; background:#fff; border-radius:16px; padding:16px 0; font-size:22px; font-weight:800; cursor:pointer; color:var(--charcoal); font-family:inherit;}
+  .bed-btn:active{transform:scale(0.97);}
+  .bed-btn small{display:block; font-size:11px; font-weight:600; color:#888; margin-top:2px;}
+  /* Celebration */
+  #confetti-canvas{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:50; display:none;}
+  .confirm-icon.pop{animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;}
+  @keyframes pop{0%{transform:scale(0.2); opacity:0;} 70%{transform:scale(1.15); opacity:1;} 100%{transform:scale(1);}}
   .facts-row{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin:2px 0 14px;}
   .fact{background:#F7F6F3; border-radius:12px; padding:9px 4px; text-align:center; min-width:0;}
   .fact .fact-lbl{font-size:11px; font-weight:700; color:#666; margin-bottom:6px;}
@@ -190,7 +205,8 @@
   .final-footer{padding:16px 22px 22px; border-top:1px solid var(--line);}
 
   /* CONFIRM */
-  #screen-confirm{background:var(--warmwhite); text-align:center; justify-content:center; align-items:center; padding:40px 30px;}
+  #screen-confirm{background:var(--warmwhite); text-align:center; justify-content:flex-start; align-items:center; padding:40px 30px; overflow-y:auto;}
+  #screen-confirm > *{flex-shrink:0;}
   .confirm-icon{width:74px; height:74px; border-radius:50%; background:var(--gradient); display:flex; align-items:center; justify-content:center; font-size:32px; color:white; margin-bottom:18px;}
   #screen-confirm p{font-size:13.5px; color:var(--charcoal); opacity:0.8; margin-top:10px; line-height:1.6; max-width:280px;}
   .call-card{margin-top:22px; width:100%; max-width:300px; background:var(--white); border:2px solid var(--orange); border-radius:16px; padding:16px; text-align:left;}
@@ -302,6 +318,11 @@
             <button class="btn btn-brand" onclick="confirmPhoto()">Looks Good →</button>
           </div>
 
+          <div class="room-notes">
+            <label>Notes for your agent <span style="font-weight:400;">(optional)</span></label>
+            <textarea id="room-note" maxlength="240" placeholder="e.g. new oven, renovated last year…"></textarea>
+          </div>
+
           <!-- Bedroom-only extra actions -->
           <div class="bedroom-extras" id="bedroom-extras">
             <button class="btn btn-outline" onclick="addEnsuite()">+ Add Ensuite</button>
@@ -341,6 +362,26 @@
       </div>
     </div>
 
+    <!-- HOW MANY BEDROOMS -->
+    <div class="screen" id="screen-bedrooms">
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Bedrooms</div><div class="subtitle">Quick question</div></div><div class="header-agent agent-header-name"></div></div>
+      <div class="content">
+        <div style="font-size:44px;">🛏️</div>
+        <h2 style="margin:10px 0 4px;">How many bedrooms?</h2>
+        <p style="font-size:13.5px; color:var(--charcoal); opacity:0.75; margin:0;">We'll take you through each one. Studies and offices count too.</p>
+        <div class="bed-grid">
+          <button class="bed-btn" onclick="chooseBedrooms(1)">1</button>
+          <button class="bed-btn" onclick="chooseBedrooms(2)">2</button>
+          <button class="bed-btn" onclick="chooseBedrooms(3)">3</button>
+          <button class="bed-btn" onclick="chooseBedrooms(4)">4</button>
+          <button class="bed-btn" onclick="chooseBedrooms(5)">5</button>
+          <button class="bed-btn" onclick="chooseBedrooms(6)">6<small>or more</small></button>
+        </div>
+        <div class="skip-link" style="margin-top:18px;" onclick="chooseBedrooms(0)">No bedrooms to photograph →</div>
+      </div>
+      <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt=""></div>
+    </div>
+
     <!-- FINAL FORM -->
     <div class="screen" id="screen-final">
       <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Appraise It</div><div class="subtitle">Almost done</div></div><div class="header-agent agent-header-name"></div></div>
@@ -360,12 +401,14 @@
         <div class="submit-error" id="submit-error"></div>
       </div>
       <div class="final-footer">
-        <button class="btn btn-brand" id="submit-btn" onclick="submitHotLead()">Get My Appraisal →</button>
+        <button class="btn btn-brand" id="submit-btn" onclick="unlockCheer(); submitHotLead()">Get My Appraisal →</button>
       <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
     <!-- CONFIRM -->
+    <canvas id="confetti-canvas"></canvas>
+    <audio id="cheer-audio" preload="auto" src="cheer.mp3"></audio>
     <div class="screen" id="screen-confirm">
       <div class="confirm-icon">✓</div>
       <h2>You're all set!</h2>
@@ -556,6 +599,7 @@ let otherCount = 0;
 let roomQueue = [];       // dynamic queue of room objects being processed
 let currentIndex = 0;
 let bedroomCount = 0;
+let bedroomTarget = 0;   // how many the owner said there are (picker after Front of House)
 let uploadedPhotos = [];  // [{room,url}]
 let propertyAddress = '';
 let coldLeadRecordId = null;
@@ -605,7 +649,7 @@ function goTo(name){
 const homeFacts = { bedrooms: null, bathrooms: null, carSpaces: null };
 function prefillHomeFacts(){
   const rooms = uploadedPhotos.map(p => String(p.room || ''));
-  if(homeFacts.bedrooms === null)  homeFacts.bedrooms  = Math.max(bedroomCount, rooms.filter(r => /bedroom/i.test(r) && !/ensuite/i.test(r)).length);
+  if(homeFacts.bedrooms === null)  homeFacts.bedrooms  = bedroomTarget || Math.max(bedroomCount, rooms.filter(r => /bedroom/i.test(r) && !/ensuite/i.test(r)).length);
   if(homeFacts.bathrooms === null) homeFacts.bathrooms = rooms.filter(r => /bathroom|ensuite/i.test(r)).length;
   if(homeFacts.carSpaces === null) homeFacts.carSpaces = rooms.some(r => /garage|carport/i.test(r)) || selectedFeatures.has('garage') ? 1 : 0;
   renderHomeFacts();
@@ -652,6 +696,7 @@ function renderRoom(){
   document.getElementById('skip-photo-link').style.display = frontOfHouseDone ? 'block' : 'none';
 
   resetPreview();
+  loadRoomNote(r);
   document.querySelectorAll('.room-tile').forEach((t,i)=> t.classList.toggle('current', i === tileIndexForCurrent()));
 }
 function tileIndexForCurrent(){
@@ -787,6 +832,7 @@ async function confirmPhoto(){
     const url = await uploadCurrentPhoto(room.id);
     uploadedPhotos.push({room: room.label, url});
   }catch(err){ console.error('upload failed', err); }
+  saveRoomNote(room);
   btn.textContent = original; btn.disabled = false;
 
   markTileDone();
@@ -875,6 +921,7 @@ function markSkippedTile(){
 // loop still continues normally, etc).
 function skipPhoto(){
   const room = roomQueue[currentIndex];
+  saveRoomNote(room);
   markSkippedTile();
   if(room.isExtra){ goTo('extras'); return; }   // skipped extra: back to the list, not ticked
   if(room.isFront){ sendColdLead(); }
@@ -891,8 +938,9 @@ function advanceQueue(){
   currentIndex++;
 
   if(finishedRoom.isFront){
-    // after front of house, start bedroom loop
-    insertNextBedroom();
+    // after front of house, ask how many bedrooms, then loop through them
+    goTo('bedrooms');
+    return;
   }
 
   if(finishedRoom.isExtra){
@@ -907,6 +955,77 @@ function advanceQueue(){
   }
   renderRoom();
   goTo('capture');
+}
+
+function chooseBedrooms(n){
+  bedroomTarget = n;
+  homeFacts.bedrooms = n;                 // pre-fills the final form
+  if(n <= 0){ goTo('agent'); return; }
+  insertNextBedroom();
+  renderRoom();
+  goTo('capture');
+}
+
+/* ---------- ROOM NOTES ----------
+   A free-text note per photo page ("new oven", "renovated 2023"). Saved with
+   the photo, shown to the agent in the portal and in the lead email. */
+const NOTE_HINTS = [
+  [/kitchen/i, 'e.g. new oven 2024, stone benchtops, dishwasher stays'],
+  [/bath|ensuite/i, 'e.g. renovated 2022, new vanity, heated towel rail'],
+  [/bedroom/i, 'e.g. built-in robes, ceiling fan, new carpet'],
+  [/front/i, 'e.g. new roof 2020, repainted, new fence'],
+  [/living|lounge|dining/i, 'e.g. ducted air-con, new flooring, north-facing'],
+  [/pool/i, 'e.g. saltwater, new pump 2023, compliant fence'],
+  [/garage|carport/i, 'e.g. remote door, room for 2 cars, workshop bench'],
+  [/solar/i, 'e.g. 6.6 kW system installed 2022'],
+  [/yard|garden|deck|patio/i, 'e.g. fully fenced, irrigation, built 2021'],
+];
+const roomNotes = {};   // room label -> note
+function noteHintFor(label){ const h = NOTE_HINTS.find(([re]) => re.test(label || '')); return h ? h[1] : 'e.g. recently updated, anything worth mentioning…'; }
+function loadRoomNote(r){
+  const ta = document.getElementById('room-note'); if(!ta) return;
+  ta.placeholder = noteHintFor(r && r.label);
+  ta.value = (r && roomNotes[r.label]) || '';
+}
+function saveRoomNote(r){
+  const ta = document.getElementById('room-note'); if(!ta || !r) return;
+  const v = ta.value.trim().slice(0, 240);
+  if(v) roomNotes[r.label] = v; else delete roomNotes[r.label];
+  // keep the note on the photo object too, if that room has a photo
+  const ph = uploadedPhotos.find(p => p.room === r.label); if(ph){ if(v) ph.note = v; else delete ph.note; }
+}
+function roomNotesPayload(){ return Object.entries(roomNotes).map(([room, note]) => ({ room, note })); }
+
+/* ---------- CELEBRATION: confetti + crowd cheer when the walkthrough is complete ---------- */
+let cheerUnlocked = false;
+function unlockCheer(){
+  // Browsers only allow sound after a tap: prime the audio on the submit tap so it can play after the upload finishes
+  if(cheerUnlocked) return;
+  const a = document.getElementById('cheer-audio'); if(!a) return;
+  try{ a.muted = true; const p = a.play(); if(p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; cheerUnlocked = true; }).catch(() => {}); }catch(_){}
+}
+function celebrate(){
+  const a = document.getElementById('cheer-audio');
+  if(a){ try{ a.muted = false; a.currentTime = 0; a.volume = 0.9; a.play().catch(() => {}); }catch(_){} }
+  const icon = document.querySelector('#screen-confirm .confirm-icon'); if(icon){ icon.classList.remove('pop'); void icon.offsetWidth; icon.classList.add('pop'); }
+  if(navigator.vibrate) try{ navigator.vibrate([60, 40, 60, 40, 120]); }catch(_){}
+  const c = document.getElementById('confetti-canvas'); if(!c) return;
+  const ctx = c.getContext('2d'); const dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr; c.style.display = 'block'; ctx.scale(dpr, dpr);
+  const colours = ['#FF5A1F', '#FFB800', '#2563EB', '#10B981', '#EC4899', '#FFFFFF', '#F97316'];
+  const bits = [];
+  const burst = (x, y, n, spread) => { for(let i = 0; i < n; i++){ const ang = -Math.PI/2 + (Math.random() - 0.5) * spread; const sp = 6 + Math.random() * 9; bits.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, w: 6 + Math.random() * 6, h: 8 + Math.random() * 8, r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3, col: colours[(Math.random() * colours.length) | 0], life: 1 }); } };
+  burst(innerWidth * 0.5, innerHeight * 0.55, 140, 2.2);
+  setTimeout(() => burst(innerWidth * 0.15, innerHeight * 0.7, 70, 1.4), 250);
+  setTimeout(() => burst(innerWidth * 0.85, innerHeight * 0.7, 70, 1.4), 450);
+  const start = performance.now();
+  (function frame(now){
+    const t = (now - start) / 1000;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for(const b of bits){ b.vy += 0.25; b.vx *= 0.99; b.x += b.vx; b.y += b.vy; b.r += b.vr; if(t > 2.4) b.life -= 0.02;
+      ctx.save(); ctx.globalAlpha = Math.max(0, b.life); ctx.translate(b.x, b.y); ctx.rotate(b.r); ctx.fillStyle = b.col; ctx.fillRect(-b.w/2, -b.h/2, b.w, b.h); ctx.restore(); }
+    if(t < 4.2) requestAnimationFrame(frame); else { c.style.display = 'none'; ctx.setTransform(1,0,0,1,0,0); }
+  })(start);
 }
 
 function insertNextBedroom(){
@@ -941,7 +1060,7 @@ function afterBedroomAdvance(){
   // called when leaving a bedroom (via Continue) or an ensuite (auto) to resume the bedroom loop
   const finishedRoom = roomQueue[currentIndex];
   currentIndex++;
-  if(finishedRoom.continueBedroomLoop && bedroomCount < MAX_AUTO_BEDROOMS){
+  if(finishedRoom.continueBedroomLoop && bedroomCount < bedroomTarget){
     insertNextBedroom();
     renderRoom();
     goTo('capture');
@@ -1128,6 +1247,7 @@ async function sendColdLeadNow(){
         address: propertyAddress,
         leadType: 'Cold Lead',
         photos: uploadedPhotos,
+        roomNotes: roomNotesPayload(),
         agentId: currentAgent.agentId,
         consent: consentRecord,
         marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
@@ -1175,6 +1295,7 @@ async function requestCall(){
         ...homeFactsPayload(),
         featuresSelected: Array.from(selectedFeatures),
         photos: uploadedPhotos,
+        roomNotes: roomNotesPayload(),
         agentId: currentAgent.agentId,
         consent: consentRecord,
         marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
@@ -1223,6 +1344,7 @@ async function submitHotLead(){
         ...homeFactsPayload(),
         featuresSelected: Array.from(selectedFeatures),
         photos: uploadedPhotos,
+        roomNotes: roomNotesPayload(),
         agentId: currentAgent.agentId,
         consent: consentRecord,
         marketingConsent: !!(document.getElementById('marketing-consent') || {}).checked,
@@ -1232,6 +1354,7 @@ async function submitHotLead(){
     renderCantWait();
     renderCallCard();
     goTo('confirm');
+    setTimeout(celebrate, 350);
   }catch(err){
     console.error(err);
     errorBox.textContent = "Couldn't send that just now — check your connection and try again.";
