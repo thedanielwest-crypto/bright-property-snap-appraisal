@@ -68,7 +68,7 @@ function sbHeaders(extra = {}) {
 // Best-effort — a Supabase hiccup should never break the Airtable-backed
 // flow real agents already depend on, so every error here is swallowed
 // after logging rather than failing the whole request.
-async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces }) {
+async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces, roomNotes }) {
   if (!agentId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   try {
     const findRes = await fetchWithRetry(
@@ -93,9 +93,15 @@ async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullN
     if (count(bathrooms) !== null) fields.bathroom_count = count(bathrooms);
     if (count(carSpaces) !== null) fields.car_spaces = count(carSpaces);
     if (Array.isArray(featuresSelected)) fields.features_selected = featuresSelected;
+    if (Array.isArray(roomNotes)) {
+      fields.room_notes = roomNotes
+        .filter((n) => n && n.room && n.note)
+        .slice(0, 40)
+        .map((n) => ({ room: String(n.room).slice(0, 60), note: String(n.note).slice(0, 240) }));
+    }
     if (Array.isArray(photos)) {
       fields.rooms_photographed = photos.length;
-      fields.photos = photos.map((p) => ({ room: p.room || '', url: p.url }));
+      fields.photos = photos.map((p) => ({ room: p.room || '', url: p.url, ...(p.note ? { note: String(p.note).slice(0, 240) } : {}) }));
     }
     // Consent evidence: recorded when the client accepted the disclosure screen
     if (consent && consent.at) {
@@ -162,6 +168,7 @@ exports.handler = async (event) => {
     photos,
     agentId,        // present once this link belongs to an agent beyond Rob
     bedrooms, bathrooms, carSpaces,   // owner-confirmed counts from the final form
+    roomNotes,                        // [{room, note}] typed on each photo page
     consent,        // {at, version, agentId} from the disclosure screen
     marketingConsent,
   } = payload;
@@ -170,10 +177,11 @@ exports.handler = async (event) => {
   // Airtable save; we wait for it just before responding so the email is
   // actually sent before the function is frozen. It can never break the
   // Airtable-backed response below (every error inside is swallowed).
-  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces });
+  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces, roomNotes });
 
   const noteLines = [];
   if (leadType) noteLines.push(`[${leadType}]`);
+  if (Array.isArray(roomNotes)) roomNotes.filter((n) => n && n.room && n.note).forEach((n) => noteLines.push(`${n.room}: ${String(n.note).slice(0, 240)}`));
 
   const fields = {
     [FIELDS.address]: address || '',
