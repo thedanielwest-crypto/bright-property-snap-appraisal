@@ -65,10 +65,29 @@ function sbHeaders(extra = {}) {
   };
 }
 
+// Campaign source: a code from a /q/CODE QR redirect (trusted only if it belongs
+// to this agent) or, failing that, what the client tapped on the final form.
+const SOURCE_CHANNELS = new Set(['postcard', 'letter', 'flyer', 'property_sign', 'billboard', 'window_display', 'social', 'email_signature', 'other']);
+async function resolveSource(agentId, campaignCode, sourceSelf) {
+  const out = {};
+  const code = String(campaignCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  if (code) {
+    try {
+      const r = await fetch(`${process.env.SUPABASE_URL}/rest/v1/campaigns?code=eq.${code}&agent_id=eq.${agentId}&select=id,name,channel`, { headers: sbHeaders() });
+      const c = r.ok ? (await r.json())[0] : null;
+      if (c) return { campaign_id: c.id, campaign_code: code, source_channel: c.channel, source_name: c.name, source_self_reported: false };
+    } catch (e) { console.error('campaign lookup failed', e); }
+  }
+  if (sourceSelf && SOURCE_CHANNELS.has(String(sourceSelf))) {
+    return { source_channel: String(sourceSelf), source_name: null, source_self_reported: true };
+  }
+  return out;
+}
+
 // Best-effort — a Supabase hiccup should never break the Airtable-backed
 // flow real agents already depend on, so every error here is swallowed
 // after logging rather than failing the whole request.
-async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces, roomNotes }) {
+async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces, roomNotes, campaignCode, sourceSelf }) {
   if (!agentId || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
   try {
     const findRes = await fetchWithRetry(
@@ -99,6 +118,7 @@ async function upsertSupabaseLead({ agentId, sessionId, leadType, address, fullN
         .slice(0, 40)
         .map((n) => ({ room: String(n.room).slice(0, 60), note: String(n.note).slice(0, 240) }));
     }
+    Object.assign(fields, await resolveSource(agentId, campaignCode, sourceSelf));
     if (Array.isArray(photos)) {
       fields.rooms_photographed = photos.length;
       fields.photos = photos.map((p) => ({ room: p.room || '', url: p.url, ...(p.note ? { note: String(p.note).slice(0, 240) } : {}) }));
@@ -169,6 +189,7 @@ exports.handler = async (event) => {
     agentId,        // present once this link belongs to an agent beyond Rob
     bedrooms, bathrooms, carSpaces,   // owner-confirmed counts from the final form
     roomNotes,                        // [{room, note}] typed on each photo page
+    campaignCode, sourceSelf,         // where the QR was scanned / what the client tapped
     consent,        // {at, version, agentId} from the disclosure screen
     marketingConsent,
   } = payload;
@@ -177,7 +198,7 @@ exports.handler = async (event) => {
   // Airtable save; we wait for it just before responding so the email is
   // actually sent before the function is frozen. It can never break the
   // Airtable-backed response below (every error inside is swallowed).
-  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces, roomNotes });
+  const supabaseWork = upsertSupabaseLead({ agentId, sessionId, leadType, address, fullName, email, mobile, contactPreference, featuresSelected, photos, consent, marketingConsent, bedrooms, bathrooms, carSpaces, roomNotes, campaignCode, sourceSelf });
 
   const noteLines = [];
   if (leadType) noteLines.push(`[${leadType}]`);
