@@ -171,7 +171,13 @@ function shell({ kicker, headline, sub, body, cta, ctaHref, why, whyTitle, prehe
 </table></td></tr></table></body></html>`;
 }
 function propertyBox(title, address, rows) {
-  const r = rows.filter(([, v]) => v !== null && v !== undefined && v !== '').map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0; font-size:13px; color:#888; white-space:nowrap; vertical-align:top;">${esc(k)}</td><td style="padding:4px 0; font-size:14px; color:#222; font-weight:600;">${esc(v)}</td></tr>`).join('');
+  // Mobile / Email values become tap-to-call / tap-to-email links
+  const val = (k, v) => {
+    if (k === 'Mobile' && /\d{6,}/.test(String(v).replace(/\D/g, ''))) return `<a href="tel:${esc(String(v).replace(/[^\d+]/g, ''))}" style="color:#222; text-decoration:underline;">${esc(v)}</a>`;
+    if (k === 'Email' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v))) return `<a href="mailto:${esc(v)}" style="color:#222; text-decoration:underline;">${esc(v)}</a>`;
+    return esc(v);
+  };
+  const r = rows.filter(([, v]) => v !== null && v !== undefined && v !== '').map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0; font-size:13px; color:#888; white-space:nowrap; vertical-align:top;">${esc(k)}</td><td style="padding:4px 0; font-size:14px; color:#222; font-weight:600;">${val(k, v)}</td></tr>`).join('');
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 16px;"><tr><td style="background:#F7F6F3; border-radius:12px; padding:14px 16px;">
     <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase;">${esc(title)}</div>
     <div style="font-size:17px; font-weight:800; color:${INK}; margin:4px 0 8px;">${esc(address || '(no address given)')}</div>
