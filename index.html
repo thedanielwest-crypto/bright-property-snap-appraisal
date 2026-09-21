@@ -409,14 +409,13 @@
         <div class="submit-error" id="submit-error"></div>
       </div>
       <div class="final-footer">
-        <button class="btn btn-brand" id="submit-btn" onclick="unlockCheer(); submitHotLead()">Get My Appraisal →</button>
+        <button class="btn btn-brand" id="submit-btn" onclick="submitHotLead()">Get My Appraisal →</button>
       <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
     <!-- CONFIRM -->
     <canvas id="confetti-canvas"></canvas>
-    <audio id="cheer-audio" preload="auto" src="cheer.mp3"></audio>
     <div class="screen" id="screen-confirm">
       <div class="confirm-icon">✓</div>
       <h2>You're all set!</h2>
@@ -1030,17 +1029,8 @@ function saveRoomNote(r){
 }
 function roomNotesPayload(){ return Object.entries(roomNotes).map(([room, note]) => ({ room, note })); }
 
-/* ---------- CELEBRATION: confetti + crowd cheer when the walkthrough is complete ---------- */
-let cheerUnlocked = false;
-function unlockCheer(){
-  // Browsers only allow sound after a tap: prime the audio on the submit tap so it can play after the upload finishes
-  if(cheerUnlocked) return;
-  const a = document.getElementById('cheer-audio'); if(!a) return;
-  try{ a.muted = true; const p = a.play(); if(p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; cheerUnlocked = true; }).catch(() => {}); }catch(_){}
-}
+/* ---------- CELEBRATION: confetti when the walkthrough is complete (no sound) ---------- */
 function celebrate(){
-  const a = document.getElementById('cheer-audio');
-  if(a){ try{ a.muted = false; a.currentTime = 0; a.volume = 0.9; a.play().catch(() => {}); }catch(_){} }
   const icon = document.querySelector('#screen-confirm .confirm-icon'); if(icon){ icon.classList.remove('pop'); void icon.offsetWidth; icon.classList.add('pop'); }
   if(navigator.vibrate) try{ navigator.vibrate([60, 40, 60, 40, 120]); }catch(_){}
   const c = document.getElementById('confetti-canvas'); if(!c) return;
