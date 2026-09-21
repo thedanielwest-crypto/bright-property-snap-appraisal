@@ -90,13 +90,13 @@ async function log(entry) {
 }
 
 // Low-level send. Returns {ok, id?, error?}. Never throws.
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ to, subject, html, attachments }) {
   try {
     if (process.env.RESEND_API_KEY) {
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: process.env.LEAD_EMAIL_FROM || `${BRAND} <onboarding@resend.dev>`, to: [to], subject, html }),
+        body: JSON.stringify({ from: process.env.LEAD_EMAIL_FROM || `${BRAND} <onboarding@resend.dev>`, to: [to], subject, html, ...(attachments && attachments.length ? { attachments } : {}) }),
       });
       const body = await res.text();
       if (!res.ok) return { ok: false, error: `Resend ${res.status}: ${body.slice(0, 300)}` };
@@ -106,7 +106,7 @@ async function sendEmail({ to, subject, html }) {
     if (process.env.LEAD_EMAIL_WEBHOOK) {
       const res = await fetch(process.env.LEAD_EMAIL_WEBHOOK, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, html }),
+        body: JSON.stringify({ to, subject, html, attachments: attachments || [] }),
       });
       if (!res.ok) return { ok: false, error: `Webhook ${res.status}` };
       return { ok: true, id: 'webhook' };
@@ -377,4 +377,4 @@ async function sendWelcome(agent) {
   } catch (e) { console.error('welcome email failed (non-fatal)', e); }
 }
 
-module.exports = { notify, notifyForLead, sendEmail, getAgent, wantsEmail, weeklyEmail, welcomeEmail, sendWelcome, mailoutEmail, hotEmail, warmEmail, lockedEmail, testEmail, NOTIFY_DEFAULTS, sbHeaders, log };
+module.exports = { shell, esc, notify, notifyForLead, sendEmail, getAgent, wantsEmail, weeklyEmail, welcomeEmail, sendWelcome, mailoutEmail, hotEmail, warmEmail, lockedEmail, testEmail, NOTIFY_DEFAULTS, sbHeaders, log };
