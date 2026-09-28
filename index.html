@@ -100,6 +100,11 @@
   .check-row{display:flex; gap:10px; align-items:flex-start; font-size:12.5px; line-height:1.45; margin:10px 0 0; color:var(--charcoal);}
   .check-row input{margin-top:3px; width:18px; height:18px; flex-shrink:0; accent-color:var(--orange);}
   /* CAPTURE */
+  .room-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 4px 8px; flex-shrink:0;}
+  .room-nav-btn{background:none; border:0; font:inherit; font-size:13px; font-weight:600; color:var(--charcoal); opacity:0.42; padding:6px 8px; cursor:pointer; border-radius:8px;}
+  .room-nav-btn:hover{opacity:0.85; background:rgba(0,0,0,0.04);}
+  .room-nav-btn[disabled]{opacity:0; pointer-events:none;}
+  .room-nav-pos{font-size:11.5px; color:var(--charcoal); opacity:0.38; letter-spacing:0.02em;}
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
   .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center;}
   .step-tag{font-size:11.5px; font-weight:700; color:var(--orange); letter-spacing:0.08em; text-transform:uppercase;}
@@ -291,6 +296,11 @@
         <div class="header-agent agent-header-name"></div>
       </div>
       <div class="capture-body">
+        <div class="room-nav" id="room-nav">
+          <button type="button" class="room-nav-btn" id="room-back" onclick="stepRoom(-1)">‹ Back</button>
+          <span class="room-nav-pos" id="room-nav-pos"></span>
+          <button type="button" class="room-nav-btn" id="room-fwd" onclick="stepRoom(1)">Next ›</button>
+        </div>
         <div class="room-now">
           <div class="step-tag" id="step-tag">Photo</div>
           <div class="room-emoji" id="room-emoji">📷</div>
@@ -634,6 +644,7 @@ let otherCount = 0;
 /* ---------- STATE ---------- */
 let roomQueue = [];       // dynamic queue of room objects being processed
 let currentIndex = 0;
+let maxIndex = 0;          // furthest room reached; you can step back to redo any photo before it
 let bedroomCount = 0;
 let bedroomTarget = 0;   // how many the owner said there are (picker after Front of House)
 let uploadedPhotos = [];  // [{room,url}]
@@ -667,6 +678,7 @@ function startFlow(){
 function beginWalkthrough(){
   roomQueue = [...CORE_START];
   currentIndex = 0;
+  maxIndex = 0;
   allTilesRendered = [...roomQueue];
   buildRoomStrip();
   renderRoom();
@@ -720,8 +732,26 @@ function addTileForNewRoom(){
 }
 
 /* ---------- RENDER ROOM ---------- */
+// Step back to redo a photo, or forward again to where you were up to.
+// Only moves through rooms already visited: the normal buttons drive new ones.
+function stepRoom(dir){
+  const target = currentIndex + dir;
+  if(target < 0 || target > maxIndex || target >= roomQueue.length) return;
+  currentIndex = target;
+  renderRoom();
+  goTo('capture');
+}
+function renderRoomNav(){
+  const back = document.getElementById('room-back'), fwd = document.getElementById('room-fwd'), pos = document.getElementById('room-nav-pos');
+  if(!back) return;
+  back.disabled = currentIndex <= 0;
+  fwd.disabled = currentIndex >= maxIndex;
+  const redoing = currentIndex < maxIndex;
+  pos.textContent = redoing ? `Redoing photo ${currentIndex + 1} of ${maxIndex + 1}` : '';
+}
 function renderRoom(){
   const r = roomQueue[currentIndex];
+  if(currentIndex > maxIndex) maxIndex = currentIndex;
   document.getElementById('room-emoji').textContent = r.emoji;
   document.getElementById('room-title').textContent = r.label;
   document.getElementById('step-tag').textContent = r.label;
@@ -734,6 +764,7 @@ function renderRoom(){
   resetPreview();
   loadRoomNote(r);
   document.querySelectorAll('.room-tile').forEach((t,i)=> t.classList.toggle('current', i === tileIndexForCurrent()));
+  renderRoomNav();
 }
 function tileIndexForCurrent(){
   return allTilesRendered.indexOf(roomQueue[currentIndex]);
@@ -866,7 +897,10 @@ async function confirmPhoto(){
   btn.textContent = 'Uploading…'; btn.disabled = true;
   try{
     const url = await uploadCurrentPhoto(room.id);
-    uploadedPhotos.push({room: room.label, url});
+    // Redoing a room replaces its photo rather than adding a second one
+    const existing = uploadedPhotos.findIndex(x => x.room === room.label);
+    if(existing >= 0) uploadedPhotos[existing] = { room: room.label, url };
+    else uploadedPhotos.push({ room: room.label, url });
   }catch(err){ console.error('upload failed', err); }
   saveRoomNote(room);
   btn.textContent = original; btn.disabled = false;
@@ -882,6 +916,15 @@ async function confirmPhoto(){
     frontOfHouseDone = true; // D2: skip option only unlocks after this point
   } else {
     sendColdLead();
+  }
+
+  // Redoing an earlier room: just carry on forward, don't replay the flow
+  // (no "add an ensuite?" prompt, no jump back to the bedroom count).
+  if(currentIndex < maxIndex){
+    currentIndex++;
+    renderRoom();
+    goTo('capture');
+    return;
   }
 
   if(room.isBedroom){
@@ -958,6 +1001,7 @@ function markSkippedTile(){
 function skipPhoto(){
   const room = roomQueue[currentIndex];
   saveRoomNote(room);
+  if(currentIndex < maxIndex){ currentIndex++; renderRoom(); goTo('capture'); return; }   // redoing: keep the photo already taken, move on
   markSkippedTile();
   if(room.isExtra){ goTo('extras'); return; }   // skipped extra: back to the list, not ticked
   if(room.isFront){ sendColdLead(); }
@@ -1159,6 +1203,7 @@ function photographExtra(f){
   }
   roomQueue = [extraRoomObjs[f.id]];
   currentIndex = 0;
+  maxIndex = 0;
   buildRoomStrip();
   // restore done ticks on the strip for anything already photographed
   allTilesRendered.forEach((r,i)=>{ if(r.isExtra && selectedFeatures.has(r.id)){ const t=document.getElementById('tile-'+i); if(t){ t.classList.add('done'); t.querySelector('.dot').textContent='✓'; } } });
