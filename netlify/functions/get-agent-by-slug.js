@@ -48,7 +48,7 @@ exports.handler = async (event) => {
 
   try {
     const res = await fetchWithRetry(
-      `${process.env.SUPABASE_URL}/rest/v1/agents?slug=eq.${encodeURIComponent(slug)}&select=id,agent_name,agency_name,email,phone,logo_url,headshot_url,brand_color,stat_homes,stat_avg_days,stat_local_tag,intro_statement,tagline`,
+      `${process.env.SUPABASE_URL}/rest/v1/agents?slug=eq.${encodeURIComponent(slug)}&select=id,agent_name,agency_name,email,phone,logo_url,headshot_url,brand_color,stat_homes,stat_avg_days,stat_local_tag,intro_statement,tagline,finish_url`,
       { headers: sbHeaders() }
     );
     if (!res.ok) {
@@ -60,6 +60,18 @@ exports.handler = async (event) => {
       return { statusCode: 404, body: JSON.stringify({ ok: false, message: 'No agent found for that link' }) };
     }
     const a = rows[0];
+    // Where the "Finish" button sends the client at the end: the campaign's own
+    // destination (agent's QR-swap use case) or the agent's default finish link.
+    let finishUrl = a.finish_url || '';
+    const code = String((event.queryStringParameters && event.queryStringParameters.c) || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+    if (code) {
+      try {
+        const cr = await fetchWithRetry(`${process.env.SUPABASE_URL}/rest/v1/campaigns?agent_id=eq.${a.id}&code=eq.${code}&select=destination_url&limit=1`, { headers: sbHeaders() });
+        const crow = cr.ok ? (await cr.json())[0] : null;
+        if (crow && crow.destination_url) finishUrl = crow.destination_url;
+      } catch (e) { /* fall back to the agent default */ }
+    }
+    if (!/^https?:\/\//i.test(finishUrl)) finishUrl = '';
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -77,6 +89,7 @@ exports.handler = async (event) => {
         statLocalTag: a.stat_local_tag || 'Local',
         introStatement: a.intro_statement || '',
         tagline: a.tagline || '',
+        finishUrl,
       }),
     };
   } catch (err) {
