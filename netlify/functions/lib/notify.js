@@ -138,9 +138,22 @@ async function notify({ agent, kind, leadId = null, subject, html }) {
    "Hi {first}", property box, CTA button, "why this matters" box, brand footer.
    Table-based + inline styles so Gmail / Outlook / Apple Mail all render it. */
 const firstName = (agent) => String((agent && agent.agent_name) || '').trim().split(/\s+/)[0] || 'there';
+// One-click unsubscribe: a signed link, so it works straight from the inbox
+// without a login. Same secret as the session tokens.
+const crypto = require('crypto');
+function unsubSecret() {
+  if (process.env.SESSION_SECRET) return process.env.SESSION_SECRET;
+  return crypto.createHash('sha256').update('snap-session:' + (process.env.SUPABASE_SERVICE_ROLE_KEY || '')).digest('hex');
+}
+function unsubToken(agentId) {
+  return crypto.createHmac('sha256', unsubSecret()).update('unsub:' + String(agentId)).digest('base64url').slice(0, 32);
+}
+function unsubLink(agentId) {
+  return `${PORTAL_URL}/.netlify/functions/unsubscribe?a=${encodeURIComponent(agentId)}&t=${unsubToken(agentId)}`;
+}
 const P = (t) => `<p style="margin:0 0 14px; font-size:15px; line-height:1.6; color:#333;">${t}</p>`;
 
-function shell({ kicker, headline, sub, body, cta, ctaHref, why, whyTitle, preheader, unsubNote = true }) {
+function shell({ kicker, headline, sub, body, cta, ctaHref, why, whyTitle, preheader, unsubNote = true, agentId = null }) {
   return `
 <!doctype html><html><body style="margin:0; padding:0; background:#F5F4F1;">
 <span style="display:none; max-height:0; overflow:hidden; opacity:0;">${esc(preheader || '')}</span>
@@ -166,7 +179,11 @@ function shell({ kicker, headline, sub, body, cta, ctaHref, why, whyTitle, prehe
     <div style="font-size:13px; font-weight:800; color:${INK};">${esc(BRAND)} Australia</div>
     <div style="font-size:12.5px; color:#777; font-style:italic; margin:2px 0 6px;">${esc(TAGLINE)}</div>
     <a href="${SITE_URL}" style="font-size:12px; color:${ACCENT}; text-decoration:none;">${esc(SITE_URL.replace(/^https?:\/\//, ''))}</a>
-    ${unsubNote ? `<div style="font-size:11px; color:#AAA; margin-top:12px; line-height:1.5;">You're receiving this because it's switched on under Notifications in your ${esc(PORTAL_LABEL)}. Change what you get any time at <a href="${PORTAL_URL}" style="color:#AAA;">${esc(PORTAL_URL.replace(/^https?:\/\//, ''))}</a>.</div>` : ''}
+    <div style="font-size:11px; color:#AAA; margin-top:12px; line-height:1.6;">
+      ${unsubNote ? `You're receiving this because it's switched on under Notifications in your ${esc(PORTAL_LABEL)}.<br>` : ''}
+      <a href="${PORTAL_URL}" style="color:#888; text-decoration:underline;">Manage my notifications</a>
+      ${agentId ? ` &nbsp;·&nbsp; <a href="${unsubLink(agentId)}" style="color:#888; text-decoration:underline;">Unsubscribe from these emails</a>` : ''}
+    </div>
   </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -245,15 +262,15 @@ const TEMPLATE_DEFAULTS = {
   welcome: { label: 'Welcome (at sign-up)', group: 'Account', vars: ['first', 'brand', 'portal'],
     subject: `Welcome to {brand}, your next ${WIN_NOUN} starts here`, preheader: `Turn ${CLIENT_NOUN} interest into warmer, higher-quality property leads.`, kicker: 'Welcome to {brand}', headline: `You're in. Let's find your next ${WIN_NOUN}.`, sub: `Smart technology. Better intent signals. Faster ${AGENT_NOUN} follow-up.`,
     intro: `Welcome to {brand} Australia. You now have a smarter way to discover ${CLIENT_NOUN}s who are already thinking about their property, before they become just another cold prospect in somebody else's database.`, outro: `Your next ${WIN_NOUN} may already be looking for you.`, cta: `Open my ${PORTAL_LABEL.toLowerCase()}`, whyTitle: '', why: '' },
-  trial5: { label: 'Free month ending in 5 days (SAVETIME giveaway)', group: 'Launch giveaway', vars: ['first', 'daysLeft', 'trialEnds', 'brand', 'portal'],
-    subject: '5 days left of your free Full Access, {first}', preheader: 'Your SAVETIME month ends on {trialEnds}. Keep every lead flowing.', kicker: 'Launch giveaway', headline: 'Your free month of Full Access ends in {daysLeft} days.', sub: 'Everything you have unlocked stays yours when you subscribe before {trialEnds}.',
-    intro: `Your SAVETIME launch giveaway has given you a full month of {brand} Full Access: every hot and warm lead unlocked, campaign QR codes, analytics and the branded reports. It ends on {trialEnds}.`, outro: `Subscribe now and nothing changes on the day: your leads, campaigns and QR codes carry straight on. From $49 a month, cancel any time. Referred by a colleague? Your $10 off is applied automatically at checkout.`, cta: 'Keep Full Access', whyTitle: 'What happens if you don\'t', why: 'On {trialEnds} your account drops back to the free plan: your 3 most recent hot leads stay unlocked, the rest are blurred, and campaign QR codes and analytics switch off until you subscribe.' },
-  trial1: { label: 'Free month ending in 24 hours (SAVETIME giveaway)', group: 'Launch giveaway', vars: ['first', 'trialEnds', 'brand', 'portal'],
-    subject: 'Last day: your free Full Access ends tomorrow', preheader: 'Your SAVETIME month ends {trialEnds}. One tap keeps everything.', kicker: 'Ends tomorrow', headline: 'Your free month of Full Access ends in 24 hours.', sub: 'Subscribe today and your leads, campaigns and QR codes carry straight on.',
-    intro: 'This is the last reminder: your SAVETIME launch giveaway month of {brand} Full Access finishes on {trialEnds}.', outro: 'It takes about a minute: Subscription › Monthly, 6 months or 12 months. Referred by a colleague? Your $10 off is applied automatically at checkout.', cta: 'Subscribe now', whyTitle: 'After tomorrow', why: 'Your account drops back to the free plan: 3 most recent hot leads unlocked, the rest blurred, campaign QR codes and analytics paused. Everything comes straight back the moment you subscribe.' },
-  trialend: { label: 'Free month has ended', group: 'Launch giveaway', vars: ['first', 'brand', 'portal'],
-    subject: 'Your free Full Access has ended — here\'s how to get it back', preheader: 'Your SAVETIME month has finished. Your account is on the free plan.', kicker: 'Free month over', headline: 'Your launch giveaway month has ended.', sub: 'You\'re on the free plan now. Subscribe any time to unlock everything again.',
-    intro: 'Thanks for trying {brand} Full Access. Your SAVETIME month has finished, so your account is now on the free plan: your 3 most recent hot leads stay unlocked and your QR code keeps working.', outro: 'Subscribe from $49 a month and every lead, campaign and report is unlocked again instantly.', cta: 'Unlock Full Access', whyTitle: '', why: '' },
+  trial5: { label: 'Free access ending in 5 days', group: 'Launch giveaway', vars: ['first', 'daysLeft', 'trialEnds', 'trialLength', 'brand', 'portal'],
+    subject: '5 days left of your free Full Access, {first}', preheader: 'Your free access ends on {trialEnds}. Keep every lead flowing.', kicker: 'Launch giveaway', headline: 'Your free Full Access ends in {daysLeft} days.', sub: 'Everything you have unlocked stays yours when you subscribe before {trialEnds}.',
+    intro: `Your promo code has given you {trialLength} of {brand} Full Access: every hot and warm lead unlocked, campaign QR codes, analytics and the branded reports. It ends on {trialEnds}.`, outro: `Subscribe now and nothing changes on the day: your leads, campaigns and QR codes carry straight on. From $49 a month, cancel any time. Referred by a colleague? Your $10 off is applied automatically at checkout.`, cta: 'Keep Full Access', whyTitle: 'What happens if you don\'t', why: 'On {trialEnds} your account drops back to the free plan: your 3 most recent hot leads stay unlocked, the rest are blurred, and campaign QR codes and analytics switch off until you subscribe.' },
+  trial1: { label: 'Free access ending in 24 hours', group: 'Launch giveaway', vars: ['first', 'trialEnds', 'trialLength', 'brand', 'portal'],
+    subject: 'Last day: your free Full Access ends tomorrow', preheader: 'Your free access ends {trialEnds}. One tap keeps everything.', kicker: 'Ends tomorrow', headline: 'Your free Full Access ends in 24 hours.', sub: 'Subscribe today and your leads, campaigns and QR codes carry straight on.',
+    intro: 'This is the last reminder: your free {brand} Full Access finishes on {trialEnds}.', outro: 'It takes about a minute: Subscription › Monthly, 6 months or 12 months. Referred by a colleague? Your $10 off is applied automatically at checkout.', cta: 'Subscribe now', whyTitle: 'After tomorrow', why: 'Your account drops back to the free plan: 3 most recent hot leads unlocked, the rest blurred, campaign QR codes and analytics paused. Everything comes straight back the moment you subscribe.' },
+  trialend: { label: 'Free access has ended', group: 'Launch giveaway', vars: ['first', 'brand', 'portal'],
+    subject: 'Your free Full Access has ended — here\'s how to get it back', preheader: 'Your free access has finished. Your account is on the free plan.', kicker: 'Free access over', headline: 'Your free Full Access has ended.', sub: 'You\'re on the free plan now. Subscribe any time to unlock everything again.',
+    intro: 'Thanks for trying {brand} Full Access. Your free period has finished, so your account is now on the free plan: your 3 most recent hot leads stay unlocked and your QR code keeps working.', outro: 'Subscribe from $49 a month and every lead, campaign and report is unlocked again instantly.', cta: 'Unlock Full Access', whyTitle: '', why: '' },
   referral_reward: { label: 'Referral reward ($10 off)', group: 'Account', vars: ['first', 'referredName', 'brand'],
     subject: 'You\'ve earned $10 off — {referredName} just subscribed', preheader: 'Your referral subscribed to {brand}. $10 comes off your next payment.', kicker: 'Share & Earn', headline: '{referredName} subscribed. That\'s $10 off for you.', sub: 'Thanks for spreading the word.',
     intro: '{referredName} signed up with your referral link and has just subscribed to {brand} Full Access. As a thank-you, $10 comes off your next monthly payment (if you haven\'t subscribed yet, it\'s applied at your checkout).', outro: 'Keep sharing your link under Share & Earn — every colleague who subscribes is another $10 off, and they get $10 off their first payment too.', cta: 'Open Share & Earn', whyTitle: '', why: '' },
@@ -295,7 +312,7 @@ async function tpl(key, vars = {}) {
 const hi = (agent) => P(`Hi ${esc(firstName(agent))},`);
 const para = (t) => (t && String(t).trim() ? P(esc(t)) : '');
 function assemble(t, body, extra = {}) {
-  return { subject: t.subject, html: shell({ preheader: t.preheader, kicker: t.kicker, headline: esc(t.headline), sub: esc(t.sub), body, cta: t.cta, ctaHref: extra.ctaHref, whyTitle: t.whyTitle, why: esc(t.why), unsubNote: extra.unsubNote !== undefined ? extra.unsubNote : true }) };
+  return { subject: t.subject, html: shell({ preheader: t.preheader, kicker: t.kicker, headline: esc(t.headline), sub: esc(t.sub), body, cta: t.cta, ctaHref: extra.ctaHref, whyTitle: t.whyTitle, why: esc(t.why), unsubNote: extra.unsubNote !== undefined ? extra.unsubNote : true, agentId: extra.agentId || (extra.agent && extra.agent.id) || null }) };
 }
 
 /* 02 · Client requesting a call  /  03 · New hot lead */
@@ -307,7 +324,7 @@ async function hotEmail(lead, isCall, agent) {
   const body = `${hi(agent)}${para(t.intro)}${propertyBox('Property', lead.address, rows)}
     ${isCall && lead.mobile ? `<a href="tel:${esc(tel)}" style="display:inline-block; background:${INK}; color:#fff; text-decoration:none; font-weight:800; font-size:15px; padding:12px 20px; border-radius:100px; margin:0 0 16px;">📞 Call ${esc(lead.mobile)}</a>` : ''}
     ${para(t.outro)}${photoList(lead.photos)}${notesBlock(lead)}`;
-  return assemble(t, body);
+  return assemble(t, body, { agent });
 }
 /* 04 · New warm lead */
 async function warmEmail(lead, agent) {
@@ -316,7 +333,7 @@ async function warmEmail(lead, agent) {
   const body = `${hi(agent)}${para(t.intro)}
     ${propertyBox('Property', lead.address, [['Started', fmtWhen(lead.created_at)], ['Photos uploaded', String(photos.length)], ['Status', `${CAP(LEAD_NOUN)} in progress`], sourceRow(lead, agent) || ['', '']])}
     ${para(t.outro)}${photoList(photos)}${notesBlock(lead)}`;
-  return assemble(t, body);
+  return assemble(t, body, { agent });
 }
 /* 05 · Hot lead locked */
 async function lockedEmail(lead, hotCount, agent) {
@@ -324,7 +341,7 @@ async function lockedEmail(lead, hotCount, agent) {
   const body = `${hi(agent)}${para(t.intro)}
     ${propertyBox('New opportunity', lead.address, [['Received', fmtWhen(lead.created_at)], ['Status', 'LOCKED'], sourceRow(lead, agent) || ['', '']])}
     ${para(t.outro)}`;
-  return assemble(t, body, { ctaHref: PORTAL_URL });
+  return assemble(t, body, { agent, ctaHref: PORTAL_URL });
 }
 /* 06 · Weekly summary */
 async function weeklyEmail(agent, stats) {
@@ -340,7 +357,7 @@ async function weeklyEmail(agent, stats) {
     <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:${ACCENT}; text-transform:uppercase;">Your total opportunity</div>
     ${P(`<b>${total}</b> ${CLIENT_NOUN}${total === 1 ? '' : 's'} showed property intent this week.${stats.pending ? ` <b>${stats.pending}</b> hot lead${stats.pending === 1 ? ' has' : 's have'} not been marked as appraised yet.` : ''}`)}
     ${para(t.outro)}`;
-  return assemble(t, body);
+  return assemble(t, body, { agent });
 }
 /* 01 · Welcome (sent once, at signup) */
 async function welcomeEmail(agent) {
@@ -356,22 +373,22 @@ async function welcomeEmail(agent) {
     <div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase; margin-bottom:6px;">Your portal</div>
     <ul style="padding-left:18px; margin:0 0 16px; font-size:14px; color:#333; line-height:1.7;"><li>View new leads</li><li>See ${LEAD_NOUN} activity</li><li>Review ${CLIENT_NOUN} details</li><li>Track warm and hot opportunities</li><li>Campaign QR codes, analytics and the portal app on your phone</li><li>Manage your account and subscription</li></ul>
     ${para(t.outro)}`;
-  return assemble(t, body, { unsubNote: false });
+  return assemble(t, body, { agent, unsubNote: false });
 }
-/* 08 · Launch giveaway (SAVETIME) reminders + end */
+/* 08 · Launch giveaway reminders + end (length comes from the code used) */
 async function trialEmail(agent, stage, info = {}) {
   const key = stage === '5' ? 'trial5' : stage === '1' ? 'trial1' : 'trialend';
-  const t = await tpl(key, { first: firstName(agent), daysLeft: info.daysLeft != null ? info.daysLeft : '', trialEnds: info.trialEnds || '' });
+  const t = await tpl(key, { first: firstName(agent), daysLeft: info.daysLeft != null ? info.daysLeft : '', trialEnds: info.trialEnds || '', trialLength: info.trialLength || 'free access' });
   const body = `${hi(agent)}${para(t.intro)}
     ${key !== 'trialend' ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:4px 0 16px;"><tr><td style="background:#F7F6F3; border-radius:12px; padding:14px 16px;"><div style="font-size:11px; font-weight:800; letter-spacing:0.12em; color:#999; text-transform:uppercase;">Full Access ends</div><div style="font-size:17px; font-weight:800; color:${INK}; margin-top:4px;">${esc(info.trialEnds || '')}</div><div style="font-size:13px; color:#666; margin-top:2px;">Monthly $49 · 6 months $245 (1 month free) · 12 months $490 (2 months free)</div></td></tr></table>` : ''}
     ${para(t.outro)}`;
-  return assemble(t, body, { ctaHref: PORTAL_URL, unsubNote: false });
+  return assemble(t, body, { agent, ctaHref: PORTAL_URL, unsubNote: false });
 }
 /* 09 · Referral reward */
 async function referralRewardEmail(agent, referredName) {
   const t = await tpl('referral_reward', { first: firstName(agent), referredName: referredName || `A ${AGENT_NOUN}` });
   const body = `${hi(agent)}${para(t.intro)}${para(t.outro)}`;
-  return assemble(t, body, { ctaHref: PORTAL_URL, unsubNote: false });
+  return assemble(t, body, { agent, ctaHref: PORTAL_URL, unsubNote: false });
 }
 /* 07 · Mail-out status */
 async function mailoutEmail(agent, stage, c = {}) {
@@ -379,12 +396,12 @@ async function mailoutEmail(agent, stage, c = {}) {
   if (!status) return null;
   const t = await tpl('mailout_' + stage, { first: firstName(agent), campaign: c.name || 'Your campaign' });
   const body = `${hi(agent)}${para(t.intro)}${propertyBox('Campaign', c.name || 'Your campaign', [['Area', c.area], ['Quantity', c.quantity], ['Posted', c.posted], ['Estimated delivery', c.delivery], ['Status', status]])}${para(t.outro)}`;
-  return assemble(t, body);
+  return assemble(t, body, { agent });
 }
 async function testEmail(agent) {
   const t = await tpl('test', { first: firstName(agent), email: agent.email });
   const body = `${hi(agent)}${para(t.intro)}${para(t.outro)}`;
-  return assemble(t, body);
+  return assemble(t, body, { agent });
 }
 // Sample data so founders can preview / test-send any template
 async function sampleEmail(key, agent) {
@@ -398,8 +415,8 @@ async function sampleEmail(key, agent) {
     case 'locked': return lockedEmail(lead, 4, a);
     case 'weekly': return weeklyEmail(a, { hot: 3, warm: 5, calls: 1, started: 8, photos: 41, pending: 2, weekStart: '14 Sept', weekEnd: '20 Sept', topAddress: lead.address, topStatus: 'Hot lead', topActivity: '11 photos, call requested' });
     case 'welcome': return welcomeEmail(a);
-    case 'trial5': return trialEmail(a, '5', { daysLeft: 5, trialEnds: ends });
-    case 'trial1': return trialEmail(a, '1', { daysLeft: 1, trialEnds: ends });
+    case 'trial5': return trialEmail(a, '5', { daysLeft: 5, trialEnds: ends, trialLength: 'one month' });
+    case 'trial1': return trialEmail(a, '1', { daysLeft: 1, trialEnds: ends, trialLength: 'one month' });
     case 'trialend': return trialEmail(a, 'end', {});
     case 'referral_reward': return referralRewardEmail(a, 'Jane Smith');
     case 'mailout_production': return mailoutEmail(a, 'production', { name: 'Ashgrove spring drop', area: '4060 Ashgrove', quantity: '500' });
@@ -457,4 +474,4 @@ async function sendWelcome(agent) {
   } catch (e) { console.error('welcome email failed (non-fatal)', e); }
 }
 
-module.exports = { shell, esc, P, firstName, notify, notifyForLead, sendEmail, trialEmail, referralRewardEmail, sampleEmail, TEMPLATE_DEFAULTS, TEMPLATE_FIELDS, setPreviewOverrides, loadTemplateOverrides, getAgent, wantsEmail, weeklyEmail, welcomeEmail, sendWelcome, mailoutEmail, hotEmail, warmEmail, lockedEmail, testEmail, NOTIFY_DEFAULTS, sbHeaders, log };
+module.exports = { shell, esc, P, firstName, unsubToken, unsubLink, notify, notifyForLead, sendEmail, trialEmail, referralRewardEmail, sampleEmail, TEMPLATE_DEFAULTS, TEMPLATE_FIELDS, setPreviewOverrides, loadTemplateOverrides, getAgent, wantsEmail, weeklyEmail, welcomeEmail, sendWelcome, mailoutEmail, hotEmail, warmEmail, lockedEmail, testEmail, NOTIFY_DEFAULTS, sbHeaders, log };
