@@ -105,6 +105,13 @@
   .room-nav-btn:hover{opacity:0.85; background:rgba(0,0,0,0.04);}
   .room-nav-btn[disabled]{opacity:0; pointer-events:none;}
   .room-nav-pos{font-size:11.5px; color:var(--charcoal); opacity:0.38; letter-spacing:0.02em;}
+  #iab-banner{position:fixed; inset:0; z-index:90; background:rgba(11,11,12,0.88); display:flex; align-items:center; justify-content:center; padding:22px;}
+  #iab-banner.hidden{display:none;}
+  .iab-card{background:var(--white); border-radius:20px; padding:28px 24px; max-width:360px; width:100%; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.3);}
+  .iab-icon{font-size:38px; margin-bottom:8px;}
+  .iab-title{font-size:19px; font-weight:800; margin-bottom:8px;}
+  .iab-text{font-size:14px; line-height:1.55; color:var(--charcoal); opacity:0.8; margin-bottom:18px;}
+  .iab-dismiss{margin-top:16px; font-size:12.5px; opacity:0.5; text-decoration:underline; cursor:pointer;}
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
   .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center;}
   .step-tag{font-size:11.5px; font-weight:700; color:var(--orange); letter-spacing:0.08em; text-transform:uppercase;}
@@ -262,11 +269,24 @@
       </div>
       <div>
         <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
+        <a class="btn btn-brand hidden" id="landing-site-btn" style="margin-top:12px; display:none; text-decoration:none;" href="" rel="noopener">Just take me to your site direct →</a>
         <div class="landing-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
-    <!-- CONSENT: shown once, before the first photo -->
+    <!-- In-app browser (Facebook / Messenger / Instagram): camera is blocked in there -->
+<div id="iab-banner" class="hidden">
+  <div class="iab-card">
+    <div class="iab-icon">📷</div>
+    <div class="iab-title">Open this in your browser</div>
+    <div class="iab-text" id="iab-text">You've opened this from inside Facebook, and its built-in browser won't let you take photos. One tap and you're in your normal browser — everything else works the same.</div>
+    <button class="btn btn-brand" id="iab-open" onclick="escapeInAppBrowser()">Open in my browser →</button>
+    <button class="btn btn-outline" onclick="copyAppLink()" style="margin-top:10px;">Copy the link instead</button>
+    <div class="iab-dismiss" onclick="document.getElementById('iab-banner').classList.add('hidden')">Continue here anyway</div>
+  </div>
+</div>
+
+<!-- CONSENT: shown once, before the first photo -->
     <div class="screen" id="screen-consent">
       <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Before you start</div></div><div class="header-agent agent-header-name"></div></div>
       <div class="content">
@@ -533,7 +553,9 @@ async function loadAgentBySlug(){
     currentAgent = { agentId: data.agentId, agentName: data.agentName, agencyName: data.agencyName, phone: data.phone || '', email: data.email || '', headshotUrl: data.headshotUrl || '' };
     AGENT_NAME = data.agentName;
     // "Finish" sends the client wherever the agent chose (their website, a listing, a landing page)
-    if(data.finishUrl && /^https?:\/\//i.test(data.finishUrl)){ const fb = document.getElementById('finish-btn'); fb.href = data.finishUrl; fb.classList.remove('hidden'); fb.style.display = ''; }
+    if(data.finishUrl && /^https?:\/\//i.test(data.finishUrl)){
+      ['finish-btn', 'landing-site-btn'].forEach(id => { const el = document.getElementById(id); if(el){ el.href = data.finishUrl; el.classList.remove('hidden'); el.style.display = ''; } });
+    }
     document.title = `Snap Appraisal — ${data.agencyName || data.agentName}`;
     const agencyDisplay = data.agencyName || data.agentName;
     document.getElementById('landing-brand-word').textContent = agencyDisplay.toUpperCase();
@@ -580,6 +602,43 @@ async function loadAgentBySlug(){
     console.error('Agent lookup failed, using default branding:', err);
   }
 }
+/* ---------- IN-APP BROWSER ESCAPE ----------
+   Facebook, Messenger and Instagram open links in their own cut-down browser,
+   where getUserMedia and file inputs are blocked — the tester's "doesn't let you
+   do anything". Android accepts an intent: URL that hands the page to Chrome.
+   iOS gives no way to force it, so we show the Share → Open in browser steps. */
+function inAppBrowser(){
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|Line\/|MicroMessenger|Snapchat|Pinterest|TikTok/i.test(ua);
+}
+const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent || '') && !window.MSStream;
+function escapeInAppBrowser(){
+  const url = window.location.href;
+  if(isIOSDevice()){
+    document.getElementById('iab-text').innerHTML = 'On iPhone: tap the <b>•••</b> button (top right), then <b>Open in browser</b> — or <b>Open in Safari</b>. Everything you\'ve done so far is kept.';
+    document.getElementById('iab-open').style.display = 'none';
+    return;
+  }
+  // Android: hand the page to Chrome directly
+  const bare = url.replace(/^https?:\/\//, '');
+  window.location.href = `intent://${bare}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(url)};end`;
+  setTimeout(() => {
+    document.getElementById('iab-text').innerHTML = 'If nothing happened, tap the <b>•••</b> button at the top and choose <b>Open in browser</b>.';
+  }, 1200);
+}
+function copyAppLink(){
+  const url = window.location.href;
+  (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+    .then(() => { document.getElementById('iab-text').textContent = 'Link copied. Paste it into Chrome or Safari and you\'re away.'; })
+    .catch(() => prompt('Copy this link into your browser', url));
+}
+if(inAppBrowser()){
+  document.getElementById('iab-banner').classList.remove('hidden');
+  if(isIOSDevice()){
+    document.getElementById('iab-open').textContent = 'Show me how →';
+  }
+}
+
 loadAgentBySlug();
 
 // A8: Without this, the browser's back button jumps somewhere unrelated
