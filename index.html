@@ -69,6 +69,11 @@
   /* Agent logos are NEVER stretched: fixed box, image scaled to fit inside it, shape preserved */
   .app-header img.agent-header-logo{height:38px; width:88px; max-width:88px; object-fit:contain; object-position:left center;}
   .logo-panel img.landing-agent-logo{width:100%; height:72px; object-fit:contain; object-position:center; margin:0 auto; display:block;}
+  /* Quiet secondary route: the button is the focus, this is just an option. */
+  .landing-direct{margin-top:14px; font-size:13px; color:#B8B5B2; text-align:center; line-height:1.5;}
+  .landing-direct.hidden{display:none;}
+  .landing-direct a{color:var(--white); font-weight:600; text-decoration:underline; text-underline-offset:3px; word-break:break-word;}
+  .landing-direct a:hover{color:var(--orange);}
   .landing-powered{margin-top:18px; opacity:0.85;}
   .page-powered{padding:12px 22px 18px; text-align:center; opacity:0.9; flex-shrink:0;}
   .page-powered .powered-label{font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--charcoal); opacity:0.6; margin-bottom:6px;}
@@ -92,6 +97,12 @@
   .consent-list{list-style:none; padding:0; margin:0 0 14px;}
   .consent-list li{position:relative; padding-left:24px; font-size:13.5px; line-height:1.5; margin-bottom:10px;}
   .consent-list li::before{content:'✓'; position:absolute; left:0; top:0; color:var(--orange); font-weight:800;}
+  .consent-video{margin:0 0 14px;}
+  .cv-frame{position:relative; aspect-ratio:16/9; border-radius:14px; background:#1B1B1E; border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; overflow:hidden;}
+  .cv-frame::after{content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 45%, rgba(255,255,255,0.07), transparent 62%);}
+  .cv-play{width:52px; height:52px; border-radius:50%; background:var(--orange); color:#fff; display:flex; align-items:center; justify-content:center; font-size:19px; padding-left:4px; box-shadow:0 6px 18px rgba(0,0,0,0.35);}
+  .cv-soon{font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#CFCCC8;}
+  .cv-cap{font-size:12px; color:var(--charcoal); opacity:0.75; margin-top:8px; line-height:1.5; text-align:center;}
   .consent-note{font-size:12px; color:var(--charcoal); opacity:0.75; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
   .consent-note a{color:var(--orange); font-weight:600;}
   .consent-footer{padding:14px 22px 20px; border-top:1px solid var(--line);}
@@ -195,10 +206,16 @@
   .room-notes textarea:focus{outline:none; border-color:var(--orange);}
   /* Bedroom count picker */
   #screen-bedrooms .content{padding:22px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
-  .bed-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; width:100%; max-width:320px; margin:18px auto 0;}
-  .bed-btn{border:2px solid #E2DED6; background:#fff; border-radius:16px; padding:16px 0; font-size:22px; font-weight:800; cursor:pointer; color:var(--charcoal); font-family:inherit;}
+  .bed-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; width:100%; max-width:320px; margin:14px auto 0;}
+  .bed-btn{border:2px solid #E2DED6; background:#fff; border-radius:16px; padding:13px 0; font-size:21px; font-weight:800; cursor:pointer; color:var(--charcoal); font-family:inherit;}
   .bed-btn:active{transform:scale(0.97);}
   .bed-btn small{display:block; font-size:11px; font-weight:600; color:#888; margin-top:2px;}
+  .bed-btn.sel{border-color:var(--orange); background:#FFF3EC; color:var(--orange);}
+  .bed-btn.sel small{color:var(--orange);}
+  .room-none{margin-top:10px;}
+  .room-none.sel{color:var(--orange); font-weight:700;}
+  .room-q-divide{height:1px; background:var(--line); margin:22px auto 18px; max-width:320px;}
+  #rooms-continue{transition:opacity .15s ease;}
   /* Celebration */
   #confetti-canvas{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:50; display:none;}
   .confirm-icon.pop{animation:pop .6s cubic-bezier(.2,1.6,.4,1) both;}
@@ -269,7 +286,7 @@
       </div>
       <div>
         <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
-        <a class="btn btn-brand hidden" id="landing-site-btn" style="margin-top:12px; display:none; text-decoration:none;" href="" rel="noopener">Just take me to your site direct →</a>
+        <div class="landing-direct hidden" id="landing-direct">or go straight to <a id="landing-site-link" href="" rel="noopener"></a></div>
         <div class="landing-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
@@ -297,10 +314,31 @@
         <ul class="consent-list">
           <li>Your property address and the photos you choose to take go <b>only</b> to the agent named above — not to anyone else.</li>
           <li>You choose which rooms to photograph. Skip anything you'd rather not show. Please don't photograph people, valuables, IDs or security codes.</li>
-          <li>Your name and email are asked for at the very end, so your agent can send your appraisal. Your contact details aren't shared until you press send.</li>
-          <li>Your address and photos reach your agent as you go, so if you stop part-way they can see what you've added so far (but not who you are). Unfinished walk-throughs are deleted automatically after 30 days.</li>
         </ul>
-        <div class="consent-note">Your agent provides the appraisal — this app never estimates value itself. Full details in the <a href="https://austsnapappraisal.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</div>
+        <!-- ============================================================
+             INSTRUCTIONAL VIDEO
+             When the video is ready, delete the <div class="cv-frame"> block
+             below and paste ONE of these in its place:
+
+             Cloudinary (recommended — same account as the photos):
+               <video class="cv-frame" controls playsinline preload="none"
+                      poster="https://res.cloudinary.com/YOUR_CLOUD/video/upload/so_2,w_640,c_fill,f_jpg/how-it-works.jpg"
+                      src="https://res.cloudinary.com/YOUR_CLOUD/video/upload/q_auto,f_auto,w_720/how-it-works.mp4"></video>
+
+             YouTube (unlisted):
+               <iframe class="cv-frame" src="https://www.youtube-nocookie.com/embed/VIDEO_ID?rel=0"
+                       title="How Snap Appraisal works" frameborder="0" loading="lazy"
+                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                       allowfullscreen></iframe>
+             ============================================================ -->
+        <div class="consent-video" id="consent-video">
+          <div class="cv-frame">
+            <div class="cv-play">▶</div>
+            <div class="cv-soon">Instructional video coming soon</div>
+          </div>
+          <div class="cv-cap">A 60-second walk-through of how this works — what you'll be asked for, and how to take a good photo.</div>
+        </div>
+        <div class="consent-note">Your name and email are asked for at the end. Photos and the address reach your agent as you go and unfinished walk-throughs are deleted after 30 days. Your agent provides the appraisal — this app never estimates value itself. Full details in the <a href="https://austsnapappraisal.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</div>
       </div>
       <div class="consent-footer">
         <button class="btn btn-brand" onclick="acceptConsent()">I understand, let's go →</button>
@@ -359,8 +397,7 @@
 
           <!-- Bedroom-only extra actions -->
           <div class="bedroom-extras" id="bedroom-extras">
-            <button class="btn btn-outline" onclick="addEnsuite()">+ Add Ensuite</button>
-            <div class="skip-link" id="skip-to-agent" onclick="skipToAgent()">No more bedrooms →</div>
+            <div class="skip-link" id="skip-to-agent" onclick="skipToAgent()">Skip the rest of the rooms →</div>
           </div>
         </div>
         <div class="room-strip" id="room-strip"></div>
@@ -396,22 +433,39 @@
       </div>
     </div>
 
-    <!-- HOW MANY BEDROOMS -->
+    <!-- HOW MANY BEDROOMS / BATHROOMS -->
     <div class="screen" id="screen-bedrooms">
-      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Bedrooms</div><div class="subtitle">Quick question</div></div><div class="header-agent agent-header-name"></div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Your rooms</div><div class="subtitle">Two quick questions</div></div><div class="header-agent agent-header-name"></div></div>
       <div class="content">
-        <div style="font-size:44px;">🛏️</div>
-        <h2 style="margin:10px 0 4px;">How many bedrooms?</h2>
+        <div style="font-size:36px;">🛏️</div>
+        <h2 style="margin:8px 0 4px;">How many bedrooms?</h2>
         <p style="font-size:13.5px; color:var(--charcoal); opacity:0.75; margin:0;">We'll take you through each one. Studies and offices count too.</p>
-        <div class="bed-grid">
-          <button class="bed-btn" onclick="chooseBedrooms(1)">1</button>
-          <button class="bed-btn" onclick="chooseBedrooms(2)">2</button>
-          <button class="bed-btn" onclick="chooseBedrooms(3)">3</button>
-          <button class="bed-btn" onclick="chooseBedrooms(4)">4</button>
-          <button class="bed-btn" onclick="chooseBedrooms(5)">5</button>
-          <button class="bed-btn" onclick="chooseBedrooms(6)">6<small>or more</small></button>
+        <div class="bed-grid" id="bed-grid">
+          <button class="bed-btn" data-n="1" onclick="pickBedrooms(1)">1</button>
+          <button class="bed-btn" data-n="2" onclick="pickBedrooms(2)">2</button>
+          <button class="bed-btn" data-n="3" onclick="pickBedrooms(3)">3</button>
+          <button class="bed-btn" data-n="4" onclick="pickBedrooms(4)">4</button>
+          <button class="bed-btn" data-n="5" onclick="pickBedrooms(5)">5</button>
+          <button class="bed-btn" data-n="6" onclick="pickBedrooms(6)">6<small>or more</small></button>
         </div>
-        <div class="skip-link" style="margin-top:18px;" onclick="chooseBedrooms(0)">No bedrooms to photograph →</div>
+        <div class="skip-link room-none" onclick="pickBedrooms(0)">No bedrooms to photograph →</div>
+
+        <div class="room-q-divide"></div>
+
+        <div style="font-size:36px;">🛁</div>
+        <h2 style="margin:8px 0 4px;">How many bathrooms?</h2>
+        <p style="font-size:13.5px; color:var(--charcoal); opacity:0.75; margin:0;">Count every one, including the bathroom off the main bedroom.</p>
+        <div class="bed-grid" id="bath-grid">
+          <button class="bed-btn" data-n="1" onclick="pickBathrooms(1)">1</button>
+          <button class="bed-btn" data-n="2" onclick="pickBathrooms(2)">2</button>
+          <button class="bed-btn" data-n="3" onclick="pickBathrooms(3)">3</button>
+          <button class="bed-btn" data-n="4" onclick="pickBathrooms(4)">4</button>
+          <button class="bed-btn" data-n="5" onclick="pickBathrooms(5)">5</button>
+          <button class="bed-btn" data-n="6" onclick="pickBathrooms(6)">6<small>or more</small></button>
+        </div>
+        <div class="skip-link room-none" onclick="pickBathrooms(0)">No bathrooms to photograph →</div>
+
+        <button class="btn btn-brand" id="rooms-continue" style="margin-top:22px; width:100%; max-width:320px; opacity:0.35; pointer-events:none;" onclick="confirmRoomCounts()">Continue →</button>
       </div>
       <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt=""></div>
     </div>
@@ -554,7 +608,12 @@ async function loadAgentBySlug(){
     AGENT_NAME = data.agentName;
     // "Finish" sends the client wherever the agent chose (their website, a listing, a landing page)
     if(data.finishUrl && /^https?:\/\//i.test(data.finishUrl)){
-      ['finish-btn', 'landing-site-btn'].forEach(id => { const el = document.getElementById(id); if(el){ el.href = data.finishUrl; el.classList.remove('hidden'); el.style.display = ''; } });
+      const fb = document.getElementById('finish-btn');
+      if(fb){ fb.href = data.finishUrl; fb.classList.remove('hidden'); fb.style.display = ''; }
+      // On the first screen the same destination is offered as a plain link,
+      // showing the actual address, so the button stays the obvious action.
+      const dl = document.getElementById('landing-site-link'), dw = document.getElementById('landing-direct');
+      if(dl && dw){ dl.href = data.finishUrl; dl.textContent = data.finishUrl.replace(/^https?:\/\//i, '').replace(/\/$/, ''); dw.classList.remove('hidden'); }
     }
     document.title = `Snap Appraisal — ${data.agencyName || data.agentName}`;
     const agencyDisplay = data.agencyName || data.agentName;
@@ -705,7 +764,9 @@ let roomQueue = [];       // dynamic queue of room objects being processed
 let currentIndex = 0;
 let maxIndex = 0;          // furthest room reached; you can step back to redo any photo before it
 let bedroomCount = 0;
-let bedroomTarget = 0;   // how many the owner said there are (picker after Front of House)
+let bedroomTarget = null;  // how many the owner said there are (picker after Front of House)
+let bathroomCount = 0;
+let bathroomTarget = null; // same picker, asked on the same screen
 let uploadedPhotos = [];  // [{room,url}]
 let propertyAddress = '';
 let coldLeadRecordId = null;
@@ -738,6 +799,9 @@ function beginWalkthrough(){
   roomQueue = [...CORE_START];
   currentIndex = 0;
   maxIndex = 0;
+  bathroomCount = 0;
+  bathroomTarget = null;
+  bedroomTarget = null;
   allTilesRendered = [...roomQueue];
   buildRoomStrip();
   renderRoom();
@@ -756,8 +820,8 @@ function goTo(name){
 const homeFacts = { bedrooms: null, bathrooms: null, carSpaces: null };
 function prefillHomeFacts(){
   const rooms = uploadedPhotos.map(p => String(p.room || ''));
-  if(homeFacts.bedrooms === null)  homeFacts.bedrooms  = bedroomTarget || Math.max(bedroomCount, rooms.filter(r => /bedroom/i.test(r) && !/ensuite/i.test(r)).length);
-  if(homeFacts.bathrooms === null) homeFacts.bathrooms = rooms.filter(r => /bathroom|ensuite/i.test(r)).length;
+  if(homeFacts.bedrooms === null)  homeFacts.bedrooms  = bedroomTarget ?? Math.max(bedroomCount, rooms.filter(r => /bedroom/i.test(r)).length);
+  if(homeFacts.bathrooms === null) homeFacts.bathrooms = bathroomTarget ?? rooms.filter(r => /bathroom/i.test(r)).length;
   if(homeFacts.carSpaces === null) homeFacts.carSpaces = rooms.some(r => /garage|carport/i.test(r)) || selectedFeatures.has('garage') ? 1 : 0;
   renderHomeFacts();
 }
@@ -978,7 +1042,7 @@ async function confirmPhoto(){
   }
 
   // Redoing an earlier room: just carry on forward, don't replay the flow
-  // (no "add an ensuite?" prompt, no jump back to the bedroom count).
+  // (no jump back to the room-count screen).
   if(currentIndex < maxIndex){
     currentIndex++;
     renderRoom();
@@ -986,16 +1050,15 @@ async function confirmPhoto(){
     return;
   }
 
-  if(room.isBedroom){
+  if(room.isBedroom || room.isBathroom){
     document.getElementById('bedroom-extras').style.display = 'flex';
-    // don't auto-advance — wait for user to tap ensuite / skip / continue
+    // don't auto-advance — wait for them to tap Continue or skip the rest
     document.getElementById('post-actions').style.display = 'none';
     showBedroomContinue();
     return;
   }
 
-  if(room.continueBedroomLoop){
-    // an ensuite just finished — resume the bedroom loop rather than falling through to Agent Intro
+  if(room.continueBedroomLoop || room.continueBathroomLoop){
     afterBedroomAdvance();
     return;
   }
@@ -1062,6 +1125,7 @@ function skipPhoto(){
   saveRoomNote(room);
   if(currentIndex < maxIndex){ currentIndex++; renderRoom(); goTo('capture'); return; }   // redoing: keep the photo already taken, move on
   markSkippedTile();
+  if(room && (room.continueBedroomLoop || room.continueBathroomLoop)){ afterBedroomAdvance(); return; }
   if(room.isExtra){ goTo('extras'); return; }   // skipped extra: back to the list, not ticked
   if(room.isFront){ sendColdLead(); }
   if(room.isBedroom || room.continueBedroomLoop){
@@ -1096,13 +1160,34 @@ function advanceQueue(){
   goTo('capture');
 }
 
-function chooseBedrooms(n){
-  bedroomTarget = n;
-  homeFacts.bedrooms = n;                 // pre-fills the final form
-  if(n <= 0){ goTo('agent'); return; }
-  insertNextBedroom();
-  renderRoom();
-  goTo('capture');
+/* The visitor tells us the counts up front, then we walk them through every
+   bedroom and then every bathroom. Both answers pre-fill the final form. */
+function pickBedrooms(n){
+  bedroomTarget = n; homeFacts.bedrooms = n;
+  document.querySelectorAll('#bed-grid .bed-btn').forEach(b => b.classList.toggle('sel', Number(b.dataset.n) === n));
+  document.querySelectorAll('.room-none')[0].classList.toggle('sel', n === 0);
+  refreshRoomsContinue();
+  scrollRoomsTo('#bath-grid');
+}
+function pickBathrooms(n){
+  bathroomTarget = n; homeFacts.bathrooms = n;
+  document.querySelectorAll('#bath-grid .bed-btn').forEach(b => b.classList.toggle('sel', Number(b.dataset.n) === n));
+  document.querySelectorAll('.room-none')[1].classList.toggle('sel', n === 0);
+  refreshRoomsContinue();
+  scrollRoomsTo('#rooms-continue');
+}
+function scrollRoomsTo(sel){ const el = document.querySelector(sel); if(el) setTimeout(() => el.scrollIntoView({ behavior:'smooth', block:'center' }), 120); }
+function refreshRoomsContinue(){
+  const btn = document.getElementById('rooms-continue');
+  const ready = bedroomTarget !== null && bathroomTarget !== null;
+  btn.style.opacity = ready ? '1' : '0.35';
+  btn.style.pointerEvents = ready ? 'auto' : 'none';
+}
+function confirmRoomCounts(){
+  if(bedroomTarget === null || bathroomTarget === null) return;
+  if(bedroomTarget > 0){ insertNextBedroom(); renderRoom(); goTo('capture'); return; }
+  if(bathroomTarget > 0){ insertNextBathroom(); renderRoom(); goTo('capture'); return; }
+  goTo('agent');
 }
 
 /* ---------- ROOM NOTES ----------
@@ -1110,7 +1195,7 @@ function chooseBedrooms(n){
    the photo, shown to the agent in the portal and in the lead email. */
 const NOTE_HINTS = [
   [/kitchen/i, 'e.g. new oven 2024, stone benchtops, dishwasher stays'],
-  [/bath|ensuite/i, 'e.g. renovated 2022, new vanity, heated towel rail'],
+  [/bath/i, 'e.g. renovated 2022, new vanity, heated towel rail'],
   [/bedroom/i, 'e.g. built-in robes, ceiling fan, new carpet'],
   [/front/i, 'e.g. new roof 2020, repainted, new fence'],
   [/living|lounge|dining/i, 'e.g. ducted air-con, new flooring, north-facing'],
@@ -1158,22 +1243,20 @@ function celebrate(){
   })(start);
 }
 
+function insertNextBathroom(){
+  bathroomCount++;
+  const room = {id:'bath'+bathroomCount, label: bathroomCount===1?'Main Bathroom':'Bathroom '+bathroomCount, emoji:'🛁', hint:'Vanity, shower or bath, and anything recently updated.', isBathroom:true, continueBathroomLoop:true, bathroomIndex:bathroomCount};
+  roomQueue.splice(currentIndex, 0, room);
+  allTilesRendered.push(room);
+  addTileForNewRoom();
+}
+
 function insertNextBedroom(){
   bedroomCount++;
   const room = {id:'bed'+bedroomCount, label: bedroomCount===1?'Main Bedroom':'Bedroom '+bedroomCount, emoji:'🛏️', hint:'Wide shot from the doorway, include any built-in robe.', isBedroom:true, continueBedroomLoop:true, bedroomIndex:bedroomCount};
   roomQueue.splice(currentIndex, 0, room);
   allTilesRendered.push(room);
   addTileForNewRoom();
-}
-
-function addEnsuite(){
-  const ensuite = {id:'ensuite'+bedroomCount, label:'Ensuite (Bedroom '+bedroomCount+')', emoji:'🚿', hint:'Vanity, shower and any recent updates.', continueBedroomLoop:true};
-  roomQueue.splice(currentIndex+1, 0, ensuite);
-  allTilesRendered.push(ensuite);
-  addTileForNewRoom();
-  currentIndex++;
-  renderRoom();
-  goTo('capture');
 }
 
 function skipToAgent(){
@@ -1187,16 +1270,21 @@ function advanceQueueToAgent(){
 }
 
 function afterBedroomAdvance(){
-  // called when leaving a bedroom (via Continue) or an ensuite (auto) to resume the bedroom loop
+  // Leaving a bedroom or a bathroom: keep going through the bedrooms, then
+  // through the bathrooms, and only then on to the agent intro.
   const finishedRoom = roomQueue[currentIndex];
   currentIndex++;
   if(finishedRoom.continueBedroomLoop && bedroomCount < bedroomTarget){
-    insertNextBedroom();
-    renderRoom();
-    goTo('capture');
-  } else {
-    goTo('agent');
+    insertNextBedroom(); renderRoom(); goTo('capture'); return;
   }
+  if(finishedRoom.continueBathroomLoop && bathroomCount < bathroomTarget){
+    insertNextBathroom(); renderRoom(); goTo('capture'); return;
+  }
+  if(finishedRoom.continueBedroomLoop && bathroomTarget > 0){
+    // bedrooms are done — start the bathrooms
+    insertNextBathroom(); renderRoom(); goTo('capture'); return;
+  }
+  goTo('agent');
 }
 
 /* Override advanceQueue behaviour for bedrooms via the continue button */
@@ -1263,6 +1351,9 @@ function photographExtra(f){
   roomQueue = [extraRoomObjs[f.id]];
   currentIndex = 0;
   maxIndex = 0;
+  bathroomCount = 0;
+  bathroomTarget = null;
+  bedroomTarget = null;
   buildRoomStrip();
   // restore done ticks on the strip for anything already photographed
   allTilesRendered.forEach((r,i)=>{ if(r.isExtra && selectedFeatures.has(r.id)){ const t=document.getElementById('tile-'+i); if(t){ t.classList.add('done'); t.querySelector('.dot').textContent='✓'; } } });
