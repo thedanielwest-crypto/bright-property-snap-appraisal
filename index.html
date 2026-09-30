@@ -92,9 +92,12 @@
   body.devnav .dev-zone.dev-fwd::after{right:10px;}
   body.devnav .dev-zone:active::after{opacity:1; transform:translateY(-50%) scale(1.5);}
   #dev-flag{display:none;}
-  body.devnav #dev-flag{display:block; position:fixed; left:50%; bottom:6px; transform:translateX(-50%); z-index:60;
+  body.devnav #dev-flag{display:flex; align-items:center; position:fixed; left:50%; bottom:6px; transform:translateX(-50%); z-index:60;
     background:var(--orange); color:#fff; font-size:9.5px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
-    padding:3px 10px; border-radius:100px; opacity:0.85; pointer-events:none;}
+    border-radius:100px; opacity:0.9; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.25);}
+  body.devnav #dev-flag span{padding:5px 12px; cursor:pointer;}
+  body.devnav #dev-flag span:active{background:rgba(0,0,0,0.18);}
+  body.devnav #dev-flag b{padding:5px 8px; font-weight:800; opacity:0.75;}
   .page-powered .powered-label{font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--charcoal); opacity:0.6; margin-bottom:6px;}
   .page-powered img{height:46px; width:auto; margin:0 auto; display:block;}
   .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
@@ -224,7 +227,15 @@
   .room-notes textarea{width:100%; min-height:44px; max-height:110px; resize:vertical; border:1.5px solid #E2DED6; border-radius:12px; padding:9px 12px; font-family:inherit; font-size:13.5px; line-height:1.4; background:#fff;}
   .room-notes textarea:focus{outline:none; border-color:var(--orange);}
   /* Bedroom count picker */
-  #screen-bedrooms .content{padding:22px; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  /* this screen's title is longer than the others — give it the room */
+  #screen-bedrooms .app-header{grid-template-columns:64px 1fr 64px;}
+  #screen-bedrooms .app-header .title,
+  #screen-bedrooms .app-header .subtitle{white-space:nowrap;}
+  #screen-bedrooms .app-header > div:not(.header-agent){justify-self:stretch; min-width:0;}
+  #screen-bedrooms .content{padding:18px 22px 26px; flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; text-align:center;}
+  /* stays visually centred while it fits, scrolls once it doesn't */
+  #screen-bedrooms .content > :first-child{margin-top:auto;}
+  #screen-bedrooms .content > :last-child{margin-bottom:auto;}
   .bed-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; width:100%; max-width:320px; margin:14px auto 0;}
   .bed-btn{border:2px solid #E2DED6; background:#fff; border-radius:16px; padding:13px 0; font-size:21px; font-weight:800; cursor:pointer; color:var(--charcoal); font-family:inherit;}
   .bed-btn:active{transform:scale(0.97);}
@@ -310,7 +321,7 @@
       </div>
     </div>
 
-    <div id="dev-flag">Dev nav on</div>
+    <div id="dev-flag"><span onclick="devNav(-1)">‹ back</span><b>DEV</b><span onclick="devNav(1)">fwd ›</span></div>
 
 <!-- In-app browser (Facebook / Messenger / Instagram): camera is blocked in there -->
 <div id="iab-banner" class="hidden">
@@ -422,8 +433,8 @@
           </div>
         </div>
         <div class="room-strip" id="room-strip"></div>
-        <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
+      <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
     </div>
 
     <!-- AGENT INTRO -->
@@ -456,7 +467,7 @@
 
     <!-- HOW MANY BEDROOMS / BATHROOMS -->
     <div class="screen" id="screen-bedrooms">
-      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Your rooms</div><div class="subtitle">Two quick questions</div></div><div class="header-agent agent-header-name"></div></div>
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Your rooms</div><div class="subtitle">Quick questions</div></div><div class="header-agent agent-header-name"></div></div>
       <div class="content">
         <div style="font-size:36px;">🛏️</div>
         <h2 style="margin:8px 0 4px;">How many bedrooms?</h2>
@@ -835,9 +846,24 @@ let devRestoring = false;
 function goTo(name){
   if(!devRestoring && devCurrent && !(devCurrent.screen === name && devCurrent.currentIndex === currentIndex)) screenHistory.push(devCurrent);
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
+  const screen = document.getElementById('screen-'+name);
+  screen.classList.add('active');
+  resetScroll(screen);
   if(name === 'final'){ prefillHomeFacts(); renderSourceChips(); }
   if(!devRestoring) devCurrent = devSnapshot(name);
+}
+// Anything that scrolled the phone frame itself (a focused input, an
+// assistive scroll, scrollIntoView reaching past a panel) gets undone here,
+// so a new screen always opens with its header at the top.
+function resetScroll(screen){
+  const frame = document.querySelector('.frame');
+  if(frame){ frame.scrollTop = 0; frame.scrollLeft = 0; }
+  const screens = document.querySelector('.screens');
+  if(screens){ screens.scrollTop = 0; screens.scrollLeft = 0; }
+  if(screen){
+    screen.scrollTop = 0;
+    screen.querySelectorAll('.content, .capture-body').forEach(el => { el.scrollTop = 0; });
+  }
 }
 function currentScreen(){
   const el = [...document.querySelectorAll('.screen')].find(s => s.classList.contains('active'));
@@ -1286,7 +1312,14 @@ function pickBathrooms(n){
   refreshRoomsContinue();
   scrollRoomsTo('#rooms-continue');
 }
-function scrollRoomsTo(sel){ const el = document.querySelector(sel); if(el) setTimeout(() => el.scrollIntoView({ behavior:'smooth', block:'center' }), 120); }
+function scrollRoomsTo(sel){
+  const el = document.querySelector(sel), box = document.querySelector('#screen-bedrooms .content');
+  if(!el || !box) return;
+  setTimeout(() => {
+    const top = el.offsetTop - box.clientHeight / 2 + el.offsetHeight / 2;
+    box.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }, 120);
+}
 function refreshRoomsContinue(){
   const btn = document.getElementById('rooms-continue');
   const ready = bedroomTarget !== null && bathroomTarget !== null;
