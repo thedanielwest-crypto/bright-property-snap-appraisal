@@ -76,6 +76,25 @@
   .landing-direct a:hover{color:var(--orange);}
   .landing-powered{margin-top:18px; opacity:0.85;}
   .page-powered{padding:12px 22px 18px; text-align:center; opacity:0.9; flex-shrink:0;}
+  /* ---------- DEV NAV (hidden) ----------
+     The "Powered by" logo doubles as a step-through control while we're
+     building: left half = back a step, right half = forward a step. It does
+     nothing at all until the session is armed (?dev=1 in the URL, or five
+     quick taps on the logo), so a homeowner can tap it all day and get
+     nothing. Nothing about it is visible until it's armed. */
+  .page-powered, .landing-powered{position:relative;}
+  .dev-zone{display:none;}
+  body.devnav .dev-zone{display:block; position:absolute; top:0; bottom:0; width:50%; z-index:5; cursor:pointer;}
+  body.devnav .dev-zone.dev-back{left:0;}
+  body.devnav .dev-zone.dev-fwd{right:0;}
+  body.devnav .dev-zone::after{content:''; position:absolute; top:50%; transform:translateY(-50%); width:7px; height:7px; border-radius:50%; background:var(--orange); opacity:0.5;}
+  body.devnav .dev-zone.dev-back::after{left:10px;}
+  body.devnav .dev-zone.dev-fwd::after{right:10px;}
+  body.devnav .dev-zone:active::after{opacity:1; transform:translateY(-50%) scale(1.5);}
+  #dev-flag{display:none;}
+  body.devnav #dev-flag{display:block; position:fixed; left:50%; bottom:6px; transform:translateX(-50%); z-index:60;
+    background:var(--orange); color:#fff; font-size:9.5px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
+    padding:3px 10px; border-radius:100px; opacity:0.85; pointer-events:none;}
   .page-powered .powered-label{font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--charcoal); opacity:0.6; margin-bottom:6px;}
   .page-powered img{height:46px; width:auto; margin:0 auto; display:block;}
   .landing-powered .powered-label{font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#B8B5B2; margin-bottom:8px;}
@@ -287,11 +306,13 @@
       <div>
         <button class="btn btn-brand" onclick="startFlow()">Let's Get Started →</button>
         <div class="landing-direct hidden" id="landing-direct">or go straight to <a id="landing-site-link" href="" rel="noopener"></a></div>
-        <div class="landing-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+        <div class="landing-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
-    <!-- In-app browser (Facebook / Messenger / Instagram): camera is blocked in there -->
+    <div id="dev-flag">Dev nav on</div>
+
+<!-- In-app browser (Facebook / Messenger / Instagram): camera is blocked in there -->
 <div id="iab-banner" class="hidden">
   <div class="iab-card">
     <div class="iab-icon">📷</div>
@@ -343,7 +364,7 @@
       <div class="consent-footer">
         <button class="btn btn-brand" onclick="acceptConsent()">I understand, let's go →</button>
         <div class="consent-tiny">Recorded so your agent knows you've agreed to share these details.</div>
-        <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+        <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
@@ -401,7 +422,7 @@
           </div>
         </div>
         <div class="room-strip" id="room-strip"></div>
-        <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+        <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
@@ -416,7 +437,7 @@
       </div>
       <div class="agent-footer">
         <button class="btn btn-brand" onclick="goTo('extras')">Continue →</button>
-      <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
@@ -429,7 +450,7 @@
       </div>
       <div class="extras-footer">
         <button class="btn btn-brand" onclick="finishExtras()">Finished Taking Photos →</button>
-      <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
@@ -467,7 +488,7 @@
 
         <button class="btn btn-brand" id="rooms-continue" style="margin-top:22px; width:100%; max-width:320px; opacity:0.35; pointer-events:none;" onclick="confirmRoomCounts()">Continue →</button>
       </div>
-      <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt=""></div>
+      <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt=""></div>
     </div>
 
     <!-- FINAL FORM -->
@@ -494,7 +515,7 @@
       </div>
       <div class="final-footer">
         <button class="btn btn-brand" id="submit-btn" onclick="submitHotLead()">Get My Appraisal →</button>
-      <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
@@ -526,7 +547,7 @@
 
       <a class="btn btn-brand hidden" id="finish-btn" style="margin-top:22px; display:none; text-decoration:none;" href="" rel="noopener">Finish →</a>
       <button class="btn btn-outline" id="another-btn" style="margin-top:12px;" onclick="startAnotherAppraisal()">＋ Add another appraisal</button>
-      <div class="page-powered"><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
     </div>
 
   </div>
@@ -808,11 +829,100 @@ function beginWalkthrough(){
   goTo('capture');
 }
 
+let screenHistory = [];     // dev nav rewinds through this
+let devCurrent = null;      // state as it was when the CURRENT screen opened
+let devRestoring = false;
 function goTo(name){
+  if(!devRestoring && devCurrent && !(devCurrent.screen === name && devCurrent.currentIndex === currentIndex)) screenHistory.push(devCurrent);
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+name).classList.add('active');
   if(name === 'final'){ prefillHomeFacts(); renderSourceChips(); }
+  if(!devRestoring) devCurrent = devSnapshot(name);
 }
+function currentScreen(){
+  const el = [...document.querySelectorAll('.screen')].find(s => s.classList.contains('active'));
+  return el ? el.id.replace('screen-', '') : null;
+}
+
+/* ================= DEV NAV (hidden) =================
+   Left half of the "Powered by" logo steps back, right half steps forward,
+   using the app's own functions so the real flow is exercised rather than
+   faked. Dormant until armed: add ?dev=1 to the link, or tap the logo five
+   times inside three seconds. Nothing is shown, and nothing responds to a
+   tap, on an unarmed session. */
+function devSnapshot(screen){
+  return { screen, currentIndex, maxIndex, bedroomCount, bathroomCount, bedroomTarget, bathroomTarget,
+           queue: roomQueue.slice(), photos: uploadedPhotos.slice() };
+}
+function devArmed(){ try{ return sessionStorage.getItem('snapDevNav') === '1'; }catch(e){ return !!window.__snapDevNav; } }
+function devArm(on){
+  try{ on ? sessionStorage.setItem('snapDevNav', '1') : sessionStorage.removeItem('snapDevNav'); }catch(e){ window.__snapDevNav = on; }
+  document.body.classList.toggle('devnav', !!on);
+}
+function devNav(dir){
+  if(!devArmed()) return;
+  if(dir < 0) return devBack();
+  return devForward();
+}
+function devBack(){
+  const prev = screenHistory.pop();
+  if(!prev) return;
+  currentIndex = prev.currentIndex; maxIndex = prev.maxIndex;
+  bedroomCount = prev.bedroomCount; bathroomCount = prev.bathroomCount;
+  bedroomTarget = prev.bedroomTarget; bathroomTarget = prev.bathroomTarget;
+  roomQueue = prev.queue.slice(); uploadedPhotos = prev.photos.slice();
+  devRestoring = true;
+  if(prev.screen === 'capture' && roomQueue[currentIndex]) renderRoom();
+  goTo(prev.screen);
+  devCurrent = prev;
+  devRestoring = false;
+}
+function devForward(){
+  switch(currentScreen()){
+    case 'landing':  return startFlow();
+    case 'consent':  return acceptConsent();
+    case 'bedrooms':
+      if(bedroomTarget === null) pickBedrooms(2);
+      if(bathroomTarget === null) pickBathrooms(1);
+      return confirmRoomCounts();
+    case 'capture': {
+      const room = roomQueue[currentIndex];
+      if(room && room.isFront && !isValidStreetAddress(propertyAddress)){
+        propertyAddress = DEV_TEST_ADDRESS;
+        const inp = document.getElementById('address-input'); if(inp) inp.value = DEV_TEST_ADDRESS;
+        const err = document.getElementById('address-error'); if(err) err.classList.add('hidden');
+      }
+      return skipPhoto();
+    }
+    case 'agent':    return goTo('extras');
+    case 'extras':   return finishExtras();
+    case 'final': {
+      const n = document.getElementById('input-name'), e = document.getElementById('input-email');
+      // deliberately obvious, so test runs are easy to spot and delete in the Lead Bank
+      if(n && !n.value) n.value = 'DEV TEST — delete me';
+      if(e && !e.value) e.value = 'devtest@austsnapappraisal.com';
+      return goTo('confirm');
+    }
+    default: return;
+  }
+}
+const DEV_TEST_ADDRESS = '18 Kenilworth Cres, Ashgrove QLD 4060, Australia';
+// Arm from the link (?dev=1 / #dev), and keep it armed for the whole session.
+(function(){
+  const q = window.location.search + window.location.hash;
+  if(/[?&#]dev=?1?\b/.test(q) || /#dev$/.test(window.location.hash)) devArm(true);
+  else if(devArmed()) devArm(true);
+})();
+// Backstop: five taps on any logo inside three seconds arms it mid-flow.
+let devTaps = 0, devTapTimer = null;
+document.addEventListener('click', (ev) => {
+  if(devArmed()) return;
+  if(!ev.target.closest('.page-powered, .landing-powered')) return;
+  devTaps++;
+  clearTimeout(devTapTimer);
+  devTapTimer = setTimeout(() => { devTaps = 0; }, 3000);
+  if(devTaps >= 5){ devTaps = 0; devArm(true); }
+});
 
 /* ---------- HOME FACTS (beds / baths / cars) ----------
    Counted from the photos taken, then confirmed by the owner on the final form.
