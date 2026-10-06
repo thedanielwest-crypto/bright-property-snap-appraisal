@@ -155,16 +155,18 @@
   .iab-text{font-size:14px; line-height:1.55; color:var(--charcoal); opacity:0.8; margin-bottom:18px;}
   .iab-dismiss{margin-top:16px; font-size:12.5px; opacity:0.5; text-decoration:underline; cursor:pointer;}
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
-  .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center; display:flex; flex-direction:column;}
+  .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center;}
   .step-tag{font-size:11.5px; font-weight:700; color:var(--orange); letter-spacing:0.08em; text-transform:uppercase;}
   .room-emoji{font-size:42px; margin:10px 0 6px;}
   .room-now h2{font-size:20px;}
   .capture-preview{margin-top:14px; min-height:230px; border-radius:14px; background:#F1EEE9; border:1.5px dashed var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;}
-  .capture-preview.has-photo{min-height:0; border:none; background:var(--white); order:-1; position:sticky; top:-14px; z-index:6; margin:-22px -18px 14px; padding:14px 18px 10px; border-radius:19px 19px 14px 14px; box-shadow:0 8px 14px -10px rgba(0,0,0,0.22);}
+  .capture-preview.has-photo{min-height:0; border:none; background:transparent;}
   .capture-preview canvas{display:none; width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:14px;}
-  .capture-preview.has-photo canvas{max-height:32vh;}
   .placeholder-icon{font-size:28px; opacity:0.35;}
   .capture-actions{margin-top:14px; display:flex; flex-direction:column; gap:9px;}
+  .capture-dock{position:sticky; bottom:-14px; z-index:6; background:var(--white); margin:12px -18px -22px; padding:12px 18px 16px; border-radius:0 0 19px 19px; box-shadow:0 -10px 16px -12px rgba(0,0,0,0.22);}
+  .capture-dock .capture-actions{margin-top:0;}
+  .capture-dock .row-actions{margin-top:0;}
   .row-actions{display:none; flex-direction:row; gap:9px; margin-top:12px;}
   .row-actions .btn{flex:1;}
   .skip-link{text-align:center; font-size:12px; color:var(--charcoal); opacity:0.7; text-decoration:underline; cursor:pointer; margin-top:4px;}
@@ -412,17 +414,6 @@
             <div id="address-error" class="hidden" style="color:#C0392B; font-size:12px; margin-top:8px;"></div>
           </div>
 
-          <div class="capture-actions" id="pre-actions">
-            <input type="file" accept="image/*" capture="environment" id="file-input" style="display:none" onchange="handlePhoto(event)">
-            <input type="file" accept="image/*" id="file-input-upload" style="display:none" onchange="handlePhoto(event)">
-            <button class="btn btn-brand" onclick="takePhoto()">📸 Take Photo</button>
-            <button class="btn btn-outline" onclick="document.getElementById('file-input-upload').click()">🖼️ Upload a photo from your phone or computer</button>
-            <div class="skip-link" id="skip-photo-link" onclick="skipPhoto()">Skip this photo →</div>
-          </div>
-          <div class="row-actions" id="post-actions">
-            <button class="btn btn-outline" onclick="retakePhoto()">↺ Retake</button>
-            <button class="btn btn-brand" onclick="confirmPhoto()">Looks Good →</button>
-          </div>
 
           <div class="room-notes">
             <label>Notes for your agent <span style="font-weight:400;">(optional)</span></label>
@@ -432,6 +423,22 @@
           <!-- Bedroom-only extra actions -->
           <div class="bedroom-extras" id="bedroom-extras">
             <div class="skip-link" id="skip-to-agent" onclick="skipToAgent()">Skip the rest of the rooms →</div>
+          </div>
+
+          <!-- Docked action bar: stays on screen at every scroll position so
+               Take Photo / Looks Good are always one tap away. -->
+          <div class="capture-dock">
+            <div class="capture-actions" id="pre-actions">
+              <input type="file" accept="image/*" capture="environment" id="file-input" style="display:none" onchange="handlePhoto(event)">
+              <input type="file" accept="image/*" id="file-input-upload" style="display:none" onchange="handlePhoto(event)">
+              <button class="btn btn-brand" onclick="takePhoto()">📸 Take Photo</button>
+              <button class="btn btn-outline" onclick="document.getElementById('file-input-upload').click()">🖼️ Upload a photo from your phone or computer</button>
+              <div class="skip-link" id="skip-photo-link" onclick="skipPhoto()">Skip this photo →</div>
+            </div>
+            <div class="row-actions" id="post-actions">
+              <button class="btn btn-outline" onclick="retakePhoto()">↺ Retake</button>
+              <button class="btn btn-brand" onclick="confirmPhoto()">Looks Good →</button>
+            </div>
           </div>
         </div>
         <div class="room-strip" id="room-strip"></div>
