@@ -518,7 +518,7 @@
         </div>
         <div class="skip-link room-none" onclick="pickBathrooms(0)">None →</div>
 
-        <button class="btn btn-brand" id="rooms-continue" style="margin-top:22px; width:100%; max-width:320px; opacity:0.35; pointer-events:none;" onclick="confirmRoomCounts()">Continue →</button>
+        <button class="btn btn-brand" id="rooms-continue" style="margin-top:22px; width:100%; max-width:320px; opacity:0.35;" onclick="confirmRoomCounts()" disabled>Continue →</button>
       </div>
       <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt=""></div>
     </div>
@@ -1368,7 +1368,11 @@ function refreshRoomsContinue(){
   const btn = document.getElementById('rooms-continue');
   const ready = bedroomTarget !== null && bathroomTarget !== null;
   btn.style.opacity = ready ? '1' : '0.35';
-  btn.style.pointerEvents = ready ? 'auto' : 'none';
+  // Use `disabled`, never an inline pointer-events. An inline
+  // pointer-events:auto overrides the `none` that a hidden .screen relies on,
+  // which left this button live and floating invisibly over every screen
+  // after it — swallowing the clicks meant for Continue on Meet your agent.
+  btn.disabled = !ready;
 }
 function confirmRoomCounts(){
   if(bedroomTarget === null || bathroomTarget === null) return;
@@ -1538,8 +1542,6 @@ function photographExtra(f){
   roomQueue = [extraRoomObjs[f.id]];
   currentIndex = 0;
   maxIndex = 0;
-  { const sn = document.getElementById('standout-note'); if(sn) sn.value = ''; }
-  delete roomNotes['Standout features'];
   bathroomCount = 0;
   bathroomTarget = null;
   bedroomTarget = null;
