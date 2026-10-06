@@ -120,10 +120,19 @@
   .consent-list li{position:relative; padding-left:24px; font-size:13.5px; line-height:1.5; margin-bottom:10px;}
   .consent-list li::before{content:'✓'; position:absolute; left:0; top:0; color:var(--orange); font-weight:800;}
   .consent-video{margin:0 0 14px;}
-  .cv-frame{position:relative; aspect-ratio:16/9; border-radius:14px; background:#1B1B1E; border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; overflow:hidden;}
-  .cv-frame::after{content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 45%, rgba(255,255,255,0.07), transparent 62%);}
-  .cv-play{width:52px; height:52px; border-radius:50%; background:var(--orange); color:#fff; display:flex; align-items:center; justify-content:center; font-size:19px; padding-left:4px; box-shadow:0 6px 18px rgba(0,0,0,0.35);}
-  .cv-soon{font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#CFCCC8;}
+  /* The clip is shot portrait, so the frame is 9:16 and capped by height —
+     a full-width 9:16 box would push the Continue button off the screen. */
+  /* Shot portrait, so the frame is 9:16 and capped by height — a full-width
+     9:16 box would push the Continue button off the screen. */
+  .cv-wrap{position:relative; width:fit-content; margin:0 auto; border-radius:14px; overflow:hidden; background:#000; line-height:0;}
+  .cv-frame{display:block; width:auto; height:34vh; max-height:270px; min-height:190px; aspect-ratio:9/16; object-fit:cover; background:#000;}
+  /* An explicit play badge: native controls don't always show over a poster,
+     and a homeowner shouldn't have to guess that the picture is a video. */
+  .cv-play{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    border:0; padding:0; margin:0; width:100%; cursor:pointer; background:rgba(0,0,0,0.28); font-family:inherit;}
+  .cv-play .dot{width:56px; height:56px; border-radius:50%; background:var(--orange); color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; padding-left:4px; box-shadow:0 6px 18px rgba(0,0,0,0.45);}
+  .cv-play .lbl{font-size:12px; font-weight:700; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,0.6); letter-spacing:0.02em;}
+  .cv-play.hidden{display:none;}
   .cv-cap{font-size:12px; color:var(--charcoal); opacity:0.75; margin-top:8px; line-height:1.5; text-align:center;}
   .consent-note{font-size:12px; color:var(--charcoal); opacity:0.75; background:var(--white); border:1px solid var(--line); border-radius:12px; padding:10px 12px;}
   .consent-note a{color:var(--orange); font-weight:600;}
@@ -347,28 +356,18 @@
           <li>Your property address and the photos you choose to take go <b>only</b> to the agent named above — not to anyone else.</li>
           <li>You choose which rooms to photograph. Skip anything you'd rather not show. Please don't photograph people, valuables, IDs or security codes.</li>
         </ul>
-        <!-- ============================================================
-             INSTRUCTIONAL VIDEO
-             When the video is ready, delete the <div class="cv-frame"> block
-             below and paste ONE of these in its place:
-
-             Cloudinary (recommended — same account as the photos):
-               <video class="cv-frame" controls playsinline preload="none"
-                      poster="https://res.cloudinary.com/YOUR_CLOUD/video/upload/so_2,w_640,c_fill,f_jpg/how-it-works.jpg"
-                      src="https://res.cloudinary.com/YOUR_CLOUD/video/upload/q_auto,f_auto,w_720/how-it-works.mp4"></video>
-
-             YouTube (unlisted):
-               <iframe class="cv-frame" src="https://www.youtube-nocookie.com/embed/VIDEO_ID?rel=0"
-                       title="How Snap Appraisal works" frameborder="0" loading="lazy"
-                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture"
-                       allowfullscreen></iframe>
-             ============================================================ -->
         <div class="consent-video" id="consent-video">
-          <div class="cv-frame">
-            <div class="cv-play">▶</div>
-            <div class="cv-soon">Instructional video coming soon</div>
+          <div class="cv-wrap">
+            <video class="cv-frame" id="howto-video" controls playsinline preload="none"
+                   poster="how-it-works-poster.jpg" aria-label="How Snap Appraisal works">
+              <source src="how-it-works.mp4" type="video/mp4">
+              Your browser can't play this video.
+            </video>
+            <button type="button" class="cv-play" id="cv-play" onclick="playHowTo()" aria-label="Play the how-it-works video">
+              <span class="dot">&#9654;</span><span class="lbl">How it works &middot; 40 sec</span>
+            </button>
           </div>
-          <div class="cv-cap">A 60-second walk-through of how this works — what you'll be asked for, and how to take a good photo.</div>
+          <div class="cv-cap">Or skip it and start — the app walks you through each step anyway.</div>
         </div>
         <div class="consent-note">Your name and email are asked for at the end. Photos and the address reach your agent as you go and unfinished walk-throughs are deleted after 30 days. Your agent provides the appraisal — this app never estimates value itself. Full details in the <a href="https://austsnapappraisal.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</div>
       </div>
@@ -819,6 +818,21 @@ function renderConsent(){
   const ml = document.getElementById('marketing-consent-label');
   if(ml && currentAgent.agencyName) ml.textContent = `Also send me occasional local property updates from ${currentAgent.agencyName}. Optional — you can unsubscribe any time.`;
 }
+// The video only downloads when it's actually asked for (preload="none"),
+// so the first tap both fetches and plays it.
+function playHowTo(){
+  const v = document.getElementById('howto-video'), b = document.getElementById('cv-play');
+  if(!v) return;
+  b && b.classList.add('hidden');
+  v.play().catch(() => { if(b) b.classList.remove('hidden'); });
+}
+(function(){
+  const v = document.getElementById('howto-video'), b = document.getElementById('cv-play');
+  if(!v || !b) return;
+  v.addEventListener('play',  () => b.classList.add('hidden'));
+  v.addEventListener('pause', () => { if(!v.ended) b.classList.remove('hidden'); });
+  v.addEventListener('ended', () => { b.classList.remove('hidden'); v.load(); });
+})();
 function acceptConsent(){
   consentRecord = { at: new Date().toISOString(), version: CONSENT_VERSION, agentId: currentAgent.agentId || null, agentName: currentAgent.agentName || '' };
   beginWalkthrough();
