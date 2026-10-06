@@ -238,6 +238,8 @@
   /* Bedroom count picker */
   /* this screen's title is longer than the others — give it the room */
   #screen-bedrooms .app-header{grid-template-columns:64px 1fr 64px;}
+  #screen-standout .app-header{grid-template-columns:64px 1fr 64px;}
+  #screen-standout .app-header .title{white-space:nowrap;}
   #screen-bedrooms .app-header .title,
   #screen-bedrooms .app-header .subtitle{white-space:nowrap;}
   #screen-bedrooms .app-header > div:not(.header-agent){justify-self:stretch; min-width:0;}
@@ -446,16 +448,36 @@
         <p class="agent-statement" id="agent-statement-text">Appraisals are done by <b>real people, not AI</b> — and your agent is <b id="agent-statement-name">your agent</b>. Every photo you've taken goes straight to them, who'll follow up personally with a real market-based comparison, not a guess.</p>
       </div>
       <div class="agent-footer">
-        <button class="btn btn-brand" onclick="goTo('extras')">Continue →</button>
+        <button class="btn btn-brand" onclick="goTo('standout')">Continue →</button>
       <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
       </div>
     </div>
 
     <!-- EXTRAS -->
+    <!-- STANDOUT FEATURES: asked before the feature grid, so anything the
+         photos won't show gets said in the owner's own words. -->
+    <div class="screen" id="screen-standout">
+      <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Standout features</div></div><div class="header-agent agent-header-name"></div></div>
+      <div class="content">
+        <div style="font-size:40px; text-align:center;">⭐</div>
+        <h2 style="margin:10px 0 6px; text-align:center; font-size:21px; line-height:1.25;">Are there any standout features that the agent needs to see?</h2>
+        <p style="font-size:13.5px; color:var(--charcoal); opacity:0.75; margin:0 0 16px; text-align:center;">Anything that makes your place different — a new roof, solar, a renovation, views, a shed, dual living. Tell us here, then photograph them on the next page.</p>
+        <div class="room-notes">
+          <label>Tell your agent <span style="font-weight:400;">(optional)</span></label>
+          <textarea id="standout-note" maxlength="400" placeholder="e.g. kitchen renovated last year, 6.6 kW solar, new roof 2023, north-facing back deck"></textarea>
+        </div>
+      </div>
+      <div class="extras-footer">
+        <button class="btn btn-brand" onclick="finishStandout()">Continue →</button>
+        <div class="skip-link" onclick="finishStandout()">Nothing comes to mind →</div>
+        <div class="page-powered"><span class="dev-zone dev-back" onclick="devNav(-1)"></span><span class="dev-zone dev-fwd" onclick="devNav(1)"></span><div class="powered-label">Powered by</div><img src="logo-light.svg" alt="Snap Appraisal Australia"></div>
+      </div>
+    </div>
+
     <div class="screen" id="screen-extras">
       <div class="app-header"><img class="header-logo agent-header-logo hidden" src="" alt=""><div><div class="title">Anything else?</div></div><div class="header-agent agent-header-name"></div></div>
       <div class="content">
-        <p class="extras-lead">Show any other features in your home by photographing them here — extra features can lift your appraisal. You'll come back to this page after each one.</p>
+        <p class="extras-lead">Photograph anything worth showing — a bedroom, the bathroom, the backyard, or whatever you just told us about. Only what you want to, and you'll come back here after each one.</p>
         <div class="feature-grid" id="feature-grid"></div>
       </div>
       <div class="extras-footer">
@@ -470,7 +492,7 @@
       <div class="content">
         <div style="font-size:36px;">🛏️</div>
         <h2 style="margin:8px 0 4px;">How many bedrooms?</h2>
-        <p style="font-size:13.5px; color:var(--charcoal); opacity:0.75; margin:0;">We'll take you through each one. Studies and offices count too.</p>
+        <p style="font-size:13.5px; color:var(--charcoal); opacity:0.75; margin:0;">Just the number — no photos needed. Studies and home offices count too.</p>
         <div class="bed-grid" id="bed-grid">
           <button class="bed-btn" data-n="1" onclick="pickBedrooms(1)">1</button>
           <button class="bed-btn" data-n="2" onclick="pickBedrooms(2)">2</button>
@@ -479,7 +501,7 @@
           <button class="bed-btn" data-n="5" onclick="pickBedrooms(5)">5</button>
           <button class="bed-btn" data-n="6" onclick="pickBedrooms(6)">6<small>or more</small></button>
         </div>
-        <div class="skip-link room-none" onclick="pickBedrooms(0)">No bedrooms to photograph →</div>
+        <div class="skip-link room-none" onclick="pickBedrooms(0)">None →</div>
 
         <div class="room-q-divide"></div>
 
@@ -494,7 +516,7 @@
           <button class="bed-btn" data-n="5" onclick="pickBathrooms(5)">5</button>
           <button class="bed-btn" data-n="6" onclick="pickBathrooms(6)">6<small>or more</small></button>
         </div>
-        <div class="skip-link room-none" onclick="pickBathrooms(0)">No bathrooms to photograph →</div>
+        <div class="skip-link room-none" onclick="pickBathrooms(0)">None →</div>
 
         <button class="btn btn-brand" id="rooms-continue" style="margin-top:22px; width:100%; max-width:320px; opacity:0.35; pointer-events:none;" onclick="confirmRoomCounts()">Continue →</button>
       </div>
@@ -755,8 +777,11 @@ function showBackButtonHint(){
 }
 const MAX_AUTO_BEDROOMS = 4; // auto-advance to Agent Intro after this many if user never taps Skip
 
+/* Three photos to start, in this order. Front of House is deliberately last
+   of the three: it is where the address is captured and where the warm lead
+   is created, so two easy indoor shots come first and nobody is asked to walk
+   outside before they have committed to anything. */
 const CORE_START = [
-  {id:'dining', label:'Dining Room', emoji:'🍽️', hint:'Widest angle you can get of the dining space.'},
   {id:'living', label:'Living Room', emoji:'🛋️', hint:'Widest angle you can get — corner of the room usually works best.'},
   {id:'kitchen', label:'Kitchen', emoji:'🍳', hint:'Benches, splashback and any appliances staying with the home.'},
   {id:'front', label:'Front of House', emoji:'🏡', hint:'Stand across the street and capture the full front facade in good light.', isFront:true},
@@ -779,6 +804,8 @@ function snapIcon(id){
   return `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${SNAP_FRAME}${GLYPHS[id] || ''}</svg>`;
 }
 const FEATURES = [
+  {id:'bedroom', label:'Bedroom', emoji:'🛏️', hint:'The best one — wide shot from the doorway.'},
+  {id:'bathroom', label:'Bathroom', emoji:'🛁', hint:'Vanity, shower or bath, and anything recently updated.'},
   {id:'pool', label:'Pool', emoji:'🏊', hint:'Full pool and surrounding deck or fencing.'},
   {id:'garage', label:'Garage', emoji:'🚗', hint:'Door open, show the full space.'},
   {id:'backyard', label:'Backyard', emoji:'🌴', hint:'Show off the space — lawn, garden beds, fencing.'},
@@ -845,6 +872,8 @@ function beginWalkthrough(){
   roomQueue = [...CORE_START];
   currentIndex = 0;
   maxIndex = 0;
+  { const sn = document.getElementById('standout-note'); if(sn) sn.value = ''; }
+  delete roomNotes['Standout features'];
   bathroomCount = 0;
   bathroomTarget = null;
   bedroomTarget = null;
@@ -934,7 +963,8 @@ function devForward(){
       }
       return skipPhoto();
     }
-    case 'agent':    return goTo('extras');
+    case 'agent':    return goTo('standout');
+    case 'standout': return finishStandout();
     case 'extras':   return finishExtras();
     case 'final': {
       const n = document.getElementById('input-name'), e = document.getElementById('input-email');
@@ -1342,8 +1372,8 @@ function refreshRoomsContinue(){
 }
 function confirmRoomCounts(){
   if(bedroomTarget === null || bathroomTarget === null) return;
-  if(bedroomTarget > 0){ insertNextBedroom(); renderRoom(); goTo('capture'); return; }
-  if(bathroomTarget > 0){ insertNextBathroom(); renderRoom(); goTo('capture'); return; }
+  // Counts only — no room-by-room photography. Anyone who does want to show
+  // a bedroom or bathroom can add one from "Anything else?" on the next page.
   goTo('agent');
 }
 
@@ -1508,6 +1538,8 @@ function photographExtra(f){
   roomQueue = [extraRoomObjs[f.id]];
   currentIndex = 0;
   maxIndex = 0;
+  { const sn = document.getElementById('standout-note'); if(sn) sn.value = ''; }
+  delete roomNotes['Standout features'];
   bathroomCount = 0;
   bathroomTarget = null;
   bedroomTarget = null;
@@ -1521,6 +1553,14 @@ function markExtraDone(room){
   selectedFeatures.add(room.id);
   const card = document.getElementById('feature-card-' + room.id);
   if(card){ card.classList.add('done'); card.querySelector('.tap').textContent = 'Photographed'; }
+}
+// Saved as a room note so it rides along with the photo notes into the lead
+// sheet PDF and the agent's email — no new field anywhere on the server.
+function finishStandout(){
+  const el = document.getElementById('standout-note');
+  const v = el ? el.value.trim() : '';
+  if(v) roomNotes['Standout features'] = v; else delete roomNotes['Standout features'];
+  goTo('extras');
 }
 function finishExtras(){
   goTo('final');
