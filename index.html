@@ -155,13 +155,14 @@
   .iab-text{font-size:14px; line-height:1.55; color:var(--charcoal); opacity:0.8; margin-bottom:18px;}
   .iab-dismiss{margin-top:16px; font-size:12.5px; opacity:0.5; text-decoration:underline; cursor:pointer;}
   .capture-body{flex:1; padding:14px 22px; display:flex; flex-direction:column; overflow-y:auto;}
-  .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center;}
+  .room-now{background:var(--white); border-radius:20px; border:1px solid var(--line); padding:22px 18px; text-align:center; display:flex; flex-direction:column;}
   .step-tag{font-size:11.5px; font-weight:700; color:var(--orange); letter-spacing:0.08em; text-transform:uppercase;}
   .room-emoji{font-size:42px; margin:10px 0 6px;}
   .room-now h2{font-size:20px;}
   .capture-preview{margin-top:14px; min-height:230px; border-radius:14px; background:#F1EEE9; border:1.5px dashed var(--line); display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;}
-  .capture-preview.has-photo{min-height:0; border:none; background:transparent;}
+  .capture-preview.has-photo{min-height:0; border:none; background:var(--white); order:-1; position:sticky; top:-14px; z-index:6; margin:-22px -18px 14px; padding:14px 18px 10px; border-radius:19px 19px 14px 14px; box-shadow:0 8px 14px -10px rgba(0,0,0,0.22);}
   .capture-preview canvas{display:none; width:100%; height:auto; max-height:70vh; object-fit:contain; border-radius:14px;}
+  .capture-preview.has-photo canvas{max-height:32vh;}
   .placeholder-icon{font-size:28px; opacity:0.35;}
   .capture-actions{margin-top:14px; display:flex; flex-direction:column; gap:9px;}
   .row-actions{display:none; flex-direction:row; gap:9px; margin-top:12px;}
@@ -1081,6 +1082,9 @@ function resetPreview(){
   document.getElementById('pre-actions').style.display = 'flex';
   document.getElementById('post-actions').style.display = 'none';
   document.getElementById('file-input').value = '';
+  // Clear the upload input too, otherwise re-picking the SAME file after a
+  // retake fires no change event and the photo silently never appears.
+  { const u = document.getElementById('file-input-upload'); if(u) u.value = ''; }
 }
 
 /* ---------- PHOTO CAPTURE ---------- */
